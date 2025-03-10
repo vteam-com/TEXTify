@@ -32,6 +32,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final Settings _settings = Settings();
 
   late int _grayScale;
+  bool _erodeFirst = true;
   late int _kernelSizeErode;
   late int _kernelSizeDilate;
 
@@ -132,16 +133,19 @@ class _HomeScreenState extends State<HomeScreen> {
                   isExpanded: _settings.isExpandedOptimized,
                   content: panelOptimizedImage(
                     imageBlackOnWhite: _imageBlackOnWhite,
+                    erodeFirst: _erodeFirst,
                     kernelSizeErode: _kernelSizeErode,
                     kernelSizeDilate: _kernelSizeDilate,
                     grayscaleLevel: _grayScale,
                     thresoldsChanged: (
+                      final bool erodeFirst,
                       final int sizeErode,
                       final int sizeDilate,
                       int grayscale,
                     ) {
                       setState(
                         () {
+                          _erodeFirst = erodeFirst;
                           _kernelSizeErode = max(0, sizeErode);
                           _kernelSizeDilate = max(0, sizeDilate);
                           _grayScale = max(0, grayscale);
@@ -256,20 +260,35 @@ class _HomeScreenState extends State<HomeScreen> {
       backgroundBrightnessThreshold_0_255: _grayScale,
     );
 
-    if (_kernelSizeErode > 0) {
-      tmpImageBlackOnWhite = await erode(
-        tmpImageBlackOnWhite,
-        kernelSize: _kernelSizeErode,
-      );
-    }
+    if (_erodeFirst) {
+      if (_kernelSizeErode > 0) {
+        tmpImageBlackOnWhite = await erode(
+          tmpImageBlackOnWhite,
+          kernelSize: _kernelSizeErode,
+        );
+      }
 
-    if (_kernelSizeDilate > 0) {
-      tmpImageBlackOnWhite = await dilate(
-        inputImage: tmpImageBlackOnWhite,
-        kernelSize: _kernelSizeDilate,
-      );
-    }
+      if (_kernelSizeDilate > 0) {
+        tmpImageBlackOnWhite = await dilate(
+          inputImage: tmpImageBlackOnWhite,
+          kernelSize: _kernelSizeDilate,
+        );
+      }
+    } else {
+      if (_kernelSizeDilate > 0) {
+        tmpImageBlackOnWhite = await dilate(
+          inputImage: tmpImageBlackOnWhite,
+          kernelSize: _kernelSizeDilate,
+        );
+      }
 
+      if (_kernelSizeErode > 0) {
+        tmpImageBlackOnWhite = await erode(
+          tmpImageBlackOnWhite,
+          kernelSize: _kernelSizeErode,
+        );
+      }
+    }
     final String theTextFound = await _textify.getTextFromMatrix(
       imageAsMatrix: await Matrix.fromImage(tmpImageBlackOnWhite),
     );

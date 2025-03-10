@@ -8,16 +8,18 @@ import 'package:textify_dashboard/widgets/image_viewer.dart';
 class ThresholdControlWidget extends StatelessWidget {
   const ThresholdControlWidget({
     super.key,
+    required this.erodeFirst,
     required this.kernelSizeErode,
     required this.kernelSizeDilate,
     required this.grayscaleLevel,
     required this.onChanged,
     required this.onReset,
   });
+  final bool erodeFirst;
   final int kernelSizeErode;
   final int kernelSizeDilate;
   final int grayscaleLevel;
-  final Function(int, int, int) onChanged;
+  final Function(bool, int, int, int) onChanged;
   final Function onReset;
 
   @override
@@ -28,6 +30,22 @@ class ThresholdControlWidget extends StatelessWidget {
       children: [
         _buildGrayscaleButtons(),
         _buildErodeButtons(),
+        Row(
+          children: [
+            Checkbox(
+              value: erodeFirst,
+              onChanged: (value) {
+                onChanged(
+                  value ?? false,
+                  kernelSizeErode,
+                  kernelSizeDilate,
+                  grayscaleLevel,
+                );
+              },
+            ),
+            Text('Erode First'),
+          ],
+        ),
         _buildDilateButtons(),
         OutlinedButton(
           onPressed: () {
@@ -45,6 +63,7 @@ class ThresholdControlWidget extends StatelessWidget {
         _buildButton('-', () {
           if (grayscaleLevel > 0) {
             onChanged(
+              erodeFirst,
               kernelSizeErode,
               kernelSizeDilate,
               grayscaleLevel - 1,
@@ -57,6 +76,7 @@ class ThresholdControlWidget extends StatelessWidget {
         _buildButton('+', () {
           if (grayscaleLevel < 255) {
             onChanged(
+              erodeFirst,
               kernelSizeErode,
               kernelSizeDilate,
               grayscaleLevel + 1,
@@ -73,6 +93,7 @@ class ThresholdControlWidget extends StatelessWidget {
         _buildButton('-', () {
           if (kernelSizeErode > 0) {
             onChanged(
+              erodeFirst,
               kernelSizeErode - 1,
               kernelSizeDilate,
               grayscaleLevel,
@@ -84,6 +105,7 @@ class ThresholdControlWidget extends StatelessWidget {
         gap(),
         _buildButton('+', () {
           onChanged(
+            erodeFirst,
             kernelSizeErode + 1,
             kernelSizeDilate,
             grayscaleLevel,
@@ -99,6 +121,7 @@ class ThresholdControlWidget extends StatelessWidget {
         _buildButton('-', () {
           if (kernelSizeDilate > 0) {
             onChanged(
+              erodeFirst,
               kernelSizeErode,
               kernelSizeDilate - 1,
               grayscaleLevel,
@@ -110,6 +133,7 @@ class ThresholdControlWidget extends StatelessWidget {
         gap(),
         _buildButton('+', () {
           onChanged(
+            erodeFirst,
             kernelSizeErode,
             kernelSizeDilate + 1,
             grayscaleLevel,
@@ -130,15 +154,17 @@ class ThresholdControlWidget extends StatelessWidget {
 
 Widget panelOptimizedImage({
   required final ui.Image? imageBlackOnWhite,
+  required final bool erodeFirst,
   required final int kernelSizeErode,
   required final int kernelSizeDilate,
   required final int grayscaleLevel,
-  required final Function(int, int, int) thresoldsChanged,
+  required final Function(bool, int, int, int) thresoldsChanged,
   required final Function onReset,
   required final TransformationController transformationController,
 }) {
   return PanelContent(
     top: ThresholdControlWidget(
+      erodeFirst: erodeFirst,
       kernelSizeErode: kernelSizeErode,
       kernelSizeDilate: kernelSizeDilate,
       grayscaleLevel: grayscaleLevel,

@@ -13,20 +13,20 @@ import 'dart:ui' as ui;
 class Matrix {
   /// Creates a new Matrix with the specified dimensions, filled with the given value.
   ///
-  /// [width] The number of columns in the matrix.
-  /// [height] The number of rows in the matrix.
+  /// [cols] The number of columns in the matrix.
+  /// [rows] The number of rows in the matrix.
   /// [value] The initial value for all cells (default is false).
   Matrix([
-    final num width = 0,
-    final num height = 0,
+    final num cols = 0,
+    final num rows = 0,
     final bool value = false,
   ]) {
     _data = List.generate(
-      height.toInt(),
-      (_) => List.filled(width.toInt(), false),
+      rows.toInt(),
+      (_) => List.filled(cols.toInt(), false),
     );
-    cols = width.toInt();
-    rows = height.toInt();
+    this.cols = cols.toInt();
+    this.rows = rows.toInt();
   }
 
   /// Creates a new [Matrix] instance from an existing [Matrix].
@@ -157,14 +157,16 @@ class Matrix {
   /// The number of columns in the matrix.
   int cols = 0;
 
+  /// The number of rows in the matrix.
+  int rows = 0;
+
   /// The 2D list representing the boolean grid.
   List<List<bool>> _data = [];
 
-  /// Getter for data
+  /// Returns the matrix data as a 2D list of boolean values.
+  /// The outer list represents rows and the inner lists represent columns.
+  /// Each boolean value indicates whether a cell is active (true) or inactive (false).
   List<List<bool>> get data => _data;
-
-  /// The number of rows in the matrix.
-  int rows = 0;
 
   /// the rectangle location of this matrix.
   Rect rectangle = Rect.zero;

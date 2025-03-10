@@ -10,4 +10,4 @@ dart format .
 
 flutter test
 
-tool/graph.sh
+tools/graph.sh

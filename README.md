@@ -144,7 +144,7 @@ TEXTify is currently designed to work with the English language only. While it m
 ```bash
 dart pub global activate lakos
 brew install graphviz
-./tool/graph.sh
+./tools/graph.sh
 ```
 
 Please contribute and report issues on the GitHub repository.

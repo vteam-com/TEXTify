@@ -61,25 +61,28 @@ Widget _buildActionButtons(
         child: const Text('Center'),
       ),
       gap(),
-      DropdownButton<String>(
-        value: viewAs == ViewAs.original
-            ? 'Original'
-            : viewAs == ViewAs.matrix
-                ? 'Normalized'
-                : 'Histogram',
+      DropdownButton<ViewAs>(
+        value: viewAs,
         items: const [
-          DropdownMenuItem(value: 'Original', child: Text('Original')),
-          DropdownMenuItem(value: 'Normalized', child: Text('Normalized')),
-          DropdownMenuItem(value: 'Histogram', child: Text('Histogram')),
+          DropdownMenuItem(
+            value: ViewAs.original,
+            child: Text('Original'),
+          ),
+          DropdownMenuItem(
+            value: ViewAs.originalHistogram,
+            child: Text('Original Histogram'),
+          ),
+          DropdownMenuItem(
+            value: ViewAs.matrix,
+            child: Text('Normalized'),
+          ),
+          DropdownMenuItem(
+            value: ViewAs.matrixHistogram,
+            child: Text('Normalized Histogram'),
+          ),
         ],
-        onChanged: (value) {
-          if (value == 'Original') {
-            onViewAsChanged(ViewAs.original);
-          } else if (value == 'Normalized') {
-            onViewAsChanged(ViewAs.matrix);
-          } else if (value == 'Histogram') {
-            onViewAsChanged(ViewAs.histogram);
-          }
+        onChanged: (ViewAs? value) {
+          onViewAsChanged(value!);
         },
       ),
     ],

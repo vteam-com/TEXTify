@@ -1456,32 +1456,28 @@ class Matrix {
   }
 }
 
-/// Binarize an input image by converting it to black and white based on a brightness threshold.
+/// Converts a UI image to a black and white image by applying an adaptive threshold.
 ///
-/// This function takes an input [ui.Image] and converts it to a black and white image
-/// where pixels brighter than the specified [backgroundBrightnessThreshold_0_255] become white, and those below become black.
+/// This function takes a UI image, converts it to grayscale, and then applies an adaptive
+/// threshold to convert the image to black and white. The adaptive threshold is computed
+/// by taking the average of all the pixel values and subtracting 90 from it, which helps
+/// to create a sharper separation between the foreground and background.
 ///
 /// Parameters:
-/// - [inputImage]: The source image to be binarized.
-/// - [backgroundBrightnessThreshold_0_255]: Optional. The brightness threshold used to determine black or white pixels.
-///   Defaults to 190. Range is 0-255.
+/// - [inputImage]: The input UI image to be converted.
+/// - [backgroundBrightnessThreshold_0_255]: The brightness threshold for the background, between 0 and 255. Defaults to 190.
 ///
 /// Returns:
-/// A [Future] that resolves to a new [ui.Image] containing the binarized version of the input image.
-///
-/// Throws:
-/// An [Exception] if it fails to get image data from the input image.
+/// A Future that resolves to the converted black and white UI image.
 Future<ui.Image> imageToBlackOnWhite(
-  final ui.Image inputImage, {
-  final int backgroundBrightnessThreshold_0_255 = 190,
-}) async {
+  final ui.Image inputImage,
+) async {
   final int width = inputImage.width;
   final int height = inputImage.height;
   final Uint8List pixels = await imageToUint8List(inputImage);
 
   // Create a new Uint8List for the output image
-  final Uint8List outputPixels = Uint8List(width * height * 4);
-
+  Uint8List outputPixels = Uint8List(pixels.length);
   for (int i = 0; i < pixels.length; i += 4) {
     final int r = pixels[i];
     final int g = pixels[i + 1];
@@ -1490,26 +1486,58 @@ Future<ui.Image> imageToBlackOnWhite(
     final int a = pixels[i + 3];
 
     // Calculate brightness using a weighted average
-    final double brightness = (0.299 * r + 0.587 * g + 0.114 * b);
+    final int gray = (0.299 * r + 0.587 * g + 0.114 * b).toInt();
 
-    // If brightness is above the threshold, set pixel to white, otherwise black
-    if (brightness > backgroundBrightnessThreshold_0_255) {
-      // make this the background paper
-      outputPixels[i] = 255; // R
-      outputPixels[i + 1] = 255; // G
-      outputPixels[i + 2] = 255; // B
-    } else {
-      // make this the foreground ink
-      outputPixels[i] = 0; // R
-      outputPixels[i + 1] = 0; // G
-      outputPixels[i + 2] = 0; // B
-    }
-
-    // remove alpha
-    outputPixels[i + 3] = 255; // A
+    outputPixels[i] = gray;
+    outputPixels[i + 1] = gray;
+    outputPixels[i + 2] = gray;
+    outputPixels[i + 3] = 255; // Drop alpha
   }
 
-  return await createImageFromPixels(outputPixels, width, height);
+  // Compute threshold dynamically
+  int threshold = computeAdaptiveThreshold(outputPixels, width, height);
+
+  // Apply binary threshold
+  Uint8List bwPixels = Uint8List(outputPixels.length);
+  for (int i = 0; i < outputPixels.length; i += 4) {
+    final int gray = outputPixels[i];
+    final int newColor = (gray > threshold) ? 255 : 0;
+
+    bwPixels[i] = newColor;
+    bwPixels[i + 1] = newColor;
+    bwPixels[i + 2] = newColor;
+    bwPixels[i + 3] = 255; // Drop alpha
+  }
+
+  // Convert Uint8List back to ui.Image
+  return await createImageFromPixels(bwPixels, width, height);
+}
+
+/// Computes an adaptive threshold for converting a grayscale image to black and white.
+///
+/// This function takes a list of grayscale pixel values and computes a threshold value
+/// that can be used to convert the image to a black and white representation. The threshold
+/// is computed by taking the average of all the pixel values and subtracting 100 from it.
+/// This helps to create a sharper separation between the foreground and background.
+///
+/// Parameters:
+/// - [pixels]: A list of grayscale pixel values.
+/// - [width]: The width of the image in pixels.
+/// - [height]: The height of the image in pixels.
+///
+/// Returns:
+/// The computed adaptive threshold value.
+/// Compute adaptive threshold dynamically
+// Compute adaptive threshold dynamically
+int computeAdaptiveThreshold(Uint8List pixels, int width, int height) {
+  int sum = 0, count = 0;
+  for (int i = 0; i < pixels.length; i += 4) {
+    sum += pixels[i];
+    count++;
+  }
+
+  // Adjust threshold for sharper separation
+  return (sum ~/ count) - 90;
 }
 
 /// Converts a [ui.Image] to a [Uint8List] representation.

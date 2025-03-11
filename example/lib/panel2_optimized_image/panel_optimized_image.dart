@@ -11,15 +11,17 @@ class ThresholdControlWidget extends StatelessWidget {
     required this.erodeFirst,
     required this.kernelSizeErode,
     required this.kernelSizeDilate,
-    required this.grayscaleLevel,
     required this.onChanged,
     required this.onReset,
   });
   final bool erodeFirst;
   final int kernelSizeErode;
   final int kernelSizeDilate;
-  final int grayscaleLevel;
-  final Function(bool, int, int, int) onChanged;
+  final Function(
+    bool,
+    int,
+    int,
+  ) onChanged;
   final Function onReset;
 
   @override
@@ -28,7 +30,6 @@ class ThresholdControlWidget extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.center,
       spacing: 40,
       children: [
-        _buildGrayscaleButtons(),
         _buildErodeButtons(),
         Row(
           children: [
@@ -39,7 +40,6 @@ class ThresholdControlWidget extends StatelessWidget {
                   value ?? false,
                   kernelSizeErode,
                   kernelSizeDilate,
-                  grayscaleLevel,
                 );
               },
             ),
@@ -57,36 +57,6 @@ class ThresholdControlWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildGrayscaleButtons() {
-    return Row(
-      children: [
-        _buildButton('-', () {
-          if (grayscaleLevel > 0) {
-            onChanged(
-              erodeFirst,
-              kernelSizeErode,
-              kernelSizeDilate,
-              grayscaleLevel - 1,
-            );
-          }
-        }),
-        gap(),
-        Text('GrayScale: $grayscaleLevel'), // Display current grayscale level
-        gap(),
-        _buildButton('+', () {
-          if (grayscaleLevel < 255) {
-            onChanged(
-              erodeFirst,
-              kernelSizeErode,
-              kernelSizeDilate,
-              grayscaleLevel + 1,
-            );
-          }
-        }),
-      ],
-    );
-  }
-
   Widget _buildErodeButtons() {
     return Row(
       children: [
@@ -96,7 +66,6 @@ class ThresholdControlWidget extends StatelessWidget {
               erodeFirst,
               kernelSizeErode - 1,
               kernelSizeDilate,
-              grayscaleLevel,
             );
           }
         }),
@@ -108,7 +77,6 @@ class ThresholdControlWidget extends StatelessWidget {
             erodeFirst,
             kernelSizeErode + 1,
             kernelSizeDilate,
-            grayscaleLevel,
           );
         }),
       ],
@@ -124,7 +92,6 @@ class ThresholdControlWidget extends StatelessWidget {
               erodeFirst,
               kernelSizeErode,
               kernelSizeDilate - 1,
-              grayscaleLevel,
             );
           }
         }),
@@ -136,7 +103,6 @@ class ThresholdControlWidget extends StatelessWidget {
             erodeFirst,
             kernelSizeErode,
             kernelSizeDilate + 1,
-            grayscaleLevel,
           );
         }),
       ],
@@ -157,8 +123,7 @@ Widget panelOptimizedImage({
   required final bool erodeFirst,
   required final int kernelSizeErode,
   required final int kernelSizeDilate,
-  required final int grayscaleLevel,
-  required final Function(bool, int, int, int) displayChoicesChanged,
+  required final Function(bool, int, int) displayChoicesChanged,
   required final Function onReset,
   required final TransformationController transformationController,
 }) {
@@ -167,7 +132,6 @@ Widget panelOptimizedImage({
       erodeFirst: erodeFirst,
       kernelSizeErode: kernelSizeErode,
       kernelSizeDilate: kernelSizeDilate,
-      grayscaleLevel: grayscaleLevel,
       onChanged: displayChoicesChanged,
       onReset: onReset,
     ),

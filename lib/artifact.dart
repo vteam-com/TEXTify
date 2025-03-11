@@ -27,7 +27,7 @@ class Artifact {
   ///
   /// For example, if the artifact's matrix looks like this:
   ///
-  Matrix get verticalProfile => _matrix.verticalProjection();
+  Matrix get verticalHistogram => _matrix.verticalProjection();
 
   /// The area of the artifact, calculated from its matrix representation.
   int get area => _matrix.area;

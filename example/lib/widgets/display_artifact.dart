@@ -6,8 +6,9 @@ import 'package:textify_dashboard/widgets/paint_grid.dart';
 
 enum ViewAs {
   original,
+  originalHistogram,
   matrix,
-  histogram,
+  matrixHistogram,
 }
 
 class DisplayArtifacts extends CustomPainter {
@@ -21,10 +22,11 @@ class DisplayArtifacts extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    if (viewAs == ViewAs.original) {
+    if (viewAs == ViewAs.original || viewAs == ViewAs.originalHistogram) {
       _paintArtifactsExactlyWhereTheyAreFound(
-        canvas,
-        textify.artifactsFound,
+        canvas: canvas,
+        viewAs: viewAs,
+        artifacts: textify.artifactsFound,
       );
     } else {
       for (final Band band in textify.bands) {
@@ -105,8 +107,8 @@ class DisplayArtifacts extends CustomPainter {
 
   void _paintArtifactsInRow({
     required final Canvas canvas,
-    required final List<Artifact> artifacts,
     required final ViewAs viewAs,
+    required final List<Artifact> artifacts,
   }) {
     List<Color> colors = [
       Colors.blue.shade300,
@@ -121,7 +123,9 @@ class DisplayArtifacts extends CustomPainter {
         colors[id % colors.length],
         artifact.matrix.originRectangle.left.toInt(),
         artifact.matrix.originRectangle.top.toInt(),
-        viewAs == ViewAs.histogram ? artifact.verticalProfile : artifact.matrix,
+        viewAs == ViewAs.matrixHistogram
+            ? artifact.verticalHistogram
+            : artifact.matrix,
       );
 
       _drawText(
@@ -135,10 +139,11 @@ class DisplayArtifacts extends CustomPainter {
     }
   }
 
-  void _paintArtifactsExactlyWhereTheyAreFound(
-    Canvas canvas,
-    List<Artifact> artifacts,
-  ) {
+  void _paintArtifactsExactlyWhereTheyAreFound({
+    required final Canvas canvas,
+    required final ViewAs viewAs,
+    required final List<Artifact> artifacts,
+  }) {
     // Rainbow colors
     List<Color> colors = [
       Colors.red.shade200,
@@ -158,7 +163,9 @@ class DisplayArtifacts extends CustomPainter {
         colors[index++ % colors.length],
         artifact.matrix.originRectangle.left.toInt(),
         artifact.matrix.originRectangle.top.toInt(),
-        artifact.matrix,
+        viewAs == ViewAs.original
+            ? artifact.matrix
+            : artifact.verticalHistogram,
       );
     }
   }

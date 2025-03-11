@@ -32,7 +32,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   final Settings _settings = Settings();
 
-  late int _grayScale;
   bool _erodeFirst = true;
   late int _kernelSizeErode;
   late int _kernelSizeDilate;
@@ -48,7 +47,6 @@ class _HomeScreenState extends State<HomeScreen> {
       TransformationController();
 
   void _initializeSettings() {
-    _grayScale = 190;
     _kernelSizeErode = 0;
     _kernelSizeDilate = 0;
     _imageBlackOnWhite = null;
@@ -138,19 +136,16 @@ class _HomeScreenState extends State<HomeScreen> {
                     erodeFirst: _erodeFirst,
                     kernelSizeErode: _kernelSizeErode,
                     kernelSizeDilate: _kernelSizeDilate,
-                    grayscaleLevel: _grayScale,
                     displayChoicesChanged: (
                       final bool erodeFirst,
                       final int sizeErode,
                       final int sizeDilate,
-                      int grayscale,
                     ) {
                       setState(
                         () {
                           _erodeFirst = erodeFirst;
                           _kernelSizeErode = max(0, sizeErode);
                           _kernelSizeDilate = max(0, sizeDilate);
-                          _grayScale = max(0, grayscale);
                           _imageBlackOnWhite = null;
                           debouncer.run(
                             () {
@@ -257,10 +252,7 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
     // Convert color image source to a grid of on=ink/off=paper
-    ui.Image tmpImageBlackOnWhite = await imageToBlackOnWhite(
-      _imageSource!,
-      backgroundBrightnessThreshold_0_255: _grayScale,
-    );
+    ui.Image tmpImageBlackOnWhite = await imageToBlackOnWhite(_imageSource!);
 
     if (_erodeFirst) {
       if (_kernelSizeErode > 0) {

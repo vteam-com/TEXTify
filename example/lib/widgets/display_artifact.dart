@@ -4,30 +4,37 @@ import 'package:textify/band.dart';
 import 'package:textify/textify.dart';
 import 'package:textify_dashboard/widgets/paint_grid.dart';
 
+enum ViewAs {
+  original,
+  matrix,
+  histogram,
+}
+
 class DisplayArtifacts extends CustomPainter {
   DisplayArtifacts({
     required this.textify,
-    required this.applyPacking,
+    required this.viewAs,
   });
 
   final Textify textify;
-  final bool applyPacking;
+  final ViewAs viewAs;
 
   @override
   void paint(Canvas canvas, Size size) {
-    if (applyPacking) {
-      for (final Band band in textify.bands) {
-        _paintBand(canvas: canvas, band: band, backgroundColor: Colors.black);
-        _paintArtifactsInRow(
-          canvas: canvas,
-          artifacts: band.artifacts,
-        );
-      }
-    } else {
+    if (viewAs == ViewAs.original) {
       _paintArtifactsExactlyWhereTheyAreFound(
         canvas,
         textify.artifactsFound,
       );
+    } else {
+      for (final Band band in textify.bands) {
+        _paintBand(canvas: canvas, band: band, backgroundColor: Colors.black);
+        _paintArtifactsInRow(
+          canvas: canvas,
+          viewAs: viewAs,
+          artifacts: band.artifacts,
+        );
+      }
     }
   }
 
@@ -99,6 +106,7 @@ class DisplayArtifacts extends CustomPainter {
   void _paintArtifactsInRow({
     required final Canvas canvas,
     required final List<Artifact> artifacts,
+    required final ViewAs viewAs,
   }) {
     List<Color> colors = [
       Colors.blue.shade300,
@@ -113,8 +121,9 @@ class DisplayArtifacts extends CustomPainter {
         colors[id % colors.length],
         artifact.matrix.rectangle.left.toInt(),
         artifact.matrix.rectangle.top.toInt(),
-        artifact.matrix,
+        viewAs == ViewAs.histogram ? artifact.verticalProfile : artifact.matrix,
       );
+
       _drawText(
         canvas,
         artifact.matrix.rectangle.left,

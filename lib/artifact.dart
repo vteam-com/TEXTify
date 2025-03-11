@@ -18,6 +18,17 @@ class Artifact {
   /// Gets the original matrix representation of the artifact.
   Matrix get matrix => _matrix;
 
+  /// Gets the vertical profile of the artifact.
+  ///
+  /// The vertical profile is a `Matrix` that represents the vertical projection
+  /// of the artifact's pixels. Each column in the vertical profile matrix
+  /// represents a vertical line in the original matrix, with 'on' pixels
+  /// indicating the presence of at least one 'on' pixel in that column.
+  ///
+  /// For example, if the artifact's matrix looks like this:
+  ///
+  Matrix get verticalProfile => _matrix.verticalProjection();
+
   /// The area of the artifact, calculated from its matrix representation.
   int get area => _matrix.area;
 

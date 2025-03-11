@@ -127,6 +127,41 @@ class Matrix {
     );
   }
 
+  /// Creates a new Matrix by taking the vertical projection of the source Matrix.
+  ///
+  /// The vertical projection of a Matrix is a new Matrix where each column in the
+  /// result contains a boolean value indicating whether there is a true value in
+  /// that column of the source Matrix.
+  ///
+  /// [source] The source Matrix to take the vertical projection of.
+  /// Returns a new Matrix with the same number of rows as the source, and a number
+  /// of columns equal to the number of columns in the source.
+  Matrix verticalProjection() {
+    int width = this.cols;
+
+    // Step 1: Compute vertical projection (count active pixels per column)
+    List<int> projection = List.filled(width, 0);
+    for (int x = 0; x < width; x++) {
+      for (int y = 0; y < this.rows; y++) {
+        if (this.data[y][x]) {
+          projection[x]++;
+        }
+      }
+    }
+
+    // Step 2: Create an empty matrix for the projection
+    Matrix result = Matrix(this.cols, this.rows, false);
+
+    // Step 3: Fill the matrix from the bottom up based on the projection counts
+    for (int x = 0; x < width; x++) {
+      for (int y = 0; y < projection[x]; y++) {
+        result._data[this.rows - 1 - y][x] = true; // Fill from bottom up
+      }
+    }
+
+    return result;
+  }
+
   /// Creates a [Matrix] from a [ui.Image].
   ///
   /// This factory constructor takes a [ui.Image] object and transforms it into a [Matrix]
@@ -161,6 +196,8 @@ class Matrix {
   int rows = 0;
 
   /// The 2D list representing the boolean grid.
+  /// Each outer list represents a row, and each inner list represents a column.
+  /// _data[row][column] gives the boolean value at that position.
   List<List<bool>> _data = [];
 
   /// Returns the matrix data as a 2D list of boolean values.

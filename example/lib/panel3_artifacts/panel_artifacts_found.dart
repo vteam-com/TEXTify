@@ -2,33 +2,36 @@ import 'package:flutter/material.dart';
 import 'package:textify/textify.dart';
 import 'package:textify_dashboard/panel1_source/panel_content.dart';
 import 'package:textify_dashboard/panel3_artifacts/display_bands_and_artifacts.dart';
+import 'package:textify_dashboard/widgets/display_artifact.dart';
 import 'package:textify_dashboard/widgets/gap.dart';
 import 'package:textify_dashboard/widgets/image_viewer.dart';
 
-Widget panelArtifactFound(
-  final Textify textify,
-  final bool cleanUpArtifacts,
-  final TransformationController transformationController,
-  final Function onToggleCleanup,
-) {
+Widget panelArtifactFound({
+  required final Textify textify,
+  required final ViewAs viewAs,
+  required final Function(ViewAs) onChangeView,
+  required final TransformationController transformationController,
+}) {
   return PanelContent(
     top: _buildActionButtons(
-      onToggleCleanup,
-      cleanUpArtifacts,
+      viewAs,
+      onChangeView,
+      false,
       transformationController,
     ),
     center: CustomInteractiveViewer(
       transformationController: transformationController,
       child: DisplayBandsAndArtifacts(
         textify: textify,
-        applyPacking: cleanUpArtifacts,
+        viewAs: viewAs,
       ),
     ),
   );
 }
 
 Widget _buildActionButtons(
-  final Function onToggleCleanup,
+  final ViewAs viewAs,
+  final Function(ViewAs) onViewAsChanged,
   final bool cleanUpArtifacts,
   final TransformationController transformationController,
 ) {
@@ -58,11 +61,26 @@ Widget _buildActionButtons(
         child: const Text('Center'),
       ),
       gap(),
-      OutlinedButton(
-        onPressed: () {
-          onToggleCleanup();
+      DropdownButton<String>(
+        value: viewAs == ViewAs.original
+            ? 'Original'
+            : viewAs == ViewAs.matrix
+                ? 'Normalized'
+                : 'Histogram',
+        items: const [
+          DropdownMenuItem(value: 'Original', child: Text('Original')),
+          DropdownMenuItem(value: 'Normalized', child: Text('Normalized')),
+          DropdownMenuItem(value: 'Histogram', child: Text('Histogram')),
+        ],
+        onChanged: (value) {
+          if (value == 'Original') {
+            onViewAsChanged(ViewAs.original);
+          } else if (value == 'Normalized') {
+            onViewAsChanged(ViewAs.matrix);
+          } else if (value == 'Histogram') {
+            onViewAsChanged(ViewAs.histogram);
+          }
         },
-        child: Text(cleanUpArtifacts ? 'Original' : 'Normalized'),
       ),
     ],
   );

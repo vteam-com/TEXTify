@@ -158,7 +158,7 @@ Widget panelOptimizedImage({
   required final int kernelSizeErode,
   required final int kernelSizeDilate,
   required final int grayscaleLevel,
-  required final Function(bool, int, int, int) thresoldsChanged,
+  required final Function(bool, int, int, int) displayChoicesChanged,
   required final Function onReset,
   required final TransformationController transformationController,
 }) {
@@ -168,7 +168,7 @@ Widget panelOptimizedImage({
       kernelSizeErode: kernelSizeErode,
       kernelSizeDilate: kernelSizeDilate,
       grayscaleLevel: grayscaleLevel,
-      onChanged: thresoldsChanged,
+      onChanged: displayChoicesChanged,
       onReset: onReset,
     ),
     center: imageBlackOnWhite == null

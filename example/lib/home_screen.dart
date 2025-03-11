@@ -10,6 +10,7 @@ import 'package:textify_dashboard/panel1_source/panel_content.dart';
 import 'package:textify_dashboard/panel2_optimized_image/panel_optimized_image.dart';
 import 'package:textify_dashboard/panel3_artifacts/panel_artifacts_found.dart';
 import 'package:textify_dashboard/settings.dart';
+import 'package:textify_dashboard/widgets/display_artifact.dart';
 import 'panel4_results/panel_matched_artifacts.dart';
 
 ///
@@ -39,7 +40,8 @@ class _HomeScreenState extends State<HomeScreen> {
   ui.Image? _imageSource;
   String _fontName = '';
   List<String> _stringsExpectedToBeFoundInTheImage = [];
-  bool _cleanUpArtifactFound = false;
+  ViewAs viewAs = ViewAs.original;
+
   String _textFound = '';
 
   final TransformationController _transformationController =
@@ -137,7 +139,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     kernelSizeErode: _kernelSizeErode,
                     kernelSizeDilate: _kernelSizeDilate,
                     grayscaleLevel: _grayScale,
-                    thresoldsChanged: (
+                    displayChoicesChanged: (
                       final bool erodeFirst,
                       final int sizeErode,
                       final int sizeDilate,
@@ -178,12 +180,12 @@ class _HomeScreenState extends State<HomeScreen> {
                       '${NumberFormat.decimalPattern().format(_textify.duration)}ms',
                   isExpanded: _settings.isExpandedArtifactFound,
                   content: panelArtifactFound(
-                    _textify,
-                    _cleanUpArtifactFound,
-                    _transformationController,
-                    () {
+                    textify: _textify,
+                    transformationController: _transformationController,
+                    viewAs: viewAs,
+                    onChangeView: (ViewAs viewAs) {
                       setState(() {
-                        _cleanUpArtifactFound = !_cleanUpArtifactFound;
+                        this.viewAs = viewAs;
                       });
                     },
                   ),

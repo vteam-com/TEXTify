@@ -12,11 +12,11 @@ class DisplayBandsAndArtifacts extends StatelessWidget {
   const DisplayBandsAndArtifacts({
     super.key,
     required this.textify,
-    required this.applyPacking,
+    required this.viewAs,
   });
 
-  final bool applyPacking;
   final Textify textify;
+  final ViewAs viewAs;
 
   @override
   Widget build(BuildContext context) {
@@ -36,7 +36,7 @@ class DisplayBandsAndArtifacts extends StatelessWidget {
         key: Key(textify.processEnd.toString()),
         painter: DisplayArtifacts(
           textify: textify,
-          applyPacking: applyPacking,
+          viewAs: viewAs,
         ),
         size: Size(maxWidth, maxHeight),
       ),

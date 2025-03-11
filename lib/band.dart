@@ -72,10 +72,10 @@ class Band {
 
     for (int i = 1; i < artifacts.length; i++) {
       final artifact = artifacts[i];
-      final double kerning = artifact.matrix.rectangle.left -
-          artifacts[i - 1].matrix.rectangle.right;
+      final double kerning = artifact.matrix.originRectangle.left -
+          artifacts[i - 1].matrix.originRectangle.right;
       totalKerning += kerning;
-      totalWidth += artifact.matrix.rectangle.width;
+      totalWidth += artifact.matrix.originRectangle.width;
     }
     _averageWidth = totalWidth / count;
     _averageKerning = totalKerning / count;
@@ -97,7 +97,8 @@ class Band {
   /// ensuring they are in the correct sequence as they appear in the band.
   void sortLeftToRight() {
     artifacts.sort(
-      (a, b) => a.matrix.rectangle.left.compareTo(b.matrix.rectangle.left),
+      (a, b) => a.matrix.originRectangle.left
+          .compareTo(b.matrix.originRectangle.left),
     );
   }
 
@@ -124,11 +125,11 @@ class Band {
       if (indexOfArtifact > 0) {
         // Left
         final Artifact artifactLeft = this.artifacts[indexOfArtifact - 1];
-        final double x1 = artifactLeft.matrix.rectangle.right;
+        final double x1 = artifactLeft.matrix.originRectangle.right;
 
         // Right
         final Artifact artifactRight = this.artifacts[indexOfArtifact];
-        final double x2 = artifactRight.matrix.rectangle.left;
+        final double x2 = artifactRight.matrix.originRectangle.left;
 
         final double kerning = x2 - x1;
 
@@ -145,10 +146,10 @@ class Band {
           this.artifacts.indexOf(artifactOnTheRightSide);
       insertArtifactForSpace(
         indexOfArtifact,
-        artifactOnTheRightSide.matrix.rectangle.left -
+        artifactOnTheRightSide.matrix.originRectangle.left -
             averageWidth -
             averageKerning,
-        artifactOnTheRightSide.matrix.rectangle.left - averageKerning,
+        artifactOnTheRightSide.matrix.originRectangle.left - averageKerning,
       );
     }
   }
@@ -176,18 +177,18 @@ class Band {
     final Artifact artifactSpace = Artifact();
     artifactSpace.characterMatched = ' ';
 
-    artifactSpace.matrix.rectangle = Rect.fromLTRB(
+    artifactSpace.matrix.originRectangle = Rect.fromLTRB(
       x1,
       rectangle.top,
       x2,
       rectangle.bottom,
     );
-    artifactSpace.matrix.rectangle = artifactSpace.matrix.rectangle;
+    artifactSpace.matrix.originRectangle = artifactSpace.matrix.originRectangle;
 
     artifactSpace.matrix.setGrid(
       Matrix(
-        artifactSpace.matrix.rectangle.width.toInt(),
-        artifactSpace.matrix.rectangle.height.toInt(),
+        artifactSpace.matrix.originRectangle.width.toInt(),
+        artifactSpace.matrix.originRectangle.height.toInt(),
       ).data,
     );
     this.artifacts.insert(indexOfArtifact, artifactSpace);
@@ -211,17 +212,18 @@ class Band {
 
     for (final Artifact artifact in artifacts) {
       artifact.matrix.padTopBottom(
-        paddingTop: (artifact.matrix.rectangle.top - rectangle.top).toInt(),
+        paddingTop:
+            (artifact.matrix.originRectangle.top - rectangle.top).toInt(),
         paddingBottom:
-            (rectangle.bottom - artifact.matrix.rectangle.bottom).toInt(),
+            (rectangle.bottom - artifact.matrix.originRectangle.bottom).toInt(),
       );
 
-      final double dx = left - artifact.matrix.rectangle.left;
-      final double dy = rectangle.top - artifact.matrix.rectangle.top;
-      artifact.matrix.rectangle =
-          artifact.matrix.rectangle.shift(Offset(dx, dy));
-      artifact.matrix.rectangle = artifact.matrix.rectangle;
-      left += artifact.matrix.rectangle.width;
+      final double dx = left - artifact.matrix.originRectangle.left;
+      final double dy = rectangle.top - artifact.matrix.originRectangle.top;
+      artifact.matrix.originRectangle =
+          artifact.matrix.originRectangle.shift(Offset(dx, dy));
+      artifact.matrix.originRectangle = artifact.matrix.originRectangle;
+      left += artifact.matrix.originRectangle.width;
       left += kerningWidth;
     }
   }
@@ -262,7 +264,7 @@ class Band {
     double maxY = double.negativeInfinity;
 
     for (final Artifact artifact in artifacts) {
-      final Rect rect = artifact.matrix.rectangle;
+      final Rect rect = artifact.matrix.originRectangle;
       minX = min(minX, rect.left);
       minY = min(minY, rect.top);
       maxX = max(maxX, rect.right);

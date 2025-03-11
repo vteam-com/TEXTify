@@ -79,20 +79,20 @@ class Artifact {
     // Create a new rectangle that encompasses both artifacts
     final Rect newRect = Rect.fromLTRB(
       min(
-        this._matrix.rectangle.left,
-        toMerge._matrix.rectangle.left,
+        this._matrix.originRectangle.left,
+        toMerge._matrix.originRectangle.left,
       ),
       min(
-        this._matrix.rectangle.top,
-        toMerge._matrix.rectangle.top,
+        this._matrix.originRectangle.top,
+        toMerge._matrix.originRectangle.top,
       ),
       max(
-        this._matrix.rectangle.right,
-        toMerge._matrix.rectangle.right,
+        this._matrix.originRectangle.right,
+        toMerge._matrix.originRectangle.right,
       ),
       max(
-        this._matrix.rectangle.bottom,
-        toMerge._matrix.rectangle.bottom,
+        this._matrix.originRectangle.bottom,
+        toMerge._matrix.originRectangle.bottom,
       ),
     );
 
@@ -103,25 +103,27 @@ class Artifact {
     Matrix.copyGrid(
       this.matrix,
       newGrid,
-      (this._matrix.rectangle.left - newRect.left).toInt(),
-      (this._matrix.rectangle.top - newRect.top).toInt(),
+      (this._matrix.originRectangle.left - newRect.left).toInt(),
+      (this._matrix.originRectangle.top - newRect.top).toInt(),
     );
 
     Matrix.copyGrid(
       toMerge.matrix,
       newGrid,
-      (toMerge._matrix.rectangle.left - newRect.left).toInt(),
-      (toMerge._matrix.rectangle.top - newRect.top).toInt(),
+      (toMerge._matrix.originRectangle.left - newRect.left).toInt(),
+      (toMerge._matrix.originRectangle.top - newRect.top).toInt(),
     );
     this.matrix.setGrid(newGrid.data);
-    this.matrix.rectangle =
-        this.matrix.rectangle.expandToInclude(toMerge.matrix.rectangle);
+    this.matrix.originRectangle = this
+        .matrix
+        .originRectangle
+        .expandToInclude(toMerge.matrix.originRectangle);
   }
 
   /// Returns:
   /// A string representation ths artifact.
   @override
   String toString() {
-    return '"$characterMatched" Rect:${_matrix.rectangle.toString()} Area: $area}';
+    return '"$characterMatched" Rect:${_matrix.originRectangle.toString()} Area: $area}';
   }
 }

@@ -316,8 +316,8 @@ class Textify {
         final Artifact next = _artifactsToProcess[j];
 
         if (_areArtifactsConnected(
-          current.matrix.rectangle,
-          next.matrix.rectangle,
+          current.matrix.originRectangle,
+          next.matrix.originRectangle,
           verticalThreshold,
           horizontalThreshold,
         )) {
@@ -425,7 +425,7 @@ class Textify {
 
     // Create and return the Artifact object
     final Artifact artifact = Artifact();
-    artifact.matrix.rectangle = rectangle;
+    artifact.matrix.originRectangle = rectangle;
 
     // Extract the sub-grid from the binary image
     artifact.matrix.setGrid(
@@ -451,7 +451,8 @@ class Textify {
   void _assignAllArtifactsToBands() {
     // Sort artifacts by the top y-position of their rectangles
     this._artifactsToProcess.sort(
-          (a, b) => a.matrix.rectangle.top.compareTo(b.matrix.rectangle.top),
+          (a, b) => a.matrix.originRectangle.top
+              .compareTo(b.matrix.originRectangle.top),
         );
 
     this.bands.clear();
@@ -465,7 +466,7 @@ class Textify {
 
         final double overlap = _calculateVerticalOverlapPercentage(
           band.rectangle,
-          artifact.matrix.rectangle,
+          artifact.matrix.originRectangle,
         );
         if (overlap > 50) {
           band.addArtifact(artifact);
@@ -865,7 +866,8 @@ class Textify {
           continue;
         }
 
-        if (artifactA.matrix.rectangle.overlaps(artifactB.matrix.rectangle)) {
+        if (artifactA.matrix.originRectangle
+            .overlaps(artifactB.matrix.originRectangle)) {
           artifactA.mergeArtifact(artifactB);
           toRemove.add(artifactB);
         }

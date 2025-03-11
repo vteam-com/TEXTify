@@ -51,7 +51,7 @@ class Matrix {
   factory Matrix.fromMatrix(final Matrix value) {
     final matrix = Matrix();
     matrix.setGrid(value.data);
-    matrix.rectangle = value.rectangle;
+    matrix.originRectangle = value.originRectangle;
     return matrix;
   }
 
@@ -206,7 +206,7 @@ class Matrix {
   List<List<bool>> get data => _data;
 
   /// the rectangle location of this matrix.
-  Rect rectangle = Rect.zero;
+  Rect originRectangle = Rect.zero;
 
   /// The number of enclosure found
   int _enclosures = -1;

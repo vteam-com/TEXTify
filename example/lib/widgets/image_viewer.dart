@@ -2,6 +2,13 @@ import 'dart:ui' as ui;
 import 'package:flutter/gestures.dart';
 import 'package:flutter/widgets.dart';
 
+enum ViewImageSteps {
+  grayScale,
+  blackAndWhite,
+  region,
+  columns,
+}
+
 class ImageViewer extends StatelessWidget {
   const ImageViewer({super.key, required this.image});
 

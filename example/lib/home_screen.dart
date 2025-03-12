@@ -2,7 +2,6 @@ import 'dart:math';
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:textify/matrix.dart';
 import 'package:textify/textify.dart';
 import 'package:textify_dashboard/panel1_source/debounce.dart';
 import 'package:textify_dashboard/panel1_source/image_source_selector.dart';
@@ -25,16 +24,9 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final Textify _textify = Textify();
 
-  // The image that will be use for detecting the text
-  ui.Image? _imageBlackOnWhite;
-
   Debouncer debouncer = Debouncer(const Duration(milliseconds: 1000));
 
   final Settings _settings = Settings();
-
-  bool _erodeFirst = true;
-  late int _kernelSizeErode;
-  late int _kernelSizeDilate;
 
   ui.Image? _imageSource;
   String _fontName = '';
@@ -46,16 +38,9 @@ class _HomeScreenState extends State<HomeScreen> {
   final TransformationController _transformationController =
       TransformationController();
 
-  void _initializeSettings() {
-    _kernelSizeErode = 0;
-    _kernelSizeDilate = 0;
-    _imageBlackOnWhite = null;
-  }
-
   @override
   void initState() {
     super.initState();
-    _initializeSettings();
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await _textify.init();
@@ -131,23 +116,16 @@ class _HomeScreenState extends State<HomeScreen> {
                   titleCenter: _getDimensionOfImageSource(_imageSource),
                   titleRight: '',
                   isExpanded: _settings.isExpandedOptimized,
-                  content: panelOptimizedImage(
-                    imageBlackOnWhite: _imageBlackOnWhite,
+                  content: PanelSteps(
+                    imageSource: _imageSource,
                     regions: _textify.regions,
-                    erodeFirst: _erodeFirst,
-                    kernelSizeErode: _kernelSizeErode,
-                    kernelSizeDilate: _kernelSizeDilate,
+                    kernelSizeDilate: _textify.dilatingSize,
                     displayChoicesChanged: (
-                      final bool erodeFirst,
-                      final int sizeErode,
                       final int sizeDilate,
                     ) {
                       setState(
                         () {
-                          _erodeFirst = erodeFirst;
-                          _kernelSizeErode = max(0, sizeErode);
-                          _kernelSizeDilate = max(0, sizeDilate);
-                          _imageBlackOnWhite = null;
+                          _textify.dilatingSize = max(0, sizeDilate);
                           debouncer.run(
                             () {
                               _convertImageToText();
@@ -159,7 +137,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     onReset: () {
                       // Reset
                       setState(() {
-                        _initializeSettings();
+                        _textify.dilatingSize = 22;
+                        _transformationController.value = Matrix4.identity();
                       });
                     },
                     transformationController: _transformationController,
@@ -232,7 +211,6 @@ class _HomeScreenState extends State<HomeScreen> {
   void _clearState() {
     if (mounted) {
       setState(() {
-        _imageBlackOnWhite = null;
         _textify.applyDictionary = _settings.applyDictionary;
         _textFound = '';
       });
@@ -252,45 +230,11 @@ class _HomeScreenState extends State<HomeScreen> {
       return;
     }
 
-    // Convert color image source to a grid of on=ink/off=paper
-    ui.Image tmpImageBlackOnWhite = await imageToGrayScale(_imageSource!);
-
-    if (_erodeFirst) {
-      if (_kernelSizeErode > 0) {
-        tmpImageBlackOnWhite = await erode(
-          tmpImageBlackOnWhite,
-          kernelSize: _kernelSizeErode,
-        );
-      }
-
-      if (_kernelSizeDilate > 0) {
-        tmpImageBlackOnWhite = await dilate(
-          inputImage: tmpImageBlackOnWhite,
-          kernelSize: _kernelSizeDilate,
-        );
-      }
-    } else {
-      if (_kernelSizeDilate > 0) {
-        tmpImageBlackOnWhite = await dilate(
-          inputImage: tmpImageBlackOnWhite,
-          kernelSize: _kernelSizeDilate,
-        );
-      }
-
-      if (_kernelSizeErode > 0) {
-        tmpImageBlackOnWhite = await erode(
-          tmpImageBlackOnWhite,
-          kernelSize: _kernelSizeErode,
-        );
-      }
-    }
-    final String theTextFound = await _textify.getTextFromMatrix(
-      imageAsMatrix: await Matrix.fromImage(tmpImageBlackOnWhite),
-    );
+    final String theTextFound =
+        await _textify.getTextFromImage(image: _imageSource!);
 
     if (mounted) {
       setState(() {
-        _imageBlackOnWhite = tmpImageBlackOnWhite;
         _textFound = theTextFound;
       });
     }

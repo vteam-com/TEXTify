@@ -1691,6 +1691,134 @@ Future<ui.Image> erode(
   return frameInfo.image;
 }
 
+/// Finds the regions in a binary image matrix.
+///
+/// This method performs a flood fill algorithm to identify connected regions
+/// in a binary image matrix. It creates a dilated copy of the binary image
+/// to merge nearby pixels, and then scans through each pixel to find
+/// connected regions. The method returns a list of [Rect] objects
+/// representing the bounding boxes of the identified regions.
+///
+/// Parameters:
+///   [binaryImages]: The binary image matrix to analyze.
+///
+/// Returns:
+///   A list of [Rect] objects representing the bounding boxes of the
+///   identified regions.
+List<Rect> findRegions(Matrix binaryImages, {required int kernelSize}) {
+  // Clear existing regions
+  List<Rect> regions = [];
+
+  // Create a dilated copy of the binary image to merge nearby pixels
+  final Matrix dilatedImage = dilateMatrix(
+    binaryImages,
+    kernelSize: kernelSize,
+  );
+
+  // Create a matrix to track visited pixels
+  final Matrix visited = Matrix(dilatedImage.cols, dilatedImage.rows, false);
+
+  // Scan through each pixel
+  for (int y = 0; y < dilatedImage.rows; y++) {
+    for (int x = 0; x < dilatedImage.cols; x++) {
+      // If pixel is on and not visited, flood fill from this point
+      if (!visited.cellGet(x, y) && dilatedImage.cellGet(x, y)) {
+        // Get connected points using flood fill
+        final List<Point> connectedPoints = floodFill(
+          dilatedImage,
+          visited,
+          x,
+          y,
+        );
+
+        if (connectedPoints.isEmpty) {
+          continue;
+        }
+
+        // Find bounds of the region
+        int minX = dilatedImage.cols;
+        int minY = dilatedImage.rows;
+        int maxX = 0;
+        int maxY = 0;
+
+        for (final point in connectedPoints) {
+          minX = min(minX, point.x.toInt());
+          minY = min(minY, point.y.toInt());
+          maxX = max(maxX, point.x.toInt());
+          maxY = max(maxY, point.y.toInt());
+        }
+
+        // Create rectangle for the region
+        final region = Rect.fromLTRB(
+          minX.toDouble(),
+          minY.toDouble(),
+          maxX.toDouble() + 1,
+          maxY.toDouble() + 1,
+        );
+
+        regions.add(region);
+      }
+    }
+  }
+  return regions;
+}
+
+/// Performs a flood fill algorithm on a binary image matrix.
+///
+/// This method implements a depth-first search flood fill algorithm to find
+/// all connected points starting from a given point in a binary image.
+///
+/// Parameters:
+///   [binaryPixels]: A Matrix representing the binary image where true values
+///                   indicate filled pixels.
+///   [visited]: A Matrix of the same size as [binaryPixels] to keep track of
+///              visited pixels.
+///   [startX]: The starting X coordinate for the flood fill.
+///   [startY]: The starting Y coordinate for the flood fill.
+///
+/// Returns:
+///   A List of Point objects representing all connected points found during
+///   the flood fill process.
+///
+/// Throws:
+///   An assertion error if the areas of [binaryPixels] and [visited] are not equal.
+List<Point> floodFill(
+  final Matrix binaryPixels,
+  final Matrix visited,
+  final int startX,
+  final int startY,
+) {
+  assert(binaryPixels.area == visited.area);
+
+  final List<Point> stack = [Point(startX, startY)];
+  final List<Point> connectedPoints = [];
+
+  while (stack.isNotEmpty) {
+    final Point point = stack.removeLast();
+    final int x = point.x.toInt();
+    final int y = point.y.toInt();
+
+    if (x < 0 || x >= binaryPixels.cols || y < 0 || y >= binaryPixels.rows) {
+      continue;
+    }
+
+    if (!binaryPixels.cellGet(x, y) || visited.cellGet(x, y)) {
+      // no pixel at this location
+      continue;
+    }
+
+    visited.cellSet(x, y, true);
+    connectedPoints.add(point);
+
+    // Push neighboring pixels onto the stack
+    stack.add(Point(x - 1, y)); // Left
+    stack.add(Point(x + 1, y)); // Right
+    stack.add(Point(x, y - 1)); // Top
+    stack.add(Point(x, y + 1)); // Bottom
+  }
+  return connectedPoints;
+}
+
 /// Performs a dilation operation on the input matrix.
 ///
 /// This function takes a [Matrix] and performs a dilation operation on it.
@@ -1701,7 +1829,7 @@ Future<ui.Image> erode(
 ///
 /// Returns:
 /// A new [Matrix] containing the dilated matrix.
-Matrix dilateMatrix(final Matrix input, {int kernelSize = 22}) {
+Matrix dilateMatrix(final Matrix input, {required int kernelSize}) {
   final int width = input.cols;
   final int height = input.rows;
   final Matrix output = Matrix(width, height);

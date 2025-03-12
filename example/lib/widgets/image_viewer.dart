@@ -6,7 +6,6 @@ enum ViewImageSteps {
   grayScale,
   blackAndWhite,
   region,
-  columns,
 }
 
 class ImageViewer extends StatelessWidget {

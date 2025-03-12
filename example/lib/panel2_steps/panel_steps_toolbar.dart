@@ -4,16 +4,27 @@ import 'package:textify_dashboard/widgets/image_viewer.dart';
 class PanelStepsToolbar extends StatefulWidget {
   const PanelStepsToolbar({
     super.key,
-    required this.kernelSizeDilate,
     required this.viewAsStep,
     required this.onViewChanged,
-    required this.onChanged,
+    // region
+    required this.showRegions,
+    required this.onShowRegionsChanged,
+    // histogram
+    required this.showHistograms,
+    required this.onShowHistogramsChanged,
+    // dilate
+    required this.kernelSizeDilate,
+    required this.onDelateChanged,
     required this.onReset,
   });
-  final int kernelSizeDilate;
   final ViewImageSteps viewAsStep;
   final Function(ViewImageSteps) onViewChanged;
-  final Function(int) onChanged;
+  final bool showRegions;
+  final bool showHistograms;
+  final int kernelSizeDilate;
+  final Function(int) onDelateChanged;
+  final Function(bool) onShowRegionsChanged;
+  final Function(bool) onShowHistogramsChanged;
   final Function onReset;
 
   @override
@@ -26,7 +37,6 @@ class _PanelStepsToolbarState extends State<PanelStepsToolbar>
     ViewImageSteps.grayScale: '1 GrayS',
     ViewImageSteps.blackAndWhite: '2 B&W',
     ViewImageSteps.region: '3 Regions',
-    ViewImageSteps.columns: '4 Columns',
   };
 
   late TabController _tabController;
@@ -52,9 +62,10 @@ class _PanelStepsToolbarState extends State<PanelStepsToolbar>
   Widget build(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
+      spacing: 10,
       children: [
         SizedBox(
-          width: 500,
+          width: 400,
           child: TabBar(
             controller: _tabController,
             tabs: tabViews.entries
@@ -66,9 +77,25 @@ class _PanelStepsToolbarState extends State<PanelStepsToolbar>
             },
           ),
         ),
-        SizedBox(width: 40),
         _buildDilateButtons(),
-        SizedBox(width: 40),
+        Row(
+          children: [
+            Checkbox(
+              value: widget.showRegions,
+              onChanged: (value) => widget.onShowRegionsChanged(value!),
+            ),
+            const Text('Show Regions'),
+          ],
+        ),
+        Row(
+          children: [
+            Checkbox(
+              value: widget.showHistograms,
+              onChanged: (value) => widget.onShowHistogramsChanged(value!),
+            ),
+            const Text('Show Histogram'),
+          ],
+        ),
         OutlinedButton(
           onPressed: () {
             widget.onReset();
@@ -85,14 +112,14 @@ class _PanelStepsToolbarState extends State<PanelStepsToolbar>
       children: [
         _buildButton('-', () {
           if (widget.kernelSizeDilate > 0) {
-            widget.onChanged(
+            widget.onDelateChanged(
               widget.kernelSizeDilate - 1,
             );
           }
         }),
         Text('Dilate: ${widget.kernelSizeDilate}'),
         _buildButton('+', () {
-          widget.onChanged(
+          widget.onDelateChanged(
             widget.kernelSizeDilate + 1,
           );
         }),

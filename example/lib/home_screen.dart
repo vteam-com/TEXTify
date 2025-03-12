@@ -7,7 +7,7 @@ import 'package:textify/textify.dart';
 import 'package:textify_dashboard/panel1_source/debounce.dart';
 import 'package:textify_dashboard/panel1_source/image_source_selector.dart';
 import 'package:textify_dashboard/panel1_source/panel_content.dart';
-import 'package:textify_dashboard/panel2_optimized_image/panel_optimized_image.dart';
+import 'package:textify_dashboard/panel2_steps/panel_steps.dart';
 import 'package:textify_dashboard/panel3_artifacts/panel_artifacts_found.dart';
 import 'package:textify_dashboard/settings.dart';
 import 'package:textify_dashboard/widgets/display_artifact.dart';
@@ -127,7 +127,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 // Panel 2 - Input optimized image
                 //
                 buildExpansionPanel(
-                  titleLeft: 'Optimized image',
+                  titleLeft: 'Steps',
                   titleCenter: _getDimensionOfImageSource(_imageSource),
                   titleRight: '',
                   isExpanded: _settings.isExpandedOptimized,

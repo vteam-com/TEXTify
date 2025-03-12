@@ -133,6 +133,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   isExpanded: _settings.isExpandedOptimized,
                   content: panelOptimizedImage(
                     imageBlackOnWhite: _imageBlackOnWhite,
+                    regions: _textify.regions,
                     erodeFirst: _erodeFirst,
                     kernelSizeErode: _kernelSizeErode,
                     kernelSizeDilate: _kernelSizeDilate,
@@ -252,7 +253,7 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
     // Convert color image source to a grid of on=ink/off=paper
-    ui.Image tmpImageBlackOnWhite = await imageToBlackOnWhite(_imageSource!);
+    ui.Image tmpImageBlackOnWhite = await imageToGrayScale(_imageSource!);
 
     if (_erodeFirst) {
       if (_kernelSizeErode > 0) {

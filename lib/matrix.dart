@@ -1456,6 +1456,54 @@ class Matrix {
   }
 }
 
+/// Converts a UI image to a grayscale image.
+///
+/// This function takes a UI image, converts it to grayscale by calculating a weighted
+/// average of the red, green, and blue channels, and returns the resulting grayscale
+/// UI image.
+///
+/// Parameters:
+/// - [inputImage]: The input UI image to be converted.
+///
+/// Returns:
+/// A Future that resolves to the converted grayscale UI image.
+Future<ui.Image> imageToGrayScale(
+  final ui.Image inputImage,
+) async {
+  final int width = inputImage.width;
+  final int height = inputImage.height;
+  final Uint8List pixels = await imageToUint8List(inputImage);
+
+  // Create a new Uint8List for the output image
+  Uint8List outputPixels = Uint8List(pixels.length);
+  for (int i = 0; i < pixels.length; i += 4) {
+    final int r = pixels[i];
+    final int g = pixels[i + 1];
+    final int b = pixels[i + 2];
+    final int a = pixels[i + 3];
+
+    // Calculate grayscale using a weighted average
+    final int gray = (0.299 * r + 0.587 * g + 0.114 * b).toInt();
+
+    outputPixels[i] = gray;
+    outputPixels[i + 1] = gray;
+    outputPixels[i + 2] = gray;
+    outputPixels[i + 3] = a;
+  }
+
+  final ui.ImmutableBuffer buffer =
+      await ui.ImmutableBuffer.fromUint8List(outputPixels);
+  final ui.ImageDescriptor descriptor = ui.ImageDescriptor.raw(
+    buffer,
+    width: width,
+    height: height,
+    pixelFormat: ui.PixelFormat.rgba8888,
+  );
+  final ui.Codec codec = await descriptor.instantiateCodec();
+  final ui.FrameInfo frame = await codec.getNextFrame();
+  return frame.image;
+}
+
 /// Converts a UI image to a black and white image by applying an adaptive threshold.
 ///
 /// This function takes a UI image, converts it to grayscale, and then applies an adaptive
@@ -1641,6 +1689,56 @@ Future<ui.Image> erode(
   final ui.Codec codec = await descriptor.instantiateCodec();
   final ui.FrameInfo frameInfo = await codec.getNextFrame();
   return frameInfo.image;
+}
+
+/// Performs a dilation operation on the input matrix.
+///
+/// This function takes a [Matrix] and performs a dilation operation on it.
+/// The dilation operation expands the black pixels against the white background.
+///
+/// Parameters:
+/// - [input]: The source matrix to be dilated (binary matrix).
+///
+/// Returns:
+/// A new [Matrix] containing the dilated matrix.
+Matrix dilateMatrix(final Matrix input, {int kernelSize = 22}) {
+  final int width = input.cols;
+  final int height = input.rows;
+  final Matrix output = Matrix(width, height);
+
+  // Create the elliptical kernel
+  final List<List<bool>> kernel = _createEllipticalKernel(kernelSize);
+
+  for (int y = 0; y < height; y++) {
+    for (int x = 0; x < width; x++) {
+      bool hasInk = false; // Ink is 'true'
+
+      // Apply kernel
+      for (int ky = 0; ky < kernelSize; ky++) {
+        for (int kx = 0; kx < kernelSize; kx++) {
+          if (kernel[ky][kx]) {
+            final int nx = x + kx - kernelSize ~/ 2;
+            final int ny = y + ky - kernelSize ~/ 2;
+
+            if (nx >= 0 && nx < width && ny >= 0 && ny < height) {
+              if (input.cellGet(nx, ny)) {
+                hasInk = true; // Ink detected
+                break;
+              }
+            }
+          }
+        }
+        if (hasInk) {
+          break;
+        }
+      }
+
+      // Set the output pixel (same ink logic as input)
+      output.cellSet(x, y, hasInk);
+    }
+  }
+
+  return output;
 }
 
 /// Performs a dilation operation on the input image.

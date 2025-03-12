@@ -18,6 +18,9 @@ class Textify {
   /// Stores definitions of characters for matching.
   final CharacterDefinitions characterDefinitions = CharacterDefinitions();
 
+  /// identified regions on the image
+  final List<Rect> regions = [];
+
   /// List of text bands identified in the image.
   final List<Band> bands = [];
 
@@ -212,7 +215,10 @@ class Textify {
     required final ui.Image image,
     final String supportedCharacters = '',
   }) async {
-    final ui.Image imageBlackAndWhite = await imageToBlackOnWhite(image);
+    final ui.Image imageGrayScale = await imageToGrayScale(image);
+
+    final ui.Image imageBlackAndWhite =
+        await imageToBlackOnWhite(imageGrayScale);
 
     final Matrix imageAsMatrix = await Matrix.fromImage(imageBlackAndWhite);
 
@@ -270,6 +276,8 @@ class Textify {
   /// Note: This method assumes that the input [Matrix] is a valid binary image.
   /// Behavior may be undefined for non-binary input.
   void identifyArtifactsAndBandsInBinaryImage(final Matrix imageAsBinary) {
+    _findRegions(imageAsBinary);
+
     // (1) Find artifact using flood fill
     _findArtifacts(imageAsBinary);
 
@@ -544,6 +552,61 @@ class Textify {
 
     // Calculate and return the percentage
     return (overlapHeight / shorterHeight) * 100;
+  }
+
+  ///
+  void _findRegions(final Matrix binaryImages) {
+    // Clear existing regions
+    regions.clear();
+
+    // Create a dilated copy of the binary image to merge nearby pixels
+    final Matrix dilatedImage = dilateMatrix(binaryImages);
+
+    // Create a matrix to track visited pixels
+    final Matrix visited = Matrix(dilatedImage.cols, dilatedImage.rows, false);
+
+    // Scan through each pixel
+    for (int y = 0; y < dilatedImage.rows; y++) {
+      for (int x = 0; x < dilatedImage.cols; x++) {
+        // If pixel is on and not visited, flood fill from this point
+        if (!visited.cellGet(x, y) && dilatedImage.cellGet(x, y)) {
+          // Get connected points using flood fill
+          final List<Point> connectedPoints = _floodFill(
+            dilatedImage,
+            visited,
+            x,
+            y,
+          );
+
+          if (connectedPoints.isEmpty) {
+            continue;
+          }
+
+          // Find bounds of the region
+          int minX = dilatedImage.cols;
+          int minY = dilatedImage.rows;
+          int maxX = 0;
+          int maxY = 0;
+
+          for (final point in connectedPoints) {
+            minX = min(minX, point.x.toInt());
+            minY = min(minY, point.y.toInt());
+            maxX = max(maxX, point.x.toInt());
+            maxY = max(maxY, point.y.toInt());
+          }
+
+          // Create rectangle for the region
+          final region = Rect.fromLTRB(
+            minX.toDouble(),
+            minY.toDouble(),
+            maxX.toDouble() + 1,
+            maxY.toDouble() + 1,
+          );
+
+          regions.add(region);
+        }
+      }
+    }
   }
 
   /// Identifies and extracts artifacts from a binary image.

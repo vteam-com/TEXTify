@@ -153,22 +153,6 @@ class _PanelStepsState extends State<PanelSteps> {
     return regionsHistograms;
   }
 
-  List<int> getHistogramOfRegion(final Matrix binaryImage, Rect region) {
-    final List<int> histogram = [];
-    int col = 0;
-    for (int x = region.left.toInt(); x < region.right.toInt(); x++) {
-      histogram.add(0);
-      for (int y = region.top.toInt(); y < region.bottom.toInt(); y++) {
-        if (binaryImage.cellGet(x, y)) {
-          histogram[col]++;
-        }
-      }
-      col++;
-    }
-
-    return histogram;
-  }
-
   ui.Image drawRectanglesOnImage(
     ui.Image image,
   ) {

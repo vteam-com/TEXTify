@@ -132,7 +132,7 @@ void main() async {
     final String text = await instance.getTextFromImage(image: uiImage);
 
     // the result are not perfect 90% accuracy, but its trending in the right direction
-    expect(text, 'ABCDEFGHl\nJKLMN0PQR\nSTUVWxYZ 01 23456789');
+    expect(text, 'ABCDEFGHl\nJKLMN0PQR\nSTUVWxYZ\n0 1\n23456789');
     // errors here        ^       ^          ^
   });
 

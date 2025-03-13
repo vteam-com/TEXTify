@@ -1,7 +1,6 @@
 // Imports
 import 'dart:math';
 import 'dart:ui';
-
 import 'package:textify/matrix.dart';
 
 /// Represents an artifact in the text processing system.
@@ -9,14 +8,28 @@ import 'package:textify/matrix.dart';
 /// An artifact contains information about a specific character or group of characters,
 /// including its position, size, and matrix representation.
 class Artifact {
+  ///
+  Artifact();
+
+  ///
+  factory Artifact.fromMatrix(final Matrix matrix) {
+    final artifact = Artifact();
+    artifact.matrix = matrix;
+    return artifact;
+  }
+
   /// The character that this artifact matches.
   String characterMatched = '';
 
   /// The original matrix representation of the artifact.
-  final Matrix _matrix = Matrix();
+  Matrix _matrix = Matrix();
 
   /// Gets the original matrix representation of the artifact.
   Matrix get matrix => _matrix;
+
+  set matrix(value) {
+    _matrix = value;
+  }
 
   /// Gets the vertical profile of the artifact.
   ///

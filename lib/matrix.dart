@@ -206,6 +206,9 @@ class Matrix {
   List<List<bool>> get data => _data;
 
   /// the rectangle location of this matrix.
+  Rect foundRectangle = Rect.zero;
+
+  /// the rectangle location of this matrix.
   Rect originRectangle = Rect.zero;
 
   /// The number of enclosure found
@@ -219,6 +222,12 @@ class Matrix {
 
   /// Area size of the matrix
   int get area => cols * rows;
+
+  /// rect setting helper
+  void setBothRects(final Rect rect) {
+    foundRectangle = rect;
+    originRectangle = rect;
+  }
 
   /// Calculates the aspect ratio of the content within the matrix.
   ///
@@ -2020,4 +2029,118 @@ Future<ui.Image> createImageFromPixels(
   final ui.FrameInfo frameInfo = await codec.getNextFrame();
 
   return frameInfo.image;
+}
+
+/// Calculates the histogram of a binary image region.
+///
+/// Iterates over the specified [region] of the [binaryImage] and counts the
+/// number of set pixels in each column, storing the results in a list.
+///
+/// Parameters:
+/// - [binaryImage]: The binary image to analyze.
+/// - [region]: The rectangular region of the image to analyze.
+///
+/// Returns:
+/// A list of integers representing the histogram of the specified region.
+List<int> getHistogramOfRegion(final Matrix binaryImage, Rect region) {
+  final List<int> histogram = [];
+  int col = 0;
+  for (int x = region.left.toInt(); x < region.right.toInt(); x++) {
+    histogram.add(0);
+    for (int y = region.top.toInt(); y < region.bottom.toInt(); y++) {
+      if (binaryImage.cellGet(x, y)) {
+        histogram[col]++;
+      }
+    }
+    col++;
+  }
+
+  return histogram;
+}
+
+/// Calculates a list of [Rect] objects from a histogram of a binary image region.
+///
+/// Given a [histogram] of the pixel counts in each column of a rectangular region
+/// of a binary image, this function identifies the continuous non-zero regions
+/// in the histogram and returns a list of [Rect] objects representing those
+/// regions.
+///
+/// The [region] parameter specifies the overall rectangular region of the image
+/// that the histogram represents.
+///
+/// Returns a list of [Rect] objects, where each rect represents a continuous
+/// non-zero region in the histogram.
+List<Rect> getRectFromHistogram(
+  List<int> histogram,
+  final Rect region,
+) {
+  List<Rect> rects = [];
+
+  int start = -1;
+
+  // Iterate through histogram to find continuous non-zero regions
+  for (int i = 0; i < histogram.length; i++) {
+    if (histogram[i] > 0 && start == -1) {
+      start = i;
+    } else if ((histogram[i] == 0 || i == histogram.length - 1) &&
+        start != -1) {
+      int end = (histogram[i] == 0) ? i - 1 : i;
+
+      final Rect rect = ui.Rect.fromLTRB(
+        (region.left + start).toDouble(),
+        region.top.toDouble(),
+        (region.left + end).toDouble() + 1,
+        region.bottom.toDouble(),
+      );
+
+      if ((rect.width * rect.height) > 2 && !isConsideredLine(rect)) {
+        rects.add(rect);
+      }
+      start = -1;
+    }
+  }
+  return rects;
+}
+
+/// splitColumns will contains numbers like for example [10,11,12, 22,23,24,25, 33]
+/// optimized to keep only the mid points of groups, so that the above becomes [11,24,33]
+List<int> reduceColumnGroups(List<int> splitColumns) {
+  // splitColumns will contains numbers like for example [10,11,12, 22,23,24,25, 33]
+  // optimized to keep only the mid points of groups, so that the above becomes [11,24,33]
+  List<int> optimizedSplitColumns = [];
+  if (splitColumns.isNotEmpty) {
+    List<int> currentGroup = [splitColumns[0]];
+
+    for (int j = 1; j < splitColumns.length; j++) {
+      if (splitColumns[j] == splitColumns[j - 1] + 1) {
+        currentGroup.add(splitColumns[j]);
+      } else {
+        // Add middle point of current group
+        optimizedSplitColumns.add(
+          currentGroup[currentGroup.length ~/ 2],
+        );
+        currentGroup = [splitColumns[j]];
+      }
+    }
+
+    // Add the last group's middle point
+    optimizedSplitColumns.add(
+      currentGroup[currentGroup.length ~/ 2],
+    );
+  }
+  return optimizedSplitColumns;
+}
+
+/// Determines whether the given [Rect] represents a line-like shape.
+///
+/// The function calculates the aspect ratios (height/width and width/height) to detect
+/// both vertical and horizontal lines. Returns `true` if either ratio indicates
+/// the rectangle is significantly longer in one dimension compared to the other.
+/// A threshold of 10 means one dimension is at least 10 times larger than the other.
+bool isConsideredLine(Rect rect) {
+  final double verticalRatio = rect.height / rect.width;
+  final double horizontalRatio = rect.width / rect.height;
+  const double threshold = 30.0;
+  (verticalRatio > threshold || horizontalRatio > threshold);
+  return (verticalRatio > threshold || horizontalRatio > threshold);
 }

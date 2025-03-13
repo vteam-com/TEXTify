@@ -31,7 +31,7 @@ class _HomeScreenState extends State<HomeScreen> {
   ui.Image? _imageSource;
   String _fontName = '';
   List<String> _stringsExpectedToBeFoundInTheImage = [];
-  ViewAs viewAs = ViewAs.original;
+  ViewAs viewAs = ViewAs.matrix;
 
   String _textFound = '';
 

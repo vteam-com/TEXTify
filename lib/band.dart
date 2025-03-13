@@ -62,7 +62,7 @@ class Band {
   void _updateStatistics() {
     if (artifacts.length < 2) {
       _averageKerning = -1;
-      _averageWidth = -1;
+      _averageWidth = rectangle.width;
       return;
     }
 

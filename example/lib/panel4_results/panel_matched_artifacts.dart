@@ -95,10 +95,10 @@ class _PanelMatchedArtifactsState extends State<PanelMatchedArtifacts> {
 
       widgets.addAll(
         _buildArtifactsForBand(
-          context,
-          band,
-          currentLine,
-          expectedText,
+          context: context,
+          band: band,
+          currentLine: currentLine,
+          expectedText: expectedText,
         ),
       );
 
@@ -130,19 +130,19 @@ class _PanelMatchedArtifactsState extends State<PanelMatchedArtifacts> {
   /// Returns:
   /// A list of `MatchedArtifact` widgets representing the matched artifacts for
   /// the given band.
-  List<Widget> _buildArtifactsForBand(
-    BuildContext context,
-    Band band,
-    String currentLine,
-    String expectedText,
-  ) {
+  List<Widget> _buildArtifactsForBand({
+    required BuildContext context,
+    required Band band,
+    required String currentLine,
+    required String expectedText,
+  }) {
     return band.artifacts.asMap().entries.map((entry) {
       final int charIndex = entry.key;
 
       final Artifact artifact = entry.value;
 
       final String expectedCharacter =
-          charIndex < expectedText.length ? expectedText[charIndex] : '!';
+          charIndex < expectedText.length ? expectedText[charIndex] : ' ';
 
       final String characterCorrected =
           charIndex < currentLine.length ? currentLine[charIndex] : '!';
@@ -162,9 +162,9 @@ class _PanelMatchedArtifactsState extends State<PanelMatchedArtifacts> {
           );
         },
         child: MatchedArtifact(
-          characterExpected: expectedCharacter,
           characterFound: artifact.characterMatched,
           characterCorrected: characterCorrected,
+          characterExpected: expectedCharacter,
           showCorrectionRow: widget.textify.applyDictionary,
         ),
       );

@@ -1,9 +1,8 @@
 import 'dart:async';
-import 'dart:math';
 import 'dart:ui' as ui;
 import 'package:flutter/widgets.dart';
 import 'package:textify/artifact.dart';
-import 'package:textify/band.dart';
+import 'package:textify/bands.dart';
 import 'package:textify/character_definitions.dart';
 import 'package:textify/correction.dart';
 import 'package:textify/matrix.dart';
@@ -19,13 +18,10 @@ class Textify {
   final CharacterDefinitions characterDefinitions = CharacterDefinitions();
 
   /// identified regions on the image
-  final List<Rect> regions = [];
+  List<Rect> regions = [];
 
   /// List of text bands identified in the image.
   final List<Band> bands = [];
-
-  /// List of discovered artifacts on the image
-  final List<Artifact> artifactsFound = [];
 
   /// List of artifacts (potential characters) identified in the image.
   final List<Artifact> _artifactsToProcess = [];
@@ -88,7 +84,6 @@ class Textify {
   /// Clears all stored data, resetting the Textify instance.
   void clear() {
     _artifactsToProcess.clear();
-    artifactsFound.clear();
     bands.clear();
     textFound = '';
   }
@@ -120,7 +115,7 @@ class Textify {
   ///
   /// Returns:
   ///   An [int] representing the number of items in the list.
-  int get count => artifactsFound.length;
+  int get count => bands.fold(0, (sum, band) => sum + band.artifacts.length);
 
   /// Finds matching character scores for a given artifact.
   ///
@@ -284,21 +279,68 @@ class Textify {
   /// Note: This method assumes that the input [Matrix] is a valid binary image.
   /// Behavior may be undefined for non-binary input.
   void identifyArtifactsAndBandsInBinaryImage(final Matrix imageAsBinary) {
-    findRegions(imageAsBinary, kernelSize: dilatingSize);
+    regions = findRegions(imageAsBinary, kernelSize: dilatingSize);
+    // Clear existing artifacts
+    clear();
 
-    // (1) Find artifact using flood fill
-    _findArtifacts(imageAsBinary);
+    regions.sort((a, b) {
+      final aCenterY = a.top + a.height / 2;
+      final bCenterY = b.top + b.height / 2;
+      if ((aCenterY - bCenterY).abs() < 10) {
+        return a.left.compareTo(b.left);
+      }
+      return aCenterY.compareTo(bCenterY);
+    });
 
-    // (2) merge overlapping artifact
-    _mergeOverlappingArtifacts();
+    for (final ui.Rect region in regions) {
+      // (1) Find artifact using flood fill
+      final List<int> histogram = getHistogramOfRegion(
+        imageAsBinary,
+        region,
+      );
 
-    // (3) merge proximity artifact for cases like  [i j ; :]
-    _mergeConnectedArtifacts(verticalThreshold: 20, horizontalThreshold: 4);
+      List<ui.Rect> possibleArtifactRects = getRectFromHistogram(
+        histogram,
+        region,
+      );
 
-    // (4) create band based on proximity of artifacts
-    _assignAllArtifactsToBands();
+      final List<Artifact> artifactsFoundInRegion =
+          possibleArtifactRects.map((rect) {
+        final artifactMatrix =
+            Matrix.extractSubGrid(binaryImage: imageAsBinary, rect: rect);
+        final artifact = Artifact.fromMatrix(artifactMatrix);
+        artifact.matrix.foundRectangle = rect;
+        artifact.matrix.originRectangle = rect;
+        return artifact;
+      }).toList();
 
-    // (5) post-process each band for addition clean up of the artifacts in each band
+      // (2) merge overlapping artifact
+      _mergeOverlappingArtifacts(artifactsFoundInRegion);
+
+      // (3) merge proximity artifact for cases like  [i j ; :]
+      _mergeConnectedArtifacts(
+        artifacts: artifactsFoundInRegion,
+        verticalThreshold: 20,
+        horizontalThreshold: 4,
+      );
+
+      // (4) create band based on proximity of artifacts
+      final Band newBand = Band();
+      artifactsFoundInRegion.forEach((artifact) {
+        // artifact.matrix.originRectangle =
+        //     artifact.matrix.originRectangle.shift(region.topLeft);
+        // // keep a copy of the where it was found on the image
+        // artifact.matrix.foundRectangle = artifact.matrix.originRectangle;
+
+        newBand.addArtifact(artifact);
+      });
+      bands.add(newBand);
+    }
+
+    mergeBandsHorizontally(this.bands);
+    removeEmptyBands(this.bands);
+
+    // (5) post-process each band for additional clean up of the artifacts in each band
     for (final Band band in bands) {
       band.sortLeftToRight();
       if (this.includeSpaceDetections) {
@@ -320,16 +362,17 @@ class Textify {
   /// Returns:
   ///   A list of [Artifact] objects after merging connected artifacts.
   List<Artifact> _mergeConnectedArtifacts({
+    required final List<Artifact> artifacts,
     required final double verticalThreshold,
     required final double horizontalThreshold,
   }) {
     final List<Artifact> mergedArtifacts = [];
 
-    for (int i = 0; i < _artifactsToProcess.length; i++) {
-      final Artifact current = _artifactsToProcess[i];
+    for (int i = 0; i < artifacts.length; i++) {
+      final Artifact current = artifacts[i];
 
-      for (int j = i + 1; j < _artifactsToProcess.length; j++) {
-        final Artifact next = _artifactsToProcess[j];
+      for (int j = i + 1; j < artifacts.length; j++) {
+        final Artifact next = artifacts[j];
 
         if (_areArtifactsConnected(
           current.matrix.originRectangle,
@@ -338,7 +381,7 @@ class Textify {
           horizontalThreshold,
         )) {
           current.mergeArtifact(next);
-          _artifactsToProcess.removeAt(j);
+          artifacts.removeAt(j);
           j--; // Adjust index since we removed an artifact
         }
       }
@@ -381,247 +424,6 @@ class Textify {
             rect1.top - verticalThreshold <= rect2.bottom);
 
     return horizontallyConnected && verticallyConnected;
-  }
-
-  /// Extracts an artifact from a binary image based on a list of connected points.
-  ///
-  /// This method creates an [Artifact] object from a set of connected points in a binary image.
-  /// It determines the bounding rectangle of the points and extracts the corresponding
-  /// sub-grid from the binary image.
-  ///
-  /// Parameters:
-  /// - [binaryImage]: The full binary image from which to extract the artifact.
-  /// - [points]: A list of [Point] objects representing the connected pixels of the artifact.
-  ///
-  /// Returns:
-  /// An [Artifact] object containing:
-  /// - A [Rect] representing the bounding box of the artifact.
-  /// - A [Matrix] representing the extracted sub-grid of the artifact.
-  ///
-  /// The method performs the following steps:
-  /// 1. Determines the bounding box of the artifact from the given points.
-  /// 2. Creates a rectangle based on the bounding box.
-  /// 3. Extracts a sub-grid from the binary image corresponding to the rectangle.
-  /// 4. Creates and returns an [Artifact] object with the rectangle and sub-grid.
-  Artifact _extractArtifact(
-    final Matrix binaryImage,
-    final List<Point> points,
-  ) {
-    assert(points.isNotEmpty);
-
-    // Initialize min and max values with the first point
-    num minX = points[0].x;
-    num minY = points[0].y;
-    num maxX = minX;
-    num maxY = minY;
-
-    // Find the bounding box of the artifact
-    for (final Point point in points.skip(1)) {
-      if (point.x < minX) {
-        minX = point.x;
-      }
-      if (point.y < minY) {
-        minY = point.y;
-      }
-      if (point.x > maxX) {
-        maxX = point.x;
-      }
-      if (point.y > maxY) {
-        maxY = point.y;
-      }
-    }
-
-    // Create a rectangle from the bounding box
-    final Rect rectangle = Rect.fromLTWH(
-      minX.toDouble(),
-      minY.toDouble(),
-      (maxX - minX) + 1,
-      (maxY - minY) + 1,
-    );
-
-    // Create and return the Artifact object
-    final Artifact artifact = Artifact();
-    artifact.matrix.originRectangle = rectangle;
-
-    // Extract the sub-grid from the binary image
-    artifact.matrix.setGrid(
-      Matrix.extractSubGrid(
-        binaryImage: binaryImage,
-        rect: rectangle,
-      ).data,
-    );
-
-    return artifact;
-  }
-
-  /// Groups artifacts into horizontal bands based on their vertical positions.
-  ///
-  /// This method organizes artifacts into bands, which are horizontal groupings
-  /// of artifacts that are vertically close to each other. The process involves:
-  /// 1. Sorting artifacts by their top y-position.
-  /// 2. Iterating through sorted artifacts and assigning them to existing bands
-  ///    or creating new bands as necessary.
-  ///
-  /// The method uses a vertical tolerance to determine if an artifact belongs
-  /// to an existing band.
-  void _assignAllArtifactsToBands() {
-    // Sort artifacts by the top y-position of their rectangles
-    this._artifactsToProcess.sort(
-          (a, b) => a.matrix.originRectangle.top
-              .compareTo(b.matrix.originRectangle.top),
-        );
-
-    this.bands.clear();
-    final List<Artifact> toRemove = [];
-
-    for (final Artifact artifact in this._artifactsToProcess) {
-      bool foundBand = false;
-
-      for (final Band band in bands) {
-        // final double tolerance = band.rectangle.height * (10 / 100);
-
-        final double overlap = _calculateVerticalOverlapPercentage(
-          band.rectangle,
-          artifact.matrix.originRectangle,
-        );
-        if (overlap > 50) {
-          band.addArtifact(artifact);
-          toRemove.add(artifact);
-          foundBand = true;
-          break;
-        }
-      }
-
-      if (!foundBand) {
-        final Band newBand = Band();
-        newBand.addArtifact(artifact);
-        toRemove.add(artifact);
-        bands.add(newBand);
-      }
-    }
-    _artifactsToProcess.removeWhere((artifact) => toRemove.contains(artifact));
-
-    // all artifacts should not be in a band, thus confirm that there's no loose artifacts
-    assert(_artifactsToProcess.isEmpty);
-  }
-
-  /// Calculates the percentage of vertical overlap between two rectangles.
-  ///
-  /// This function determines how much two rectangles overlap vertically and
-  /// expresses this overlap as a percentage of their combined heights.
-  ///
-  /// Parameters:
-  ///   - rect1: The first rectangle to compare.
-  ///   - rect2: The second rectangle to compare.
-  ///
-  /// Returns:
-  ///   A double representing the percentage of vertical overlap.
-  ///   The value ranges from 0.0 (no overlap) to 100.0 (complete overlap).
-  ///
-  /// The calculation is performed as follows:
-  /// 1. Ensure rect1 is the higher rectangle (smaller top value).
-  /// 2. Check for no overlap condition.
-  /// 3. Calculate the height of the overlapping region.
-  /// 4. Calculate the total height of both rectangles combined.
-  /// 5. Compute the overlap percentage as (overlap height / total height) * 100.
-  ///
-  /// Note: This function considers the combined height of both rectangles as the base
-  /// for percentage calculation. If you need the percentage relative to one of the
-  /// rectangles, you'll need to modify the calculation.
-  ///
-  /// Example:
-  /// ```
-  ///   Rect rect1 = Rect.fromLTRB(0, 0, 10, 30);
-  ///   Rect rect2 = Rect.fromLTRB(0, 20, 10, 50);
-  ///   double overlap = calculateVerticalOverlapPercentage(rect1, rect2);
-  ///   print('Overlap: ${overlap.toStringAsFixed(2)}%');
-  /// ```
-  double _calculateVerticalOverlapPercentage(
-    final Rect rect1,
-    final Rect rect2,
-  ) {
-    // Ensure rect1 is the higher rectangle (smaller top value)
-    if (rect2.top < rect1.top) {
-      return _calculateVerticalOverlapPercentage(rect2, rect1);
-    }
-
-    // Check if there's no overlap
-    if (rect1.bottom <= rect2.top) {
-      return 0.0;
-    }
-
-    // Calculate the overlap
-    double overlapStart = rect2.top;
-    double overlapEnd = min(rect1.bottom, rect2.bottom);
-    double overlapHeight = overlapEnd - overlapStart;
-
-    // Calculate the height of the shorter rectangle
-    double shorterHeight = min(rect1.height, rect2.height);
-
-    // Calculate and return the percentage
-    return (overlapHeight / shorterHeight) * 100;
-  }
-
-  /// Identifies and extracts artifacts from a binary image.
-  ///
-  /// This method scans through a binary image represented by [binaryImages] and
-  /// identifies connected bands of "on" pixels, treating each as an artifact.
-  /// It uses a flood fill algorithm to find connected pixels and extracts
-  /// meaningful information about each artifact.
-  ///
-  /// Parameters:
-  /// - [binaryImages]: A Matrix representing the binary image. "On" pixels are
-  ///   considered part of potential artifacts.
-  ///
-  /// The method updates the following properties:
-  /// - [list]: A list of [Artifact] objects, each representing a found artifact.
-  ///
-  /// Note: This method clears any existing artifacts before processing.
-  void _findArtifacts(final Matrix binaryImages) {
-    // Clear existing artifacts
-    clear();
-
-    // Create a matrix to keep track of visited pixels
-    final Matrix visited = Matrix(binaryImages.cols, binaryImages.rows, false);
-
-    // Iterate through each pixel in the binary image
-    for (int y = 0; y < binaryImages.rows; y++) {
-      for (int x = 0; x < binaryImages.cols; x++) {
-        // Check if the current pixel is unvisited and "on"
-        if (!visited.cellGet(x, y) && binaryImages.cellGet(x, y)) {
-          // Find all connected "on" pixels starting from the current pixel
-          final List<Point> connectedPoints = floodFill(
-            binaryImages,
-            visited,
-            x,
-            y,
-          );
-
-          // Extract artifact information from the connected points
-          final Artifact artifactFound = _extractArtifact(
-            binaryImages,
-            connectedPoints,
-          );
-
-          artifactsFound.add(artifactFound);
-
-          // drop anything that looks like a 1 or 2 pixel
-          if (connectedPoints.length > 2) {
-            if (excludeLongLines && artifactFound.matrix.isConsideredLine()) {
-              // discard lines
-            } else {
-              final Artifact artifactForWork = _extractArtifact(
-                binaryImages,
-                connectedPoints,
-              );
-
-              // Add the found artifact to the list
-              _artifactsToProcess.add(artifactForWork);
-            }
-          }
-        }
-      }
-    }
   }
 
   /// Determines the most likely character represented by an artifact.
@@ -807,20 +609,20 @@ class Textify {
   /// Space Complexity: O(n) in the worst case, for the removal set.
   ///
   /// Note: This method modifies the original list of artifacts.
-  void _mergeOverlappingArtifacts() {
-    final int n = _artifactsToProcess.length;
+  void _mergeOverlappingArtifacts(List<Artifact> artifacts) {
+    final int n = artifacts.length;
 
     final Set<Artifact> toRemove = {};
 
     for (int i = 0; i < n; i++) {
-      final Artifact artifactA = _artifactsToProcess[i];
+      final Artifact artifactA = artifacts[i];
       if (toRemove.contains(artifactA)) {
         // already merged
         continue;
       }
 
       for (int j = i + 1; j < n; j++) {
-        final Artifact artifactB = _artifactsToProcess[j];
+        final Artifact artifactB = artifacts[j];
         if (toRemove.contains(artifactB)) {
           // already merged
           continue;
@@ -834,7 +636,7 @@ class Textify {
       }
     }
 
-    _artifactsToProcess.removeWhere((artifact) => toRemove.contains(artifact));
+    artifacts.removeWhere((artifact) => toRemove.contains(artifact));
   }
 }
 

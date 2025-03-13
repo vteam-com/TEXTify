@@ -115,29 +115,31 @@ class _PanelStep2State extends State<PanelStep2> {
   void updateImages() {
     setState(() {
       _isReady = false;
-      imageToGrayScale(widget.imageSource!).then((imageGrayScale) {
-        imageToBlackOnWhite(imageGrayScale).then((final ui.Image imageBW) {
-          Matrix.fromImage(imageBW).then((final Matrix binaryImage) {
-            dilate(
-              inputImage: imageBW,
-              kernelSize: widget.kernelSizeDilate,
-            ).then((final ui.Image imageDilated) {
-              setState(() {
-                _isReady = true;
-                _imageGrayScale = imageGrayScale;
-                _regions = findRegions(
-                  binaryImage,
-                  kernelSize: widget.kernelSizeDilate,
-                );
-                _regionsHistograms =
-                    getHistogramOfRegions(binaryImage, _regions);
-                _imageBW = imageBW;
-                _imageDilated = imageDilated;
+      if (widget.imageSource != null) {
+        imageToGrayScale(widget.imageSource!).then((imageGrayScale) {
+          imageToBlackOnWhite(imageGrayScale).then((final ui.Image imageBW) {
+            Matrix.fromImage(imageBW).then((final Matrix binaryImage) {
+              dilate(
+                inputImage: imageBW,
+                kernelSize: widget.kernelSizeDilate,
+              ).then((final ui.Image imageDilated) {
+                setState(() {
+                  _isReady = true;
+                  _imageGrayScale = imageGrayScale;
+                  _regions = findRegions(
+                    binaryImage,
+                    kernelSize: widget.kernelSizeDilate,
+                  );
+                  _regionsHistograms =
+                      getHistogramOfRegions(binaryImage, _regions);
+                  _imageBW = imageBW;
+                  _imageDilated = imageDilated;
+                });
               });
             });
           });
         });
-      });
+      }
     });
   }
 

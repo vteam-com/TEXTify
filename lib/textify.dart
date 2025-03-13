@@ -21,7 +21,7 @@ class Textify {
   List<Rect> regions = [];
 
   /// List of text bands identified in the image.
-  final List<Band> bands = [];
+  Bands bands = Bands();
 
   /// List of artifacts (potential characters) identified in the image.
   final List<Artifact> _artifactsToProcess = [];
@@ -115,12 +115,12 @@ class Textify {
   ///
   /// Returns:
   ///   An [int] representing the number of items in the list.
-  int get count => bands.fold(0, (sum, band) => sum + band.artifacts.length);
+  int get count => bands.totalArtifacts;
 
   /// All artifacts from all bands
   List<Artifact> getAllArtifacts() {
     List<Artifact> allArtifacts = [];
-    for (final band in bands) {
+    for (final band in bands.list) {
       allArtifacts.addAll(band.artifacts);
     }
     return allArtifacts;
@@ -345,12 +345,12 @@ class Textify {
       bands.add(newBand);
     }
 
-    mergeBandsHorizontally(this.bands);
-    removeEmptyBands(this.bands);
-    trimBands(this.bands);
+    this.bands.mergeBandsHorizontally();
+    this.bands.removeEmptyBands();
+    this.bands.trimBands();
 
     // (5) post-process each band for additional clean up of the artifacts in each band
-    for (final Band band in bands) {
+    for (final Band band in bands.list) {
       band.sortLeftToRight();
       if (this.includeSpaceDetections) {
         band.identifySpacesInBand();
@@ -579,7 +579,7 @@ class Textify {
 
     final List<String> linesFound = [];
 
-    for (final Band band in bands) {
+    for (final Band band in bands.list) {
       String line = '';
 
       for (final Artifact artifact in band.artifacts) {

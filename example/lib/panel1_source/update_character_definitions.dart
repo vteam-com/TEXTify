@@ -286,7 +286,7 @@ class CharacterGenerationBodyState extends State<CharacterGenerationBody> {
     // If there is only one band (expected for a single character)
     if (textify.bands.length == 1) {
       final List<Artifact> artifactsInTheFirstBand =
-          textify.bands.first.artifacts;
+          textify.bands.list.first.artifacts;
 
       // Filter out artifacts with empty matrices (spaces)
       final artifactsInTheFirstBandNoSpaces = artifactsInTheFirstBand

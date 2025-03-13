@@ -22,7 +22,7 @@ class DisplayBandsAndArtifacts extends StatelessWidget {
   Widget build(BuildContext context) {
     double maxWidth = 0;
     double maxHeight = 0;
-    for (final Band band in textify.bands) {
+    for (final Band band in textify.bands.list) {
       if (band.artifacts.isNotEmpty) {
         maxWidth = max(maxWidth, band.rectangleAdjusted.right + offsetX);
         maxHeight = max(maxHeight, band.rectangleAdjusted.bottom + offsetY);

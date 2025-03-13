@@ -97,7 +97,7 @@ class _PanelStep4ResultsState extends State<PanelStep4Results> {
         lineIndex < widget.textify.bands.length;
         lineIndex++) {
       // Band
-      final Band band = widget.textify.bands[lineIndex];
+      final Band band = widget.textify.bands.list[lineIndex];
 
       // Line
       final String currentLine =

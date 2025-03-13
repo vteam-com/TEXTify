@@ -8,8 +8,8 @@ void main() {
   group('mergeBandsHorizontally', () {
     test('handles single band', () {
       final band = Band();
-      final bands = [band];
-      mergeBandsHorizontally(bands);
+      final bands = Bands([band]);
+      bands.mergeBandsHorizontally();
       expect(bands.length, 1);
     });
 
@@ -17,14 +17,14 @@ void main() {
       final band1 = Band();
       final band2 = Band();
       final band3 = Band();
-      final bands = [band1, band2, band3];
-      mergeBandsHorizontally(bands);
+      final bands = Bands([band1, band2, band3]);
+      bands.mergeBandsHorizontally();
 
       // Nothing sould have change since there's no data in the bands to take action on
       expect(bands.length, 3);
 
       // now test that we can clean up
-      removeEmptyBands(bands);
+      bands.removeEmptyBands();
       expect(bands.length, 0);
     });
 
@@ -39,11 +39,11 @@ void main() {
       artifact2.matrix.setBothRects(Rect.fromLTWH(50, 10, 30, 30));
       band2.addArtifact(artifact2);
 
-      final List<Band> bands = [band1, band2];
-      mergeBandsHorizontally(bands);
+      final Bands bands = Bands([band1, band2]);
+      bands.mergeBandsHorizontally();
 
       expect(bands.length, 1);
-      expect(bands[0].artifacts.length, 2);
+      expect(bands.list[0].artifacts.length, 2);
     });
 
     test('does not merge bands with large horizontal gap', () {
@@ -57,8 +57,8 @@ void main() {
       artifact2.matrix.setBothRects(Rect.fromLTWH(500, 10, 30, 30));
       band2.addArtifact(artifact2);
 
-      final bands = [band1, band2];
-      mergeBandsHorizontally(bands);
+      final Bands bands = Bands([band1, band2]);
+      bands.mergeBandsHorizontally();
 
       expect(bands.length, 2);
     });

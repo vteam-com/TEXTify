@@ -23,7 +23,7 @@ class DisplayArtifacts extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     if (viewAs == ViewAs.original || viewAs == ViewAs.originalHistogram) {
-      for (final Band band in textify.bands) {
+      for (final Band band in textify.bands.list) {
         _paintArtifactsExactlyWhereTheyAreFound(
           canvas: canvas,
           viewAs: viewAs,
@@ -31,7 +31,7 @@ class DisplayArtifacts extends CustomPainter {
         );
       }
     } else {
-      for (final Band band in textify.bands) {
+      for (final Band band in textify.bands.list) {
         _paintBand(canvas: canvas, band: band, backgroundColor: Colors.black);
         _paintArtifactsInRow(
           canvas: canvas,

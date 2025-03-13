@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:textify_dashboard/widgets/image_viewer.dart';
 
-class PanelStepsToolbar extends StatefulWidget {
-  const PanelStepsToolbar({
+class PanelStep2Toolbar extends StatefulWidget {
+  const PanelStep2Toolbar({
     super.key,
     required this.viewAsStep,
     required this.onViewChanged,
@@ -28,10 +28,10 @@ class PanelStepsToolbar extends StatefulWidget {
   final Function onReset;
 
   @override
-  State<PanelStepsToolbar> createState() => _PanelStepsToolbarState();
+  State<PanelStep2Toolbar> createState() => _PanelStep2ToolbarState();
 }
 
-class _PanelStepsToolbarState extends State<PanelStepsToolbar>
+class _PanelStep2ToolbarState extends State<PanelStep2Toolbar>
     with SingleTickerProviderStateMixin {
   final Map<ViewImageSteps, String> tabViews = {
     ViewImageSteps.grayScale: '1 GrayS',
@@ -61,7 +61,7 @@ class _PanelStepsToolbarState extends State<PanelStepsToolbar>
   @override
   Widget build(BuildContext context) {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
+      mainAxisAlignment: MainAxisAlignment.start,
       spacing: 10,
       children: [
         SizedBox(

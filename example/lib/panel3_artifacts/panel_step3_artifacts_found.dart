@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:textify/textify.dart';
-import 'package:textify_dashboard/panel1_source/panel_content.dart';
+import 'package:textify_dashboard/panel1_source/panel_step1_content.dart';
 import 'package:textify_dashboard/panel3_artifacts/display_bands_and_artifacts.dart';
 import 'package:textify_dashboard/widgets/display_artifact.dart';
 import 'package:textify_dashboard/widgets/image_viewer.dart';
 
-Widget panelArtifactFound({
+Widget panelStep3ArtifactsFound({
   required final Textify textify,
   required final ViewAs viewAs,
   required final Function(ViewAs) onChangeView,
   required final TransformationController transformationController,
 }) {
-  return PanelContent(
+  return PanelStep1Content(
     top: _buildActionButtons(
       viewAs,
       onChangeView,
@@ -35,7 +35,7 @@ Widget _buildActionButtons(
   final TransformationController transformationController,
 ) {
   return Row(
-    mainAxisAlignment: MainAxisAlignment.center,
+    mainAxisAlignment: MainAxisAlignment.start,
     spacing: 10,
     children: [
       OutlinedButton(

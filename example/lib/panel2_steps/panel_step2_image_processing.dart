@@ -3,12 +3,12 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:textify/matrix.dart';
-import 'package:textify_dashboard/panel1_source/panel_content.dart';
-import 'package:textify_dashboard/panel2_steps/panel_steps_toolbar.dart';
+import 'package:textify_dashboard/panel1_source/panel_step1_content.dart';
+import 'package:textify_dashboard/panel2_steps/panel_step2_toolbar.dart';
 import 'package:textify_dashboard/widgets/image_viewer.dart';
 
-class PanelSteps extends StatefulWidget {
-  const PanelSteps({
+class PanelStep2 extends StatefulWidget {
+  const PanelStep2({
     super.key,
     required this.imageSource,
     required this.regions,
@@ -25,10 +25,10 @@ class PanelSteps extends StatefulWidget {
   final TransformationController transformationController;
 
   @override
-  State<PanelSteps> createState() => _PanelStepsState();
+  State<PanelStep2> createState() => _PanelStep2State();
 }
 
-class _PanelStepsState extends State<PanelSteps> {
+class _PanelStep2State extends State<PanelStep2> {
   bool _isReady = false;
   late ViewImageSteps _step2viewImageAs;
   ui.Image? _imageGrayScale;
@@ -47,7 +47,7 @@ class _PanelStepsState extends State<PanelSteps> {
   }
 
   @override
-  void didUpdateWidget(PanelSteps oldWidget) {
+  void didUpdateWidget(PanelStep2 oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.imageSource != widget.imageSource ||
         oldWidget.kernelSizeDilate != widget.kernelSizeDilate) {
@@ -78,8 +78,8 @@ class _PanelStepsState extends State<PanelSteps> {
         imageToDisplay = _imageDilated;
     }
 
-    return PanelContent(
-      top: PanelStepsToolbar(
+    return PanelStep1Content(
+      top: PanelStep2Toolbar(
         viewAsStep: _step2viewImageAs,
         onViewChanged: (ViewImageSteps view) {
           setState(() {

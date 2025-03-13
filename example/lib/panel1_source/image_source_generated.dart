@@ -8,7 +8,7 @@ import 'package:textify_dashboard/widgets/image_viewer.dart';
 
 import 'debounce.dart';
 import 'image_generator_input.dart';
-import 'panel_content.dart';
+import 'panel_step1_content.dart';
 
 ImageGeneratorInput imageSettings = ImageGeneratorInput.empty();
 
@@ -84,7 +84,7 @@ class _ImageSourceGeneratedState extends State<ImageSourceGenerated> {
       children: [
         _buildDashboardInputs(),
         Expanded(
-          child: PanelContent(
+          child: PanelStep1Content(
             top: _buildActionButtons(),
             center: _imageGenerated == null
                 ? Center(child: Text('Loading...'))

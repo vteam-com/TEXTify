@@ -7,7 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../widgets/image_viewer.dart';
 import 'debounce.dart';
-import 'panel_content.dart';
+import 'panel_step1_content.dart';
 
 /// Provides functionality to retrieve images from the system clipboard.
 ///
@@ -68,7 +68,7 @@ class _ImageSourceClipboardState extends State<ImageSourceClipboard> {
 
   @override
   Widget build(BuildContext context) {
-    return PanelContent(
+    return PanelStep1Content(
       // Paste button
       left: IconButton(
         icon: const Icon(Icons.paste),

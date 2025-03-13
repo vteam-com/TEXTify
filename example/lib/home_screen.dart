@@ -4,13 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:textify/textify.dart';
 import 'package:textify_dashboard/panel1_source/debounce.dart';
-import 'package:textify_dashboard/panel1_source/image_source_selector.dart';
-import 'package:textify_dashboard/panel1_source/panel_content.dart';
-import 'package:textify_dashboard/panel2_steps/panel_steps.dart';
-import 'package:textify_dashboard/panel3_artifacts/panel_artifacts_found.dart';
+
+import 'package:textify_dashboard/panel1_source/panel_step1_source.dart';
+import 'package:textify_dashboard/panel2_steps/panel_step2_image_processing.dart';
+import 'package:textify_dashboard/panel3_artifacts/panel_step3_artifacts_found.dart';
 import 'package:textify_dashboard/settings.dart';
 import 'package:textify_dashboard/widgets/display_artifact.dart';
-import 'panel4_results/panel_matched_artifacts.dart';
+import 'panel4_results/panel_step4_results.dart';
 
 ///
 class HomeScreen extends StatefulWidget {
@@ -56,15 +56,15 @@ class _HomeScreenState extends State<HomeScreen> {
     final String textFoundSingleString = _textFound.replaceAll('\n', ' ');
 
     return Scaffold(
-      backgroundColor: colorScheme.primaryContainer,
+      backgroundColor: colorScheme.secondaryContainer,
       body: SingleChildScrollView(
         child: Padding(
-          padding: const EdgeInsets.all(8.0),
+          padding: const EdgeInsets.all(10.0),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(13),
             child: ExpansionPanelList(
               expandedHeaderPadding: const EdgeInsets.all(0),
-              materialGapSize: 2,
+              materialGapSize: 10,
               expansionCallback: (int index, bool isExpanded) {
                 setState(() {
                   switch (index) {
@@ -89,7 +89,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   titleCenter: 'Source',
                   titleRight: '',
                   isExpanded: _settings.isExpandedSource,
-                  content: ImageSourceSelector(
+                  content: PanelStep1Source(
                     transformationController: _transformationController,
                     onSourceChanged: (
                       final ui.Image? newImage,
@@ -116,7 +116,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   titleCenter: _getDimensionOfImageSource(_imageSource),
                   titleRight: '',
                   isExpanded: _settings.isExpandedOptimized,
-                  content: PanelSteps(
+                  content: PanelStep2(
                     imageSource: _imageSource,
                     regions: _textify.regions,
                     kernelSizeDilate: _textify.dilatingSize,
@@ -154,7 +154,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   titleRight:
                       '${NumberFormat.decimalPattern().format(_textify.duration)}ms',
                   isExpanded: _settings.isExpandedArtifactFound,
-                  content: panelArtifactFound(
+                  content: panelStep3ArtifactsFound(
                     textify: _textify,
                     transformationController: _transformationController,
                     viewAs: viewAs,
@@ -174,7 +174,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   titleCenter: getPercentageText(textFoundSingleString),
                   titleRight: '',
                   isExpanded: _settings.isExpandedResults,
-                  content: PanelMatchedArtifacts(
+                  content: PanelStep4Results(
                     font: _fontName,
                     expectedStrings: _stringsExpectedToBeFoundInTheImage,
                     textify: _textify,

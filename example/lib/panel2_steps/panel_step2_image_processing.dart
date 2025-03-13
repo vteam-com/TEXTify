@@ -3,6 +3,7 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:textify/matrix.dart';
+import 'package:textify_dashboard/generate_samples/generate_image.dart';
 import 'package:textify_dashboard/panel1_source/panel_step_content.dart';
 import 'package:textify_dashboard/panel2_steps/panel_step2_toolbar.dart';
 import 'package:textify_dashboard/widgets/image_viewer.dart';
@@ -57,27 +58,6 @@ class _PanelStep2State extends State<PanelStep2> {
 
   @override
   Widget build(BuildContext context) {
-    if (widget.imageSource == null) {
-      return Center(child: Text('No input image'));
-    }
-
-    if (_isReady == false) {
-      return Center(
-        child: CircularProgressIndicator(),
-      );
-    }
-
-    switch (_step2viewImageAs) {
-      case ViewImageSteps.grayScale:
-        imageToDisplay = _imageGrayScale;
-
-      case ViewImageSteps.blackAndWhite:
-        imageToDisplay = _imageBW;
-
-      case ViewImageSteps.region:
-        imageToDisplay = _imageDilated;
-    }
-
     return PanelStepContent(
       top: PanelStep2Toolbar(
         viewAsStep: _step2viewImageAs,
@@ -105,10 +85,35 @@ class _PanelStep2State extends State<PanelStep2> {
 
         onReset: widget.onReset,
       ),
-      center: buildInteractiveImageViewer(
-        drawRectanglesOnImage(imageToDisplay!),
-        widget.transformationController,
-      ),
+      center: centerContent(),
+    );
+  }
+
+  Widget centerContent() {
+    if (widget.imageSource == null) {
+      return Center(child: Text('No input image'));
+    }
+
+    if (_isReady == false) {
+      return Center(
+        child: CircularProgressIndicator(),
+      );
+    }
+
+    switch (_step2viewImageAs) {
+      case ViewImageSteps.grayScale:
+        imageToDisplay = _imageGrayScale;
+
+      case ViewImageSteps.blackAndWhite:
+        imageToDisplay = _imageBW;
+
+      case ViewImageSteps.region:
+        imageToDisplay = _imageDilated;
+    }
+
+    return buildInteractiveImageViewer(
+      drawRectanglesOnImage(imageToDisplay!),
+      widget.transformationController,
     );
   }
 
@@ -119,17 +124,16 @@ class _PanelStep2State extends State<PanelStep2> {
         imageToGrayScale(widget.imageSource!).then((imageGrayScale) {
           imageToBlackOnWhite(imageGrayScale).then((final ui.Image imageBW) {
             Matrix.fromImage(imageBW).then((final Matrix binaryImage) {
-              dilate(
-                inputImage: imageBW,
+              final Matrix dilatedMatrix = dilateMatrix(
+                matrixImage: binaryImage,
                 kernelSize: widget.kernelSizeDilate,
-              ).then((final ui.Image imageDilated) {
+              );
+
+              imageFromMatrix(dilatedMatrix).then((imageDilated) {
                 setState(() {
                   _isReady = true;
                   _imageGrayScale = imageGrayScale;
-                  _regions = findRegions(
-                    binaryImage,
-                    kernelSize: widget.kernelSizeDilate,
-                  );
+                  _regions = findRegions(dilatedMatrixImage: dilatedMatrix);
                   _regionsHistograms =
                       getHistogramOfRegions(binaryImage, _regions);
                   _imageBW = imageBW;

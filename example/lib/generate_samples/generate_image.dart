@@ -1,7 +1,9 @@
 import 'dart:math';
+import 'dart:typed_data';
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
+import 'package:textify/matrix.dart';
 
 Future<ui.Image> generateImageDrawText({
   required final int imageWidth,
@@ -176,4 +178,36 @@ TextPainter myDrawText({
     maxWidth: width.toDouble(),
   );
   return textPainter;
+}
+
+Future<ui.Image> imageFromMatrix(final Matrix matrix) async {
+  final int width = matrix.cols;
+  final int height = matrix.rows;
+  final Uint8List pixels = Uint8List(width * height * 4);
+
+  for (int y = 0; y < height; y++) {
+    for (int x = 0; x < width; x++) {
+      final int pixelIndex = (y * width + x) * 4;
+      final bool value = matrix.cellGet(x, y);
+      final int color = value ? 0xFF000000 : 0xFFFFFFFF;
+
+      pixels[pixelIndex] = (color >> 16) & 0xFF; // Red
+      pixels[pixelIndex + 1] = (color >> 8) & 0xFF; // Green
+      pixels[pixelIndex + 2] = color & 0xFF; // Blue
+      pixels[pixelIndex + 3] = (color >> 24) & 0xFF; // Alpha
+    }
+  }
+
+  final ui.ImmutableBuffer buffer =
+      await ui.ImmutableBuffer.fromUint8List(pixels);
+  final ui.ImageDescriptor descriptor = ui.ImageDescriptor.raw(
+    buffer,
+    height: height,
+    width: width,
+    pixelFormat: ui.PixelFormat.rgba8888,
+  );
+  final ui.Codec codec = await descriptor.instantiateCodec();
+  final ui.FrameInfo frameInfo = await codec.getNextFrame();
+
+  return frameInfo.image;
 }

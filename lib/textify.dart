@@ -284,7 +284,14 @@ class Textify {
   /// Note: This method assumes that the input [Matrix] is a valid binary image.
   /// Behavior may be undefined for non-binary input.
   void identifyArtifactsAndBandsInBinaryImage(final Matrix imageAsBinary) {
-    regions = findRegions(imageAsBinary, kernelSize: dilatingSize);
+    // Create a dilated copy of the binary image to merge nearby pixels
+    final Matrix dilatedImage = dilateMatrix(
+      matrixImage: imageAsBinary,
+      kernelSize: dilatingSize,
+    );
+
+    regions = findRegions(dilatedMatrixImage: dilatedImage);
+
     // Clear existing artifacts
     clear();
 

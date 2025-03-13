@@ -236,7 +236,7 @@ class Matrix {
   /// Returns false if the coordinates are out of bounds.
   bool cellGet(final int x, final int y) {
     assert(_isValidXY(x, y) == true);
-      return _data[y][x];
+    return _data[y][x];
   }
 
   /// Sets the value of a cell at the specified coordinates.
@@ -244,8 +244,8 @@ class Matrix {
   /// Does nothing if the coordinates are out of bounds.
   void cellSet(final int x, final int y, bool value) {
     assert(_isValidXY(x, y) == true);
-      _data[y][x] = value;
-    }
+    _data[y][x] = value;
+  }
 
   /// Copies the contents of a source Matrix into a target Matrix, with an optional offset.
   ///
@@ -1773,27 +1773,22 @@ Future<ui.Image> erode(
 /// Returns:
 ///   A list of [Rect] objects representing the bounding boxes of the
 ///   identified regions.
-List<Rect> findRegions(Matrix binaryImages, {required int kernelSize}) {
+List<Rect> findRegions({required Matrix dilatedMatrixImage}) {
   // Clear existing regions
   List<Rect> regions = [];
 
-  // Create a dilated copy of the binary image to merge nearby pixels
-  final Matrix dilatedImage = dilateMatrix(
-    binaryImages,
-    kernelSize: kernelSize,
-  );
-
   // Create a matrix to track visited pixels
-  final Matrix visited = Matrix(dilatedImage.cols, dilatedImage.rows, false);
+  final Matrix visited =
+      Matrix(dilatedMatrixImage.cols, dilatedMatrixImage.rows, false);
 
   // Scan through each pixel
-  for (int y = 0; y < dilatedImage.rows; y++) {
-    for (int x = 0; x < dilatedImage.cols; x++) {
+  for (int y = 0; y < dilatedMatrixImage.rows; y++) {
+    for (int x = 0; x < dilatedMatrixImage.cols; x++) {
       // If pixel is on and not visited, flood fill from this point
-      if (!visited.cellGet(x, y) && dilatedImage.cellGet(x, y)) {
+      if (!visited.cellGet(x, y) && dilatedMatrixImage.cellGet(x, y)) {
         // Get connected points using flood fill
         final List<Point> connectedPoints = floodFill(
-          dilatedImage,
+          dilatedMatrixImage,
           visited,
           x,
           y,
@@ -1804,8 +1799,8 @@ List<Rect> findRegions(Matrix binaryImages, {required int kernelSize}) {
         }
 
         // Find bounds of the region
-        int minX = dilatedImage.cols;
-        int minY = dilatedImage.rows;
+        int minX = dilatedMatrixImage.cols;
+        int minY = dilatedMatrixImage.rows;
         int maxX = 0;
         int maxY = 0;
 
@@ -1893,129 +1888,42 @@ List<Point> floodFill(
 /// The dilation operation expands the black pixels against the white background.
 ///
 /// Parameters:
-/// - [input]: The source matrix to be dilated (binary matrix).
+/// - [matrixImage]: The source matrix to be dilated (binary matrix).
 ///
 /// Returns:
 /// A new [Matrix] containing the dilated matrix.
-Matrix dilateMatrix(final Matrix input, {required int kernelSize}) {
-  final int width = input.cols;
-  final int height = input.rows;
+Matrix dilateMatrix({
+  required final Matrix matrixImage,
+  required int kernelSize,
+}) {
+  final int width = matrixImage.cols;
+  final int height = matrixImage.rows;
   final Matrix output = Matrix(width, height);
 
-  // Create the elliptical kernel
-  final List<List<bool>> kernel = _createEllipticalKernel(kernelSize);
+  // Precompute elliptical kernel offsets
+  final List<Point<int>> offsets = _createEllipticalKernel(kernelSize);
 
   for (int y = 0; y < height; y++) {
     for (int x = 0; x < width; x++) {
-      bool hasInk = false; // Ink is 'true'
+      bool hasInk = false;
 
-      // Apply kernel
-      for (int ky = 0; ky < kernelSize; ky++) {
-        for (int kx = 0; kx < kernelSize; kx++) {
-          if (kernel[ky][kx]) {
-            final int nx = x + kx - kernelSize ~/ 2;
-            final int ny = y + ky - kernelSize ~/ 2;
+      for (final offset in offsets) {
+        final int nx = x + offset.x;
+        final int ny = y + offset.y;
 
-            if (nx >= 0 && nx < width && ny >= 0 && ny < height) {
-              if (input.cellGet(nx, ny)) {
-                hasInk = true; // Ink detected
-                break;
-              }
-            }
+        if (nx >= 0 && nx < width && ny >= 0 && ny < height) {
+          if (matrixImage._data[ny][nx]) {
+            hasInk = true;
+            break;
           }
-        }
-        if (hasInk) {
-          break;
         }
       }
 
-      // Set the output pixel (same ink logic as input)
-      output.cellSet(x, y, hasInk);
+      output._data[y][x] = hasInk;
     }
   }
 
   return output;
-}
-
-/// Performs a dilation operation on the input image.
-///
-/// This function takes a [ui.Image] and performs a dilation operation on it.
-/// The dilation operation expands the black pixels (letters) against the white background.
-///
-/// Parameters:
-/// - [inputImage]: The source image to be dilated (black and white).
-/// - [kernelSize]: The size of the dilation kernel (must be an odd number).
-///
-/// Returns:
-/// A [Future] that resolves to a [ui.Image] containing the dilated image.
-Future<ui.Image> dilate({
-  required ui.Image inputImage,
-  required int kernelSize,
-}) async {
-  final int width = inputImage.width;
-  final int height = inputImage.height;
-
-  // Get the pixel data from the input image
-  final ByteData? byteData =
-      await inputImage.toByteData(format: ui.ImageByteFormat.rawRgba);
-  if (byteData == null) {
-    throw Exception('Failed to get image data');
-  }
-  final Uint8List inputPixels = byteData.buffer.asUint8List();
-
-  // Create a new Uint8List for the output image
-  final Uint8List outputPixels = Uint8List(width * height * 4);
-
-  // Create the elliptical kernel
-  final List<List<bool>> kernel = _createEllipticalKernel(kernelSize);
-
-  // Apply dilation
-  for (int y = 0; y < height; y++) {
-    for (int x = 0; x < width; x++) {
-      bool hasBlackPixel = false;
-
-      for (int ky = 0; ky < kernelSize; ky++) {
-        for (int kx = 0; kx < kernelSize; kx++) {
-          if (kernel[ky][kx]) {
-            final int px = x + kx - kernelSize ~/ 2;
-            final int py = y + ky - kernelSize ~/ 2;
-
-            if (px >= 0 && px < width && py >= 0 && py < height) {
-              final int index = (py * width + px) * 4;
-              // Check if there's a black pixel in the kernel area
-              if (inputPixels[index] == 0) {
-                hasBlackPixel = true;
-                break;
-              }
-            }
-          }
-        }
-        if (hasBlackPixel) {
-          break;
-        }
-      }
-
-      final int outputIndex = (y * width + x) * 4;
-      final int pixelValue = hasBlackPixel ? 0 : 255;
-      outputPixels[outputIndex] = pixelValue; // R
-      outputPixels[outputIndex + 1] = pixelValue; // G
-      outputPixels[outputIndex + 2] = pixelValue; // B
-      outputPixels[outputIndex + 3] = 255; // Alpha channel
-    }
-  }
-
-  // Create a new ui.Image from the output pixels
-  final ui.ImmutableBuffer buffer =
-      await ui.ImmutableBuffer.fromUint8List(outputPixels);
-  final ui.ImageDescriptor descriptor = ui.ImageDescriptor.raw(
-    buffer,
-    width: width,
-    height: height,
-    pixelFormat: ui.PixelFormat.rgba8888,
-  );
-  final ui.Codec codec = await descriptor.instantiateCodec();
-  final ui.FrameInfo frameInfo = await codec.getNextFrame();
-  return frameInfo.image;
 }
 
 /// Creates an elliptical kernel of the given size.
@@ -2032,28 +1940,23 @@ Future<ui.Image> dilate({
 ///
 /// Returns:
 /// A 2D list of booleans representing the elliptical kernel.
-List<List<bool>> _createEllipticalKernel(final int size) {
-  final List<List<bool>> kernel = List.generate(
-    size,
-    (_) => List.filled(size, false),
-  );
+List<Point<int>> _createEllipticalKernel(int kernelSize) {
+  final List<Point<int>> offsets = [];
+  final int center = kernelSize ~/ 2;
 
-  final double radiusX = size / 2;
-  final double radiusY = size / 2;
-  final double centerX = size / 2 - 0.5;
-  final double centerY = size / 2 - 0.5;
-
-  for (int y = 0; y < size; y++) {
-    for (int x = 0; x < size; x++) {
-      final double normalizedX = (x - centerX) / radiusX;
-      final double normalizedY = (y - centerY) / radiusY;
-      if (normalizedX * normalizedX + normalizedY * normalizedY <= 1) {
-        kernel[y][x] = true;
+  for (int ky = 0; ky < kernelSize; ky++) {
+    for (int kx = 0; kx < kernelSize; kx++) {
+      if (_isInsideEllipse(kx - center, ky - center, center)) {
+        offsets.add(Point(kx - center, ky - center));
       }
     }
   }
+  return offsets;
+}
 
-  return kernel;
+// Check if a point is inside an ellipse
+bool _isInsideEllipse(int x, int y, int radius) {
+  return (x * x + y * y) <= (radius * radius);
 }
 
 /// Creates a new [ui.Image] from a [Uint8List] of pixel data.

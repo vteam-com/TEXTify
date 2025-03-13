@@ -23,9 +23,6 @@ class Textify {
   /// List of text bands identified in the image.
   Bands bands = Bands();
 
-  /// List of artifacts (potential characters) identified in the image.
-  final List<Artifact> _artifactsToProcess = [];
-
   /// The extracted text from the image.
   String textFound = '';
 
@@ -83,7 +80,6 @@ class Textify {
 
   /// Clears all stored data, resetting the Textify instance.
   void clear() {
-    _artifactsToProcess.clear();
     bands.clear();
     textFound = '';
   }

@@ -25,8 +25,6 @@ class Matrix {
       rows.toInt(),
       (_) => List.filled(cols.toInt(), false),
     );
-    this.cols = cols.toInt();
-    this.rows = rows.toInt();
   }
 
   /// Creates a new [Matrix] instance from an existing [Matrix].
@@ -60,11 +58,11 @@ class Matrix {
   /// [template] A list of strings where '#' represents true and any other character represents false.
   factory Matrix.fromAsciiDefinition(final List<String> template) {
     final Matrix matrix = Matrix();
-    matrix.rows = template.length;
-    matrix.cols = template[0].length;
+    final int rows = template.length;
+    final int cols = template[0].length;
     matrix._data = List.generate(
-      matrix.rows,
-      (y) => List.generate(matrix.cols, (x) => template[y][x] == '#'),
+      rows,
+      (y) => List.generate(cols, (x) => template[y][x] == '#'),
     );
     return matrix;
   }
@@ -87,12 +85,10 @@ class Matrix {
     final int width,
   ) {
     final Matrix matrix = Matrix();
-    matrix.rows = inputList.length ~/ width;
-    matrix.cols = width;
+    final rows = inputList.length ~/ width;
 
-    for (int y = 0; y < matrix.rows; y++) {
-      matrix._data
-          .add(inputList.sublist(y * matrix.cols, (y + 1) * matrix.cols));
+    for (int y = 0; y < rows; y++) {
+      matrix._data.add(inputList.sublist(y * width, (y + 1) * width));
     }
     return matrix;
   }
@@ -103,9 +99,7 @@ class Matrix {
   factory Matrix.fromJson(final Map<String, dynamic> json) {
     final Matrix matrix = Matrix();
     matrix.font = json['font'];
-    matrix.rows = json['rows'];
-    matrix.cols = json['cols'];
-    matrix._data = (json['data'] as List<dynamic>).map((row) {
+    matrix._data = (json['data'] as List<dynamic>).map((final dynamic row) {
       return row.toString().split('').map((cell) => cell == '#').toList();
     }).toList();
     return matrix;
@@ -190,10 +184,10 @@ class Matrix {
   String font = '';
 
   /// The number of columns in the matrix.
-  int cols = 0;
+  int get cols => _data.isEmpty ? 0 : _data[0].length;
 
   /// The number of rows in the matrix.
-  int rows = 0;
+  int get rows => _data.length;
 
   /// The 2D list representing the boolean grid.
   /// Each outer list represents a row, and each inner list represents a column.
@@ -476,7 +470,6 @@ class Matrix {
     for (int add = 0; add < paddingBottom; add++) {
       this._data.add(blankLine);
     }
-    this.rows = _data.length;
   }
 
   /// Creates a new Matrix with a false border wrapping around the original matrix.
@@ -926,8 +919,6 @@ class Matrix {
   ///   [grid] (```List<List<bool>>```): The 2D list of boolean values representing the grid.
   void setGrid(final List<List<bool>> grid) {
     if (grid.isEmpty || grid[0].isEmpty) {
-      rows = 0;
-      cols = 0;
       _data = [];
       return;
     }
@@ -937,8 +928,7 @@ class Matrix {
       'All rows in the grid must have the same length',
     );
 
-    rows = grid.length;
-    cols = grid[0].length;
+    final int rows = grid.length;
 
     // Create a deep copy of the grid
     // _data = grid;

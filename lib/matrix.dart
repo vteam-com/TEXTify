@@ -235,20 +235,17 @@ class Matrix {
   ///
   /// Returns false if the coordinates are out of bounds.
   bool cellGet(final int x, final int y) {
-    if (_isValidXY(x, y)) {
+    assert(_isValidXY(x, y) == true);
       return _data[y][x];
-    }
-    return false;
   }
 
   /// Sets the value of a cell at the specified coordinates.
   ///
   /// Does nothing if the coordinates are out of bounds.
   void cellSet(final int x, final int y, bool value) {
-    if (_isValidXY(x, y)) {
+    assert(_isValidXY(x, y) == true);
       _data[y][x] = value;
     }
-  }
 
   /// Copies the contents of a source Matrix into a target Matrix, with an optional offset.
   ///

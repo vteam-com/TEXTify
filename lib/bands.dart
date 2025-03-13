@@ -67,3 +67,10 @@ void removeEmptyBands(final List<Band> bands) {
     return band.artifacts.isEmpty;
   });
 }
+
+///
+void trimBands(final List<Band> bands) {
+  bands.forEach((band) {
+    band.trim();
+  });
+}

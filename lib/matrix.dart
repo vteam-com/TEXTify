@@ -340,6 +340,73 @@ class Matrix {
     );
   }
 
+  /// Creates a new Matrix by cropping the current Matrix to the specified boundaries.
+  ///
+  /// Parameters:
+  /// - `bottomRow`: The bottom row index of the crop area (inclusive). Defaults to 0.
+  /// - `topRow`: The top row index of the crop area (inclusive). Defaults to 0.
+  /// - `leftCol`: The left column index of the crop area (inclusive). Defaults to 0.
+  /// - `rightCol`: The right column index of the crop area (inclusive). Defaults to 0.
+  ///
+  /// Returns:
+  /// A new Matrix containing the cropped section of the original Matrix.
+  void cropBy({
+    int left = 0,
+    int top = 0,
+    int right = 0,
+    int bottom = 0,
+  }) {
+    this.rectOriginal = Rect.fromLTRB(
+      this.rectOriginal.left + left,
+      this.rectOriginal.top + top,
+      this.rectOriginal.right - right,
+      this.rectOriginal.bottom - bottom,
+    );
+
+    this.rectAdjusted = Rect.fromLTRB(
+      this.rectAdjusted.left + left,
+      this.rectAdjusted.top + top,
+      this.rectAdjusted.right - right,
+      this.rectAdjusted.bottom - bottom,
+    );
+
+    cropGridVertically(top: top, bottom: bottom);
+    // cropGridHorizontally(left: left, right: right);
+  }
+
+  ///
+  void cropGridHorizontally({int left = 0, int right = 0}) {
+    if (_data.isEmpty || _data.first.isEmpty) {
+      return;
+    }
+
+    // Clamp values to avoid out-of-range errors
+    left = left.clamp(0, _data.first.length);
+    right = right.clamp(0, _data.first.length - left);
+
+    // Replace each row with a new cropped sublist
+    for (int i = 0; i < _data.length; i++) {
+      _data[i] = _data[i].sublist(left, _data[i].length - right);
+    }
+  }
+
+  /// Crop top and bottom
+  void cropGridVertically({int top = 0, int bottom = 0}) {
+    if (_data.isEmpty) {
+      return;
+    }
+
+    // Clamp values to avoid out-of-range errors
+    top = top.clamp(0, _data.length);
+    bottom = bottom.clamp(0, _data.length - top);
+
+    // Remove top rows
+    _data.removeRange(0, top);
+
+    // Remove bottom rows
+    _data.removeRange(_data.length - bottom, _data.length);
+  }
+
   /// Creates a new Matrix with the specified desired width and height, by resizing the current Matrix.
   ///
   /// If the current Matrix is punctuation, it will not be cropped and will be centered in the new Matrix.
@@ -652,6 +719,11 @@ class Matrix {
     }
   }
 
+  ///
+  Rect getContentRectAdjusted() {
+    return getContentRect().shift(this.rectAdjusted.topLeft);
+  }
+
   /// Creates a string representation of two overlaid matrices.
   ///
   /// This static method compares two matrices cell by cell and generates a new
@@ -862,7 +934,7 @@ class Matrix {
   }
 
   /// The grid contains one or more True values
-  bool get isEmpty => _getContentSize().isEmpty;
+  bool get isEmpty => getContentRect().isEmpty;
 
   /// All entries in the grid are false
   bool get isNotEmpty => !isEmpty;

@@ -347,6 +347,7 @@ class Textify {
 
     mergeBandsHorizontally(this.bands);
     removeEmptyBands(this.bands);
+    trimBands(this.bands);
 
     // (5) post-process each band for additional clean up of the artifacts in each band
     for (final Band band in bands) {

@@ -203,6 +203,34 @@ class Band {
     artifacts.insert(insertAtIndex, artifactSpace);
   }
 
+  /// Trim the band to fit the inner artifacts
+  void trim() {
+    if (artifacts.isEmpty) {
+      return;
+    }
+
+    Rect boundingBox = Rect.fromCenter(
+      center: this.rectangleAdjusted.center,
+      width: 0,
+      height: 0,
+    );
+
+    for (final Artifact artifact in artifacts) {
+      Rect rectOfContent = artifact.matrix.getContentRectAdjusted();
+      boundingBox = boundingBox.expandToInclude(rectOfContent);
+    }
+
+    double trimTop = boundingBox.top - this.rectangleAdjusted.top;
+
+    double trimBottom = this.rectangleAdjusted.bottom - boundingBox.bottom;
+
+    // now that we have the outer most bounding rect of the content
+    // we trim the artifacts
+    for (final Artifact artifact in artifacts) {
+      artifact.matrix.cropBy(top: trimTop.toInt(), bottom: trimBottom.toInt());
+    }
+  }
+
   /// Adjusts the positions of artifacts to pack them from left to right.
   ///
   /// This method repositions all artifacts in the band, aligning them

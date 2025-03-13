@@ -39,12 +39,14 @@ class _PanelStep4ResultsState extends State<PanelStep4Results> {
     }
   }
 
-  void onApplyDictionaryToggled(final bool onOff) {
-    setState(() async {
-      widget.settings.applyDictionary = (onOff == true);
-      await widget.settings.save();
-      widget.textify.applyDictionary = widget.settings.applyDictionary;
-      widget.onSettingsChanged();
+  void onApplyDictionaryToggled(final bool onOff) async {
+    widget.settings.applyDictionary = (onOff == true);
+    await widget.settings.save();
+    widget.textify.applyDictionary = widget.settings.applyDictionary;
+    await widget.onSettingsChanged();
+
+    setState(() {
+      // update
     });
   }
 

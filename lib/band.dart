@@ -147,10 +147,10 @@ class Band {
             artifacts: this.artifacts,
             insertAtIndex: indexOfArtifact,
             locationFoundAt: Rect.fromLTRB(
-              artifactLeft.matrix.rectOriginalLocation.right + margin,
-              artifactLeft.matrix.rectOriginalLocation.top,
-              artifactRight.matrix.rectOriginalLocation.left - margin,
-              artifactRight.matrix.rectOriginalLocation.bottom,
+              artifactLeft.matrix.rectOriginal.right + margin,
+              artifactLeft.matrix.rectOriginal.top,
+              artifactRight.matrix.rectOriginal.left - margin,
+              artifactRight.matrix.rectOriginal.bottom,
             ),
             locationAdjusted: Rect.fromLTRB(
               artifactLeft.matrix.rectAdjusted.right + margin,
@@ -189,7 +189,7 @@ class Band {
     final Artifact artifactSpace = Artifact();
     artifactSpace.characterMatched = ' ';
 
-    artifactSpace.matrix.rectOriginalLocation = locationFoundAt;
+    artifactSpace.matrix.rectOriginal = locationFoundAt;
     artifactSpace.matrix.rectAdjusted = locationAdjusted;
 
     artifactSpace.matrix.rectAdjusted = artifactSpace.matrix.rectAdjusted;

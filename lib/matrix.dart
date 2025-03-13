@@ -200,7 +200,7 @@ class Matrix {
   List<List<bool>> get data => _data;
 
   /// the rectangle location of this matrix.
-  Rect rectOriginalLocation = Rect.zero;
+  Rect rectOriginal = Rect.zero;
 
   /// the rectangle location of this matrix.
   Rect rectAdjusted = Rect.zero;
@@ -219,7 +219,7 @@ class Matrix {
 
   /// rect setting helper
   void setBothRects(final Rect rect) {
-    rectOriginalLocation = rect;
+    rectOriginal = rect;
     rectAdjusted = rect;
   }
 

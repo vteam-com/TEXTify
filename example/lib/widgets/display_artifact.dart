@@ -163,8 +163,8 @@ class DisplayArtifacts extends CustomPainter {
       paintMatrix(
         canvas,
         colors[index++ % colors.length],
-        artifact.matrix.rectOriginalLocation.left.toInt(),
-        artifact.matrix.rectOriginalLocation.top.toInt(),
+        artifact.matrix.rectOriginal.left.toInt(),
+        artifact.matrix.rectOriginal.top.toInt(),
         viewAs == ViewAs.original
             ? artifact.matrix
             : artifact.verticalHistogram,

@@ -51,6 +51,11 @@ class Band {
     return _averageWidth;
   }
 
+  ///
+  void removeEmptyArtifacts() {
+    artifacts.removeWhere((artifact) => artifact.matrix.isEmpty);
+  }
+
   /// Calculates the average Kerning between adjacent artifacts and their average width.
   ///
   /// This method computes the mean horizontal distance between the right edge of
@@ -119,9 +124,7 @@ class Band {
       // nothing to do here
       return;
     }
-    final double exceeding = this.averageWidth * 0.50; // in %
-
-    final List<Artifact> insertInFrontOfTheseArtifacts = [];
+    final double exceeding = this.averageWidth * 0.75; // in %
 
     for (int indexOfArtifact = 0;
         indexOfArtifact < this.artifacts.length;
@@ -138,23 +141,27 @@ class Band {
         final double kerning = x2 - x1;
 
         if (kerning >= exceeding) {
+          final int margin = 2;
           // insert Artifact for Space
-          insertInFrontOfTheseArtifacts.add(artifactRight);
+          insertArtifactForSpace(
+            artifacts: this.artifacts,
+            insertAtIndex: indexOfArtifact,
+            locationFoundAt: Rect.fromLTRB(
+              artifactLeft.matrix.rectOriginalLocation.right + margin,
+              artifactLeft.matrix.rectOriginalLocation.top,
+              artifactRight.matrix.rectOriginalLocation.left - margin,
+              artifactRight.matrix.rectOriginalLocation.bottom,
+            ),
+            locationAdjusted: Rect.fromLTRB(
+              artifactLeft.matrix.rectAdjusted.right + margin,
+              artifactLeft.matrix.rectAdjusted.top,
+              artifactRight.matrix.rectAdjusted.left - margin,
+              artifactRight.matrix.rectAdjusted.bottom,
+            ),
+          );
+          indexOfArtifact++;
         }
       }
-    }
-
-    for (final Artifact artifactOnTheRightSide
-        in insertInFrontOfTheseArtifacts) {
-      final int indexOfArtifact =
-          this.artifacts.indexOf(artifactOnTheRightSide);
-      insertArtifactForSpace(
-        indexOfArtifact,
-        artifactOnTheRightSide.matrix.rectAdjusted.left -
-            averageWidth -
-            averageKerning,
-        artifactOnTheRightSide.matrix.rectAdjusted.left - averageKerning,
-      );
     }
   }
 
@@ -164,7 +171,7 @@ class Band {
   /// into the artifacts list at the specified index.
   ///
   /// Parameters:
-  /// - [indexOfArtifact]: The index at which to insert the space artifact.
+  /// - [insertAtIndex]: The index at which to insert the space artifact.
   /// - [x1]: The left x-coordinate of the space artifact.
   /// - [x2]: The right x-coordinate of the space artifact.
   ///
@@ -173,20 +180,18 @@ class Band {
   /// - Band ID is set to the current band's ID.
   /// - Rectangle is set based on the provided x-coordinates and the band's top and bottom.
   /// - A matrix is created based on the dimensions of the rectangle.
-  void insertArtifactForSpace(
-    final int indexOfArtifact,
-    final double x1,
-    final double x2,
-  ) {
+  static void insertArtifactForSpace({
+    required final List<Artifact> artifacts,
+    required final int insertAtIndex,
+    required final Rect locationFoundAt,
+    required final Rect locationAdjusted,
+  }) {
     final Artifact artifactSpace = Artifact();
     artifactSpace.characterMatched = ' ';
 
-    artifactSpace.matrix.rectAdjusted = Rect.fromLTRB(
-      x1,
-      rectangle.top,
-      x2,
-      rectangle.bottom,
-    );
+    artifactSpace.matrix.rectOriginalLocation = locationFoundAt;
+    artifactSpace.matrix.rectAdjusted = locationAdjusted;
+
     artifactSpace.matrix.rectAdjusted = artifactSpace.matrix.rectAdjusted;
 
     artifactSpace.matrix.setGrid(
@@ -195,7 +200,7 @@ class Band {
         artifactSpace.matrix.rectAdjusted.height.toInt(),
       ).data,
     );
-    this.artifacts.insert(indexOfArtifact, artifactSpace);
+    artifacts.insert(insertAtIndex, artifactSpace);
   }
 
   /// Adjusts the positions of artifacts to pack them from left to right.

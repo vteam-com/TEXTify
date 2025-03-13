@@ -61,5 +61,8 @@ void mergeBandsHorizontally(final List<Band> bands) {
 
 /// Removes bands that have no artifacts from the given list
 void removeEmptyBands(final List<Band> bands) {
-  bands.removeWhere((band) => band.artifacts.isEmpty);
+  bands.removeWhere((band) {
+    band.removeEmptyArtifacts();
+    return band.artifacts.isEmpty;
+  });
 }

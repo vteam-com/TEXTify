@@ -92,20 +92,20 @@ class Artifact {
     // Create a new rectangle that encompasses both artifacts
     final Rect newRect = Rect.fromLTRB(
       min(
-        this._matrix.originRectangle.left,
-        toMerge._matrix.originRectangle.left,
+        this._matrix.rectAdjusted.left,
+        toMerge._matrix.rectAdjusted.left,
       ),
       min(
-        this._matrix.originRectangle.top,
-        toMerge._matrix.originRectangle.top,
+        this._matrix.rectAdjusted.top,
+        toMerge._matrix.rectAdjusted.top,
       ),
       max(
-        this._matrix.originRectangle.right,
-        toMerge._matrix.originRectangle.right,
+        this._matrix.rectAdjusted.right,
+        toMerge._matrix.rectAdjusted.right,
       ),
       max(
-        this._matrix.originRectangle.bottom,
-        toMerge._matrix.originRectangle.bottom,
+        this._matrix.rectAdjusted.bottom,
+        toMerge._matrix.rectAdjusted.bottom,
       ),
     );
 
@@ -116,27 +116,25 @@ class Artifact {
     Matrix.copyGrid(
       this.matrix,
       newGrid,
-      (this._matrix.originRectangle.left - newRect.left).toInt(),
-      (this._matrix.originRectangle.top - newRect.top).toInt(),
+      (this._matrix.rectAdjusted.left - newRect.left).toInt(),
+      (this._matrix.rectAdjusted.top - newRect.top).toInt(),
     );
 
     Matrix.copyGrid(
       toMerge.matrix,
       newGrid,
-      (toMerge._matrix.originRectangle.left - newRect.left).toInt(),
-      (toMerge._matrix.originRectangle.top - newRect.top).toInt(),
+      (toMerge._matrix.rectAdjusted.left - newRect.left).toInt(),
+      (toMerge._matrix.rectAdjusted.top - newRect.top).toInt(),
     );
     this.matrix.setGrid(newGrid.data);
-    this.matrix.originRectangle = this
-        .matrix
-        .originRectangle
-        .expandToInclude(toMerge.matrix.originRectangle);
+    this.matrix.rectAdjusted =
+        this.matrix.rectAdjusted.expandToInclude(toMerge.matrix.rectAdjusted);
   }
 
   /// Returns:
   /// A string representation ths artifact.
   @override
   String toString() {
-    return '"$characterMatched" Rect:${_matrix.originRectangle.toString()} Area: $area}';
+    return '"$characterMatched" Rect:${_matrix.rectAdjusted.toString()} Area: $area}';
   }
 }

@@ -51,7 +51,7 @@ class Matrix {
   factory Matrix.fromMatrix(final Matrix value) {
     final matrix = Matrix();
     matrix.setGrid(value.data);
-    matrix.originRectangle = value.originRectangle;
+    matrix.rectAdjusted = value.rectAdjusted;
     return matrix;
   }
 
@@ -206,10 +206,10 @@ class Matrix {
   List<List<bool>> get data => _data;
 
   /// the rectangle location of this matrix.
-  Rect foundRectangle = Rect.zero;
+  Rect rectOriginalLocation = Rect.zero;
 
   /// the rectangle location of this matrix.
-  Rect originRectangle = Rect.zero;
+  Rect rectAdjusted = Rect.zero;
 
   /// The number of enclosure found
   int _enclosures = -1;
@@ -225,8 +225,8 @@ class Matrix {
 
   /// rect setting helper
   void setBothRects(final Rect rect) {
-    foundRectangle = rect;
-    originRectangle = rect;
+    rectOriginalLocation = rect;
+    rectAdjusted = rect;
   }
 
   /// Calculates the aspect ratio of the content within the matrix.

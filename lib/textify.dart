@@ -309,8 +309,7 @@ class Textify {
         final artifactMatrix =
             Matrix.extractSubGrid(binaryImage: imageAsBinary, rect: rect);
         final artifact = Artifact.fromMatrix(artifactMatrix);
-        artifact.matrix.foundRectangle = rect;
-        artifact.matrix.originRectangle = rect;
+        artifact.matrix.setBothRects(rect);
         return artifact;
       }).toList();
 
@@ -375,8 +374,8 @@ class Textify {
         final Artifact next = artifacts[j];
 
         if (_areArtifactsConnected(
-          current.matrix.originRectangle,
-          next.matrix.originRectangle,
+          current.matrix.rectAdjusted,
+          next.matrix.rectAdjusted,
           verticalThreshold,
           horizontalThreshold,
         )) {
@@ -628,8 +627,8 @@ class Textify {
           continue;
         }
 
-        if (artifactA.matrix.originRectangle
-            .overlaps(artifactB.matrix.originRectangle)) {
+        if (artifactA.matrix.rectAdjusted
+            .overlaps(artifactB.matrix.rectAdjusted)) {
           artifactA.mergeArtifact(artifactB);
           toRemove.add(artifactB);
         }

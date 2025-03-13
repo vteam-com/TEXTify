@@ -123,8 +123,8 @@ class DisplayArtifacts extends CustomPainter {
       paintMatrix(
         canvas,
         colors[id % colors.length],
-        artifact.matrix.originRectangle.left.toInt(),
-        artifact.matrix.originRectangle.top.toInt(),
+        artifact.matrix.rectAdjusted.left.toInt(),
+        artifact.matrix.rectAdjusted.top.toInt(),
         viewAs == ViewAs.matrixHistogram
             ? artifact.verticalHistogram
             : artifact.matrix,
@@ -132,8 +132,8 @@ class DisplayArtifacts extends CustomPainter {
 
       _drawText(
         canvas,
-        artifact.matrix.originRectangle.left,
-        artifact.matrix.originRectangle.top,
+        artifact.matrix.rectAdjusted.left,
+        artifact.matrix.rectAdjusted.top,
         id.toString(),
         8,
       );
@@ -163,8 +163,8 @@ class DisplayArtifacts extends CustomPainter {
       paintMatrix(
         canvas,
         colors[index++ % colors.length],
-        artifact.matrix.foundRectangle.left.toInt(),
-        artifact.matrix.foundRectangle.top.toInt(),
+        artifact.matrix.rectOriginalLocation.left.toInt(),
+        artifact.matrix.rectOriginalLocation.top.toInt(),
         viewAs == ViewAs.original
             ? artifact.matrix
             : artifact.verticalHistogram,

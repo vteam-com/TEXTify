@@ -356,7 +356,7 @@ class _ImageSourceGeneratedState extends State<ImageSourceGenerated> {
   Widget _buildActionButtons() {
     return Row(
       spacing: 10,
-      mainAxisAlignment: MainAxisAlignment.center,
+      mainAxisAlignment: MainAxisAlignment.start,
       children: [
         SizedBox(
           width: 150,

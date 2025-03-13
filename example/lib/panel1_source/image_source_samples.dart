@@ -92,14 +92,7 @@ class _ImageSourceSamplesState extends State<ImageSourceSamples> {
   @override
   Widget build(BuildContext context) {
     return PanelStepContent(
-      center: CustomInteractiveViewer(
-        transformationController: widget.transformationController,
-        child: Image.asset(
-          getSampleAssetName(_currentIndex),
-          fit: BoxFit.contain,
-        ),
-      ),
-      bottom: Row(
+      top: Row(
         mainAxisAlignment: MainAxisAlignment.start,
         spacing: 20,
         children: [
@@ -121,6 +114,13 @@ class _ImageSourceSamplesState extends State<ImageSourceSamples> {
                 : null,
           ),
         ],
+      ),
+      center: CustomInteractiveViewer(
+        transformationController: widget.transformationController,
+        child: Image.asset(
+          getSampleAssetName(_currentIndex),
+          fit: BoxFit.contain,
+        ),
       ),
     );
   }

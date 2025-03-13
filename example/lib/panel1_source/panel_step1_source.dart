@@ -65,22 +65,19 @@ class PanelStep1SourceState extends State<PanelStep1Source>
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            SizedBox(
-              width: 400,
-              child: TabBar(
-                controller: _tabController,
-                tabs: tabViews.map((e) => Tab(text: e)).toList(),
-                onTap: (index) {
-                  _tabController.animateTo(index);
-                  _saveLastTab(index);
-                  widget.onSourceChanged(
-                    _imageSelected,
-                    _expectedText,
-                    _fontName,
-                    _includeSpaceDetection,
-                  );
-                },
-              ),
+            TabBar(
+              controller: _tabController,
+              tabs: tabViews.map((e) => Tab(text: e)).toList(),
+              onTap: (index) {
+                _tabController.animateTo(index);
+                _saveLastTab(index);
+                widget.onSourceChanged(
+                  _imageSelected,
+                  _expectedText,
+                  _fontName,
+                  _includeSpaceDetection,
+                );
+              },
             ),
             IntrinsicHeight(
               child: _buildContent(),

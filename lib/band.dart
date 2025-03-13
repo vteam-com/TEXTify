@@ -67,7 +67,7 @@ class Band {
   void _updateStatistics() {
     if (artifacts.length < 2) {
       _averageKerning = -1;
-      _averageWidth = rectangle.width;
+      _averageWidth = rectangleAdjusted.width;
       return;
     }
 
@@ -217,17 +217,20 @@ class Band {
   /// This method modifies the positions of all artifacts in the band to create
   /// a left-aligned, properly spaced arrangement.
   void packArtifactLeftToRight() {
-    double left = this.rectangle.left;
+    double left = this.rectangleAdjusted.left;
 
     for (final Artifact artifact in artifacts) {
       artifact.matrix.padTopBottom(
-        paddingTop: (artifact.matrix.rectAdjusted.top - rectangle.top).toInt(),
+        paddingTop:
+            (artifact.matrix.rectAdjusted.top - rectangleAdjusted.top).toInt(),
         paddingBottom:
-            (rectangle.bottom - artifact.matrix.rectAdjusted.bottom).toInt(),
+            (rectangleAdjusted.bottom - artifact.matrix.rectAdjusted.bottom)
+                .toInt(),
       );
 
       final double dx = left - artifact.matrix.rectAdjusted.left;
-      final double dy = rectangle.top - artifact.matrix.rectAdjusted.top;
+      final double dy =
+          rectangleAdjusted.top - artifact.matrix.rectAdjusted.top;
       artifact.matrix.rectAdjusted =
           artifact.matrix.rectAdjusted.shift(Offset(dx, dy));
       artifact.matrix.rectAdjusted = artifact.matrix.rectAdjusted;
@@ -247,8 +250,8 @@ class Band {
   /// Note: If the object's dimensions or position can change, this cached
   /// value may become outdated. In such cases, consider adding a method
   /// to invalidate the cache when necessary.
-  Rect get rectangle {
-    return getBoundingBox(this.artifacts);
+  Rect get rectangleAdjusted {
+    return getBoundingBoxAdjusted(this.artifacts);
   }
 
   /// Calculates the bounding rectangle that encloses a list of artifacts.
@@ -261,7 +264,7 @@ class Band {
   ///
   /// Returns:
   ///   A [Rect] representing the bounding box of the provided artifacts.
-  static Rect getBoundingBox(final List<Artifact> artifacts) {
+  static Rect getBoundingBoxAdjusted(final List<Artifact> artifacts) {
     if (artifacts.isEmpty) {
       return Rect.zero;
     }

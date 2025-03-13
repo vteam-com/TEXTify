@@ -24,8 +24,8 @@ class DisplayBandsAndArtifacts extends StatelessWidget {
     double maxHeight = 0;
     for (final Band band in textify.bands) {
       if (band.artifacts.isNotEmpty) {
-        maxWidth = max(maxWidth, band.rectangle.right + offsetX);
-        maxHeight = max(maxHeight, band.rectangle.bottom + offsetY);
+        maxWidth = max(maxWidth, band.rectangleAdjusted.right + offsetX);
+        maxHeight = max(maxHeight, band.rectangleAdjusted.bottom + offsetY);
       }
     }
 

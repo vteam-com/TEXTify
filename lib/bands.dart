@@ -25,11 +25,12 @@ void mergeBandsHorizontally(final List<Band> bands) {
       //
       // Step 1 - Calculate vertical center overlap
       //
-      double leftCenter = leftBand.rectangle.center.dy;
-      double rightCenter = rightBand.rectangle.center.dy;
+      double leftCenter = leftBand.rectangleAdjusted.center.dy;
+      double rightCenter = rightBand.rectangleAdjusted.center.dy;
       double centerDiff = (leftCenter - rightCenter).abs();
-      double avgHeight =
-          (leftBand.rectangle.height + rightBand.rectangle.height) / 2;
+      double avgHeight = (leftBand.rectangleAdjusted.height +
+              rightBand.rectangleAdjusted.height) /
+          2;
 
       // Check if bands are horizontally adjacent and vertically aligned
       if (centerDiff < avgHeight * 0.3) {
@@ -37,7 +38,7 @@ void mergeBandsHorizontally(final List<Band> bands) {
         // Step 2 - Calculate horizontal distance between bands
         //
         double horizontalDistance =
-            rightBand.rectangle.left - leftBand.rectangle.right;
+            rightBand.rectangleAdjusted.left - leftBand.rectangleAdjusted.right;
 
         // Centers are within 30% of average height
         if (horizontalDistance > 0) {

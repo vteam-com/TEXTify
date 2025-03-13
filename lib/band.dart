@@ -115,6 +115,10 @@ class Band {
   ///
   /// The threshold is set at 50% of the average width of artifacts in the band.
   void identifySpacesInBand() {
+    if (this.artifacts.length <= 2) {
+      // nothing to do here
+      return;
+    }
     final double exceeding = this.averageWidth * 0.50; // in %
 
     final List<Artifact> insertInFrontOfTheseArtifacts = [];

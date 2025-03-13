@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-class PanelStep1Content extends StatelessWidget {
-  const PanelStep1Content({
+class PanelStepContent extends StatelessWidget {
+  const PanelStepContent({
     super.key,
     this.left,
     this.top,

@@ -6,7 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'image_source_clipboard.dart';
 import 'image_source_generated.dart';
 import 'image_source_samples.dart';
-export 'package:textify_dashboard/panel1_source/panel_step1_content.dart';
+export 'package:textify_dashboard/panel1_source/panel_step_content.dart';
 
 class PanelStep1Source extends StatefulWidget {
   const PanelStep1Source({

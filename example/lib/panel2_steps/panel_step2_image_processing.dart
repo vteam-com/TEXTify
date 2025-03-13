@@ -3,7 +3,7 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:textify/matrix.dart';
-import 'package:textify_dashboard/panel1_source/panel_step1_content.dart';
+import 'package:textify_dashboard/panel1_source/panel_step_content.dart';
 import 'package:textify_dashboard/panel2_steps/panel_step2_toolbar.dart';
 import 'package:textify_dashboard/widgets/image_viewer.dart';
 
@@ -78,7 +78,7 @@ class _PanelStep2State extends State<PanelStep2> {
         imageToDisplay = _imageDilated;
     }
 
-    return PanelStep1Content(
+    return PanelStepContent(
       top: PanelStep2Toolbar(
         viewAsStep: _step2viewImageAs,
         onViewChanged: (ViewImageSteps view) {

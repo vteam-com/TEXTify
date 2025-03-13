@@ -136,6 +136,15 @@ void main() async {
     // errors here        ^       ^          ^
   });
 
+  test('Convert image quick_brown_fox.png to text', () async {
+    final ui.Image uiImage =
+        await loadImageFromAssets('assets/test/quick_brown_fox.png');
+    final String text = await instance.getTextFromImage(image: uiImage);
+
+    // the result are not perfect 90% accuracy, but its trending in the right direction
+    expect(text, '0 The QUiCk\nBr0Wn F0x\n1 23.45');
+  });
+
   test('Dictionary Correction', () async {
     await myExpectWord('', '');
     await myExpectWord('Hell0', 'Hello');

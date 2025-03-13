@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:textify/artifact.dart';
 import 'package:textify/band.dart';
 import 'package:textify/textify.dart';
-import 'package:textify_dashboard/panel1_source/panel_step1_content.dart';
+import 'package:textify_dashboard/panel1_source/panel_step_content.dart';
 import 'package:textify_dashboard/panel4_results/panel_step4_toolbar.dart';
 import 'package:textify_dashboard/settings.dart';
 import 'package:textify_dashboard/widgets/gap.dart';
@@ -50,7 +50,7 @@ class _PanelStep4ResultsState extends State<PanelStep4Results> {
 
   /// Builds a free-style results view for the `Textify` data, displaying the full text found in a selectable `Text` widget with a Courier font and blue cursor.
   Widget _buildFreeStyleResults(final BuildContext context) {
-    return PanelStep1Content(
+    return PanelStepContent(
       top: panelStep4toolbar(
         widget.settings.applyDictionary,
         onApplyDictionaryToggled,
@@ -197,7 +197,7 @@ class _PanelStep4ResultsState extends State<PanelStep4Results> {
   /// Returns:
   ///   A `Widget` that displays the matching characters for the given context.
   Widget _buildMatchingCharacter(final BuildContext context) {
-    return PanelStep1Content(
+    return PanelStepContent(
       top: panelStep4toolbar(
         widget.settings.applyDictionary,
         onApplyDictionaryToggled,

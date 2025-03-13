@@ -5,7 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:textify_dashboard/widgets/image_viewer.dart';
 
 import 'debounce.dart';
-import 'panel_step1_content.dart';
+import 'panel_step_content.dart';
 
 class ImageSourceSamples extends StatefulWidget {
   const ImageSourceSamples({
@@ -91,7 +91,7 @@ class _ImageSourceSamplesState extends State<ImageSourceSamples> {
 
   @override
   Widget build(BuildContext context) {
-    return PanelStep1Content(
+    return PanelStepContent(
       center: CustomInteractiveViewer(
         transformationController: widget.transformationController,
         child: Image.asset(

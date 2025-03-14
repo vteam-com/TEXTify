@@ -96,6 +96,7 @@ class PaintArtifacts extends CustomPainter {
     double y,
     String text, [
     double fontSize = 10,
+    TextAlign textAlign = TextAlign.left,
   ]) {
     // Draw information about the band
     final textSpan = TextSpan(
@@ -107,6 +108,7 @@ class PaintArtifacts extends CustomPainter {
     );
     final textPainter = TextPainter(
       text: textSpan,
+      textAlign: textAlign,
       textDirection: TextDirection.ltr,
     );
     textPainter.layout();
@@ -146,10 +148,20 @@ class PaintArtifacts extends CustomPainter {
 
       _drawText(
         canvas,
-        artifact.matrix.rectAdjusted.left,
-        artifact.matrix.rectAdjusted.top,
+        artifact.matrix.rectAdjusted.topCenter.dx - 2,
+        artifact.matrix.rectAdjusted.topCenter.dy - 4,
         id.toString(),
         8,
+        TextAlign.center,
+      );
+
+      _drawText(
+        canvas,
+        artifact.matrix.rectAdjusted.bottomCenter.dx - 2,
+        artifact.matrix.rectAdjusted.bottomCenter.dy - 4,
+        artifact.characterMatched,
+        8,
+        TextAlign.center,
       );
       id++;
     }
@@ -204,7 +216,7 @@ class PaintArtifacts extends CustomPainter {
       _drawText(
         canvas,
         rect.left,
-        rect.top - 12,
+        rect.top - 14,
         title,
       );
     }

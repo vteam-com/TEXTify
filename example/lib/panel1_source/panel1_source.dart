@@ -66,6 +66,7 @@ class PanelStep1SourceState extends State<PanelStep1Source>
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             TabBar(
+              isScrollable: true,
               controller: _tabController,
               tabs: tabViews.map((e) => Tab(text: e)).toList(),
               onTap: (index) {

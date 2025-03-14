@@ -73,6 +73,7 @@ class _Panel2ToolbarState extends State<Panel2Toolbar>
         // TabsVi
         IntrinsicWidth(
           child: TabBar(
+            isScrollable: true,
             controller: _tabController,
             tabs: tabViews.entries
                 .map((entry) => Tab(text: entry.value))

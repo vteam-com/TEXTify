@@ -38,20 +38,6 @@ Widget _buildActionButtons(
     mainAxisAlignment: MainAxisAlignment.start,
     spacing: 10,
     children: [
-      OutlinedButton(
-        onPressed: () {
-          transformationController.value =
-              transformationController.value.scaled(1 / 1.5);
-        },
-        child: const Text('Zoom -'),
-      ),
-      OutlinedButton(
-        onPressed: () {
-          transformationController.value =
-              transformationController.value.scaled(1.5);
-        },
-        child: const Text('Zoom +'),
-      ),
       DropdownButton<ViewAs>(
         value: viewAs,
         items: const [

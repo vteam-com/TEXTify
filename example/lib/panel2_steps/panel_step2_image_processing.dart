@@ -61,6 +61,7 @@ class _PanelStep2State extends State<PanelStep2> {
     return PanelStepContent(
       top: PanelStep2Toolbar(
         viewAsStep: _step2viewImageAs,
+        transformationController: widget.transformationController,
         onViewChanged: (ViewImageSteps view) {
           setState(() {
             _step2viewImageAs = view;

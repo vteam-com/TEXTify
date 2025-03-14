@@ -6,6 +6,7 @@ class PanelStep2Toolbar extends StatefulWidget {
     super.key,
     required this.viewAsStep,
     required this.onViewChanged,
+    required this.transformationController,
     // region
     required this.showRegions,
     required this.onShowRegionsChanged,
@@ -19,6 +20,7 @@ class PanelStep2Toolbar extends StatefulWidget {
   });
   final ViewImageSteps viewAsStep;
   final Function(ViewImageSteps) onViewChanged;
+  final TransformationController transformationController;
   final bool showRegions;
   final bool showHistograms;
   final int kernelSizeDilate;
@@ -64,6 +66,7 @@ class _PanelStep2ToolbarState extends State<PanelStep2Toolbar>
       mainAxisAlignment: MainAxisAlignment.start,
       spacing: 10,
       children: [
+        // TabsView
         SizedBox(
           width: 400,
           child: TabBar(
@@ -77,6 +80,21 @@ class _PanelStep2ToolbarState extends State<PanelStep2Toolbar>
             },
           ),
         ),
+        OutlinedButton(
+          onPressed: () {
+            widget.transformationController.value =
+                widget.transformationController.value.scaled(1 / 1.5);
+          },
+          child: const Text('Zoom -'),
+        ),
+        OutlinedButton(
+          onPressed: () {
+            widget.transformationController.value =
+                widget.transformationController.value.scaled(1.5);
+          },
+          child: const Text('Zoom +'),
+        ),
+
         _buildDilateButtons(),
         Row(
           children: [
@@ -87,6 +105,7 @@ class _PanelStep2ToolbarState extends State<PanelStep2Toolbar>
             const Text('Show Regions'),
           ],
         ),
+
         Row(
           children: [
             Checkbox(

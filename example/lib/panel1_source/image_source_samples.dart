@@ -5,7 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:textify_dashboard/widgets/image_viewer.dart';
 
 import 'debounce.dart';
-import 'panel_step_content.dart';
+import 'panel1_content.dart';
 
 class ImageSourceSamples extends StatefulWidget {
   const ImageSourceSamples({

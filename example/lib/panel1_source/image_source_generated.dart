@@ -10,7 +10,7 @@ import 'package:textify_dashboard/widgets/image_viewer.dart';
 
 import 'debounce.dart';
 import 'image_generator_input.dart';
-import 'panel_step_content.dart';
+import 'panel1_content.dart';
 
 ImageGeneratorInput imageSettings = ImageGeneratorInput.empty();
 

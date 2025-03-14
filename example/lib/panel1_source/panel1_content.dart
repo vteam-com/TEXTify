@@ -24,6 +24,7 @@ class PanelStepContent extends StatelessWidget {
         if (left != null) left!,
         Expanded(
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               if (top != null) top!,
               Container(

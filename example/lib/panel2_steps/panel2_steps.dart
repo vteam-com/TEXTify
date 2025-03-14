@@ -2,15 +2,19 @@ import 'dart:math';
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:textify/matrix.dart';
+import 'package:textify/textify.dart';
 import 'package:textify_dashboard/generate_samples/generate_image.dart';
-import 'package:textify_dashboard/panel1_source/panel_step_content.dart';
-import 'package:textify_dashboard/panel2_steps/panel_step2_toolbar.dart';
+import 'package:textify_dashboard/panel1_source/panel1_content.dart';
+import 'package:textify_dashboard/panel2_steps/display_bands_and_artifacts.dart';
+import 'package:textify_dashboard/panel2_steps/panel2_steps_toolbar.dart';
 import 'package:textify_dashboard/widgets/image_viewer.dart';
 
-class PanelStep2 extends StatefulWidget {
-  const PanelStep2({
+class PanelSteps extends StatefulWidget {
+  const PanelSteps({
     super.key,
+    required this.textify,
     required this.imageSource,
     required this.regions,
     required this.kernelSizeDilate,
@@ -18,6 +22,7 @@ class PanelStep2 extends StatefulWidget {
     required this.onReset,
     required this.transformationController,
   });
+  final Textify textify;
   final ui.Image? imageSource;
   final List<Rect> regions;
   final int kernelSizeDilate;
@@ -26,12 +31,12 @@ class PanelStep2 extends StatefulWidget {
   final TransformationController transformationController;
 
   @override
-  State<PanelStep2> createState() => _PanelStep2State();
+  State<PanelSteps> createState() => _PanelStepsState();
 }
 
-class _PanelStep2State extends State<PanelStep2> {
+class _PanelStepsState extends State<PanelSteps> {
   bool _isReady = false;
-  late ViewImageSteps _step2viewImageAs;
+  late ViewAs _viewAs;
   ui.Image? _imageGrayScale;
   ui.Image? _imageBW;
   ui.Image? imageToDisplay;
@@ -44,11 +49,11 @@ class _PanelStep2State extends State<PanelStep2> {
   @override
   void initState() {
     super.initState();
-    _step2viewImageAs = ViewImageSteps.grayScale;
+    _viewAs = ViewAs.grayScale;
   }
 
   @override
-  void didUpdateWidget(PanelStep2 oldWidget) {
+  void didUpdateWidget(PanelSteps oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.imageSource != widget.imageSource ||
         oldWidget.kernelSizeDilate != widget.kernelSizeDilate) {
@@ -59,12 +64,12 @@ class _PanelStep2State extends State<PanelStep2> {
   @override
   Widget build(BuildContext context) {
     return PanelStepContent(
-      top: PanelStep2Toolbar(
-        viewAsStep: _step2viewImageAs,
+      top: Panel2Toolbar(
+        viewAsStep: _viewAs,
         transformationController: widget.transformationController,
-        onViewChanged: (ViewImageSteps view) {
+        onViewChanged: (ViewAs view) {
           setState(() {
-            _step2viewImageAs = view;
+            _viewAs = view;
           });
         },
         // Region
@@ -87,6 +92,11 @@ class _PanelStep2State extends State<PanelStep2> {
         onReset: widget.onReset,
       ),
       center: centerContent(),
+      bottom: buildPanelHeader(
+        '${widget.textify.count} Artifacts',
+        '',
+        '${NumberFormat.decimalPattern().format(widget.textify.duration)}ms',
+      ),
     );
   }
 
@@ -101,20 +111,47 @@ class _PanelStep2State extends State<PanelStep2> {
       );
     }
 
-    switch (_step2viewImageAs) {
-      case ViewImageSteps.grayScale:
+    switch (_viewAs) {
+      case ViewAs.grayScale:
         imageToDisplay = _imageGrayScale;
+        return buildInteractiveImageViewer(
+          drawRectanglesOnImage(imageToDisplay!),
+          widget.transformationController,
+        );
 
-      case ViewImageSteps.blackAndWhite:
+      case ViewAs.blackAndWhite:
         imageToDisplay = _imageBW;
+        return buildInteractiveImageViewer(
+          drawRectanglesOnImage(imageToDisplay!),
+          widget.transformationController,
+        );
 
-      case ViewImageSteps.region:
+      case ViewAs.region:
         imageToDisplay = _imageDilated;
-    }
+        return buildInteractiveImageViewer(
+          drawRectanglesOnImage(imageToDisplay!),
+          widget.transformationController,
+        );
 
-    return buildInteractiveImageViewer(
-      drawRectanglesOnImage(imageToDisplay!),
-      widget.transformationController,
+      case ViewAs.artifacts:
+      case ViewAs.characters:
+        return widgetForDisplayingArtifacts(
+          widget.transformationController,
+        );
+    }
+  }
+
+  Widget widgetForDisplayingArtifacts(
+    final TransformationController transformationController,
+  ) {
+    return CustomInteractiveViewer(
+      transformationController: transformationController,
+      child: DisplayBandsAndArtifacts(
+        textify: widget.textify,
+        viewAs: _viewAs,
+        showRegions: _showRegions,
+        showHistogram: _showHistograms,
+      ),
     );
   }
 

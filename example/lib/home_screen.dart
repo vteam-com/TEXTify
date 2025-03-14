@@ -1,16 +1,14 @@
 import 'dart:math';
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:textify/textify.dart';
 import 'package:textify_dashboard/panel1_source/debounce.dart';
 
-import 'package:textify_dashboard/panel1_source/panel_step1_source.dart';
-import 'package:textify_dashboard/panel2_steps/panel_step2_image_processing.dart';
-import 'package:textify_dashboard/panel3_artifacts/panel_step3_artifacts_found.dart';
+import 'package:textify_dashboard/panel1_source/panel1_source.dart';
+import 'package:textify_dashboard/panel2_steps/panel2_steps.dart';
 import 'package:textify_dashboard/settings.dart';
-import 'package:textify_dashboard/widgets/display_artifact.dart';
-import 'panel4_results/panel_step4_results.dart';
+import 'package:textify_dashboard/widgets/image_viewer.dart';
+import 'panel3_results/panel3_results.dart';
 
 ///
 class HomeScreen extends StatefulWidget {
@@ -31,7 +29,7 @@ class _HomeScreenState extends State<HomeScreen> {
   ui.Image? _imageSource;
   String _fontName = '';
   List<String> _stringsExpectedToBeFoundInTheImage = [];
-  ViewAs viewAs = ViewAs.matrix;
+  ViewAs viewAs = ViewAs.characters;
 
   String _textFound = '';
 
@@ -116,7 +114,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   titleCenter: _getDimensionOfImageSource(_imageSource),
                   titleRight: '',
                   isExpanded: _settings.isExpandedOptimized,
-                  content: PanelStep2(
+                  content: PanelSteps(
+                    textify: _textify,
                     imageSource: _imageSource,
                     regions: _textify.regions,
                     kernelSizeDilate: _textify.dilatingSize,
@@ -142,27 +141,6 @@ class _HomeScreenState extends State<HomeScreen> {
                       });
                     },
                     transformationController: _transformationController,
-                  ),
-                ),
-
-                //
-                // Panel 3 - Bands and Artifacts
-                //
-                buildExpansionPanel(
-                  titleLeft: '${_textify.bands.length} Bands',
-                  titleCenter: '${_textify.count} Artifacts',
-                  titleRight:
-                      '${NumberFormat.decimalPattern().format(_textify.duration)}ms',
-                  isExpanded: _settings.isExpandedArtifactFound,
-                  content: panelStep3ArtifactsFound(
-                    textify: _textify,
-                    transformationController: _transformationController,
-                    viewAs: viewAs,
-                    onChangeView: (ViewAs viewAs) {
-                      setState(() {
-                        this.viewAs = viewAs;
-                      });
-                    },
                   ),
                 ),
 

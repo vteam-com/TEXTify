@@ -278,8 +278,23 @@ class Band {
   /// Note: If the object's dimensions or position can change, this cached
   /// value may become outdated. In such cases, consider adding a method
   /// to invalidate the cache when necessary.
+  Rect get rectangleOriginal {
+    return getBoundingBox(this.artifacts, useAdjustedRect: false);
+  }
+
+  /// Gets the bounding rectangle of this object.
+  ///
+  /// This getter uses lazy initialization to compute the bounding box
+  /// only when first accessed, and then caches the result for subsequent calls.
+  ///
+  /// Returns:
+  ///   A [Rect] representing the bounding box of this object.
+  ///
+  /// Note: If the object's dimensions or position can change, this cached
+  /// value may become outdated. In such cases, consider adding a method
+  /// to invalidate the cache when necessary.
   Rect get rectangleAdjusted {
-    return getBoundingBoxAdjusted(this.artifacts);
+    return getBoundingBox(this.artifacts, useAdjustedRect: true);
   }
 
   /// Calculates the bounding rectangle that encloses a list of artifacts.
@@ -292,7 +307,10 @@ class Band {
   ///
   /// Returns:
   ///   A [Rect] representing the bounding box of the provided artifacts.
-  static Rect getBoundingBoxAdjusted(final List<Artifact> artifacts) {
+  static Rect getBoundingBox(
+    final List<Artifact> artifacts, {
+    bool useAdjustedRect = true,
+  }) {
     if (artifacts.isEmpty) {
       return Rect.zero;
     }
@@ -303,7 +321,9 @@ class Band {
     double maxY = double.negativeInfinity;
 
     for (final Artifact artifact in artifacts) {
-      final Rect rect = artifact.matrix.rectAdjusted;
+      final Rect rect = useAdjustedRect
+          ? artifact.matrix.rectAdjusted
+          : artifact.matrix.rectOriginal;
       minX = min(minX, rect.left);
       minY = min(minY, rect.top);
       maxX = max(maxX, rect.right);

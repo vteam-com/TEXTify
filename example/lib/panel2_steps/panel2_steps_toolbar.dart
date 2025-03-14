@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:textify_dashboard/widgets/image_viewer.dart';
 
-class PanelStep2Toolbar extends StatefulWidget {
-  const PanelStep2Toolbar({
+class Panel2Toolbar extends StatefulWidget {
+  const Panel2Toolbar({
     super.key,
     required this.viewAsStep,
     required this.onViewChanged,
@@ -18,8 +18,8 @@ class PanelStep2Toolbar extends StatefulWidget {
     required this.onDelateChanged,
     required this.onReset,
   });
-  final ViewImageSteps viewAsStep;
-  final Function(ViewImageSteps) onViewChanged;
+  final ViewAs viewAsStep;
+  final Function(ViewAs) onViewChanged;
   final TransformationController transformationController;
   final bool showRegions;
   final bool showHistograms;
@@ -30,15 +30,17 @@ class PanelStep2Toolbar extends StatefulWidget {
   final Function onReset;
 
   @override
-  State<PanelStep2Toolbar> createState() => _PanelStep2ToolbarState();
+  State<Panel2Toolbar> createState() => _Panel2ToolbarState();
 }
 
-class _PanelStep2ToolbarState extends State<PanelStep2Toolbar>
+class _Panel2ToolbarState extends State<Panel2Toolbar>
     with SingleTickerProviderStateMixin {
-  final Map<ViewImageSteps, String> tabViews = {
-    ViewImageSteps.grayScale: '1 GrayS',
-    ViewImageSteps.blackAndWhite: '2 B&W',
-    ViewImageSteps.region: '3 Regions',
+  final Map<ViewAs, String> tabViews = {
+    ViewAs.grayScale: '1 GrayS',
+    ViewAs.blackAndWhite: '2 B&W',
+    ViewAs.region: '3 Regions',
+    ViewAs.artifacts: '4 Artifacts',
+    ViewAs.characters: '5 Characters',
   };
 
   late TabController _tabController;
@@ -62,13 +64,14 @@ class _PanelStep2ToolbarState extends State<PanelStep2Toolbar>
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.start,
-      spacing: 10,
+    return Wrap(
+      alignment: WrapAlignment.spaceBetween,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      spacing: 20,
+      runSpacing: 20,
       children: [
-        // TabsView
-        SizedBox(
-          width: 400,
+        // TabsVi
+        IntrinsicWidth(
           child: TabBar(
             controller: _tabController,
             tabs: tabViews.entries
@@ -80,40 +83,58 @@ class _PanelStep2ToolbarState extends State<PanelStep2Toolbar>
             },
           ),
         ),
-        OutlinedButton(
-          onPressed: () {
-            widget.transformationController.value =
-                widget.transformationController.value.scaled(1 / 1.5);
-          },
-          child: const Text('Zoom -'),
-        ),
-        OutlinedButton(
-          onPressed: () {
-            widget.transformationController.value =
-                widget.transformationController.value.scaled(1.5);
-          },
-          child: const Text('Zoom +'),
-        ),
-
-        _buildDilateButtons(),
-        Row(
-          children: [
-            Checkbox(
-              value: widget.showRegions,
-              onChanged: (value) => widget.onShowRegionsChanged(value!),
-            ),
-            const Text('Show Regions'),
-          ],
+        IntrinsicWidth(
+          child: Row(
+            spacing: 10,
+            children: [
+              OutlinedButton(
+                onPressed: () {
+                  widget.transformationController.value =
+                      widget.transformationController.value.scaled(1 / 1.5);
+                },
+                child: const Text('-'),
+              ),
+              Text('Zoom'),
+              OutlinedButton(
+                onPressed: () {
+                  widget.transformationController.value =
+                      widget.transformationController.value.scaled(1.5);
+                },
+                child: const Text('+'),
+              ),
+            ],
+          ),
         ),
 
-        Row(
-          children: [
-            Checkbox(
-              value: widget.showHistograms,
-              onChanged: (value) => widget.onShowHistogramsChanged(value!),
-            ),
-            const Text('Show Histogram'),
-          ],
+        IntrinsicWidth(
+          child: _buildDilateButtons(),
+        ),
+
+        IntrinsicWidth(
+          child: Row(
+            spacing: 20,
+            children: [
+              Row(
+                children: [
+                  const Text('Regions'),
+                  Checkbox(
+                    value: widget.showRegions,
+                    onChanged: (value) => widget.onShowRegionsChanged(value!),
+                  ),
+                ],
+              ),
+              Row(
+                children: [
+                  const Text('Histogram'),
+                  Checkbox(
+                    value: widget.showHistograms,
+                    onChanged: (value) =>
+                        widget.onShowHistogramsChanged(value!),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
         OutlinedButton(
           onPressed: () {
@@ -136,7 +157,10 @@ class _PanelStep2ToolbarState extends State<PanelStep2Toolbar>
             );
           }
         }),
-        Text('Dilate: ${widget.kernelSizeDilate}'),
+        Text(
+          'Dilate\n${widget.kernelSizeDilate}',
+          textAlign: TextAlign.center,
+        ),
         _buildButton('+', () {
           widget.onDelateChanged(
             widget.kernelSizeDilate + 1,

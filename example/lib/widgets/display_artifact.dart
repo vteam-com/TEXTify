@@ -2,40 +2,55 @@ import 'package:flutter/material.dart';
 import 'package:textify/artifact.dart';
 import 'package:textify/band.dart';
 import 'package:textify/textify.dart';
+import 'package:textify_dashboard/widgets/image_viewer.dart';
 import 'package:textify_dashboard/widgets/paint_grid.dart';
 
-enum ViewAs {
-  original,
-  originalHistogram,
-  matrix,
-  matrixHistogram,
-}
-
-class DisplayArtifacts extends CustomPainter {
-  DisplayArtifacts({
+class PaintArtifacts extends CustomPainter {
+  PaintArtifacts({
     required this.textify,
     required this.viewAs,
+    required this.showRegions,
+    required this.showHistogram,
   });
 
   final Textify textify;
   final ViewAs viewAs;
+  final bool showRegions;
+  final bool showHistogram;
 
   @override
   void paint(Canvas canvas, Size size) {
-    if (viewAs == ViewAs.original || viewAs == ViewAs.originalHistogram) {
+    if (viewAs == ViewAs.artifacts) {
       for (final Band band in textify.bands.list) {
+        if (showRegions) {
+          _paintBand(
+            canvas: canvas,
+            title: _getBandTitle(band),
+            rect: Band.getBoundingBox(band.artifacts, useAdjustedRect: false),
+            backgroundColor: Colors.black,
+          );
+        }
         _paintArtifactsExactlyWhereTheyAreFound(
           canvas: canvas,
-          viewAs: viewAs,
           artifacts: band.artifacts,
+          showRegions: showRegions,
+          showHistogram: showHistogram,
         );
       }
     } else {
       for (final Band band in textify.bands.list) {
-        _paintBand(canvas: canvas, band: band, backgroundColor: Colors.black);
+        if (showRegions) {
+          _paintBand(
+            canvas: canvas,
+            title: _getBandTitle(band),
+            rect: Band.getBoundingBox(band.artifacts, useAdjustedRect: true),
+            backgroundColor: Colors.black,
+          );
+        }
         _paintArtifactsInRow(
           canvas: canvas,
-          viewAs: viewAs,
+          showRegions: showRegions,
+          showHistogram: showHistogram,
           artifacts: band.artifacts,
         );
       }
@@ -43,7 +58,7 @@ class DisplayArtifacts extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(DisplayArtifacts oldDelegate) => false;
+  bool shouldRepaint(PaintArtifacts oldDelegate) => false;
 
   /// Draws a rectangle with a background color and a border on the given canvas.
   ///
@@ -109,8 +124,9 @@ class DisplayArtifacts extends CustomPainter {
 
   void _paintArtifactsInRow({
     required final Canvas canvas,
-    required final ViewAs viewAs,
     required final List<Artifact> artifacts,
+    required final bool showRegions,
+    required final bool showHistogram,
   }) {
     List<Color> colors = [
       Colors.blue.shade300,
@@ -125,9 +141,7 @@ class DisplayArtifacts extends CustomPainter {
         colors[id % colors.length],
         artifact.matrix.rectAdjusted.left.toInt(),
         artifact.matrix.rectAdjusted.top.toInt(),
-        viewAs == ViewAs.matrixHistogram
-            ? artifact.verticalHistogram
-            : artifact.matrix,
+        showHistogram ? artifact.verticalHistogram : artifact.matrix,
       );
 
       _drawText(
@@ -143,8 +157,9 @@ class DisplayArtifacts extends CustomPainter {
 
   void _paintArtifactsExactlyWhereTheyAreFound({
     required final Canvas canvas,
-    required final ViewAs viewAs,
     required final List<Artifact> artifacts,
+    required final bool showRegions,
+    required final bool showHistogram,
   }) {
     // Rainbow colors
     List<Color> colors = [
@@ -165,36 +180,32 @@ class DisplayArtifacts extends CustomPainter {
         colors[index++ % colors.length],
         artifact.matrix.rectOriginal.left.toInt(),
         artifact.matrix.rectOriginal.top.toInt(),
-        viewAs == ViewAs.original
-            ? artifact.matrix
-            : artifact.verticalHistogram,
+        showHistogram ? artifact.verticalHistogram : artifact.matrix,
       );
     }
   }
 
   void _paintBand({
     required final Canvas canvas,
-    required final Band band,
+    required String title,
+    required Rect rect,
     required final Color backgroundColor,
   }) {
-    final String caption = _getBandTitle(band);
-    final Rect bandRect = Band.getBoundingBoxAdjusted(band.artifacts);
-
     // main region in blue
     _drawRectangle(
       canvas,
-      bandRect,
+      rect,
       backgroundColor,
       Colors.white.withAlpha(100),
     );
 
     // information about the band
-    if (caption.isNotEmpty) {
+    if (title.isNotEmpty) {
       _drawText(
         canvas,
-        bandRect.left,
-        bandRect.top - 12,
-        caption,
+        rect.left,
+        rect.top - 12,
+        title,
       );
     }
   }

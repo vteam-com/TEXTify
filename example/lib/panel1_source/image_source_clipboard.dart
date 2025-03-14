@@ -7,7 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../widgets/image_viewer.dart';
 import 'debounce.dart';
-import 'panel_step_content.dart';
+import 'panel1_content.dart';
 
 /// Provides functionality to retrieve images from the system clipboard.
 ///

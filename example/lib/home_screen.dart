@@ -96,6 +96,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       final bool includeSpaceDetection,
                     ) {
                       _imageSource = newImage;
+                      centerViewers();
                       _stringsExpectedToBeFoundInTheImage = expectedText
                           .where((str) => str.isNotEmpty)
                           .toList(); // remove empty entries
@@ -137,7 +138,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       // Reset
                       setState(() {
                         _textify.dilatingSize = 22;
-                        _transformationController.value = Matrix4.identity();
+                        centerViewers();
                       });
                     },
                     transformationController: _transformationController,
@@ -170,6 +171,10 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
     );
+  }
+
+  void centerViewers() {
+    _transformationController.value = Matrix4.identity();
   }
 
   String getPercentageText(String textFoundSingleString) {

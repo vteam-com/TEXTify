@@ -37,7 +37,7 @@ class _Panel2ToolbarState extends State<Panel2Toolbar>
     with SingleTickerProviderStateMixin {
   final Map<ViewAs, String> tabViews = {
     ViewAs.blackAndWhite: '1 B&W',
-    ViewAs.region: '2 Regions',
+    ViewAs.region: '2 Dilated',
     ViewAs.artifacts: '3 Artifacts',
     ViewAs.characters: '4 Characters',
   };
@@ -116,7 +116,7 @@ class _Panel2ToolbarState extends State<Panel2Toolbar>
             children: [
               Row(
                 children: [
-                  const Text('Regions'),
+                  const Text('Bounds'),
                   Checkbox(
                     value: widget.showRegions,
                     onChanged: (value) => widget.onShowRegionsChanged(value!),

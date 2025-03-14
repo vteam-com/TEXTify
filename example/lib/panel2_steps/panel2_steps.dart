@@ -37,7 +37,6 @@ class PanelSteps extends StatefulWidget {
 class _PanelStepsState extends State<PanelSteps> {
   bool _isReady = false;
   late ViewAs _viewAs;
-  ui.Image? _imageGrayScale;
   ui.Image? _imageBW;
   ui.Image? imageToDisplay;
   ui.Image? _imageDilated;
@@ -49,7 +48,7 @@ class _PanelStepsState extends State<PanelSteps> {
   @override
   void initState() {
     super.initState();
-    _viewAs = ViewAs.grayScale;
+    _viewAs = ViewAs.blackAndWhite;
   }
 
   @override
@@ -112,13 +111,6 @@ class _PanelStepsState extends State<PanelSteps> {
     }
 
     switch (_viewAs) {
-      case ViewAs.grayScale:
-        imageToDisplay = _imageGrayScale;
-        return buildInteractiveImageViewer(
-          drawRectanglesOnImage(imageToDisplay!),
-          widget.transformationController,
-        );
-
       case ViewAs.blackAndWhite:
         imageToDisplay = _imageBW;
         return buildInteractiveImageViewer(
@@ -159,24 +151,21 @@ class _PanelStepsState extends State<PanelSteps> {
     setState(() {
       _isReady = false;
       if (widget.imageSource != null) {
-        imageToGrayScale(widget.imageSource!).then((imageGrayScale) {
-          imageToBlackOnWhite(imageGrayScale).then((final ui.Image imageBW) {
-            Matrix.fromImage(imageBW).then((final Matrix binaryImage) {
-              final Matrix dilatedMatrix = dilateMatrix(
-                matrixImage: binaryImage,
-                kernelSize: widget.kernelSizeDilate,
-              );
+        imageToBlackOnWhite(widget.imageSource!).then((final ui.Image imageBW) {
+          Matrix.fromImage(imageBW).then((final Matrix binaryImage) {
+            final Matrix dilatedMatrix = dilateMatrix(
+              matrixImage: binaryImage,
+              kernelSize: widget.kernelSizeDilate,
+            );
 
-              imageFromMatrix(dilatedMatrix).then((imageDilated) {
-                setState(() {
-                  _isReady = true;
-                  _imageGrayScale = imageGrayScale;
-                  _regions = findRegions(dilatedMatrixImage: dilatedMatrix);
-                  _regionsHistograms =
-                      getHistogramOfRegions(binaryImage, _regions);
-                  _imageBW = imageBW;
-                  _imageDilated = imageDilated;
-                });
+            imageFromMatrix(dilatedMatrix).then((imageDilated) {
+              setState(() {
+                _isReady = true;
+                _regions = findRegions(dilatedMatrixImage: dilatedMatrix);
+                _regionsHistograms =
+                    getHistogramOfRegions(binaryImage, _regions);
+                _imageBW = imageBW;
+                _imageDilated = imageDilated;
               });
             });
           });

@@ -223,10 +223,7 @@ class Textify {
     required final ui.Image image,
     final String supportedCharacters = '',
   }) async {
-    final ui.Image imageGrayScale = await imageToGrayScale(image);
-
-    final ui.Image imageBlackAndWhite =
-        await imageToBlackOnWhite(imageGrayScale);
+    final ui.Image imageBlackAndWhite = await imageToBlackOnWhite(image);
 
     final Matrix imageAsMatrix = await Matrix.fromImage(imageBlackAndWhite);
 

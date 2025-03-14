@@ -30,7 +30,7 @@ class _ImageSourceSamplesState extends State<ImageSourceSamples> {
     ImageData(
       'generated-odd-colors.png',
       // cspell:disable-next-line
-      'ABCDEFGHI\nJKLMNOPQR\nSTUVWXYZ 01 23456789',
+      'ABCDEFGHI\nJKLMNOPQR\nSTUVWXYZ\n01\n23456789',
     ),
     ImageData(
       'black-on-white-rounded.png',

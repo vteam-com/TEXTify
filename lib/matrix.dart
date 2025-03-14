@@ -1524,54 +1524,6 @@ class Matrix {
   }
 }
 
-/// Converts a UI image to a grayscale image.
-///
-/// This function takes a UI image, converts it to grayscale by calculating a weighted
-/// average of the red, green, and blue channels, and returns the resulting grayscale
-/// UI image.
-///
-/// Parameters:
-/// - [inputImage]: The input UI image to be converted.
-///
-/// Returns:
-/// A Future that resolves to the converted grayscale UI image.
-Future<ui.Image> imageToGrayScale(
-  final ui.Image inputImage,
-) async {
-  final int width = inputImage.width;
-  final int height = inputImage.height;
-  final Uint8List pixels = await imageToUint8List(inputImage);
-
-  // Create a new Uint8List for the output image
-  Uint8List outputPixels = Uint8List(pixels.length);
-  for (int i = 0; i < pixels.length; i += 4) {
-    final int r = pixels[i];
-    final int g = pixels[i + 1];
-    final int b = pixels[i + 2];
-    final int a = pixels[i + 3];
-
-    // Calculate grayscale using a weighted average
-    final int gray = (0.299 * r + 0.587 * g + 0.114 * b).toInt();
-
-    outputPixels[i] = gray;
-    outputPixels[i + 1] = gray;
-    outputPixels[i + 2] = gray;
-    outputPixels[i + 3] = a;
-  }
-
-  final ui.ImmutableBuffer buffer =
-      await ui.ImmutableBuffer.fromUint8List(outputPixels);
-  final ui.ImageDescriptor descriptor = ui.ImageDescriptor.raw(
-    buffer,
-    width: width,
-    height: height,
-    pixelFormat: ui.PixelFormat.rgba8888,
-  );
-  final ui.Codec codec = await descriptor.instantiateCodec();
-  final ui.FrameInfo frame = await codec.getNextFrame();
-  return frame.image;
-}
-
 /// Converts a UI image to a black and white image by applying an adaptive threshold.
 ///
 /// This function takes a UI image, converts it to grayscale, and then applies an adaptive
@@ -1586,11 +1538,16 @@ Future<ui.Image> imageToGrayScale(
 /// Returns:
 /// A Future that resolves to the converted black and white UI image.
 Future<ui.Image> imageToBlackOnWhite(
-  final ui.Image inputImage,
-) async {
+  final ui.Image inputImage, {
+  // Adjust contrast level (0 = normal, 100 = high contrast)
+  double contrast = 0,
+}) async {
   final int width = inputImage.width;
   final int height = inputImage.height;
   final Uint8List pixels = await imageToUint8List(inputImage);
+
+  // Calculate contrast factor
+  final double factor = (259 * (contrast + 255)) / (255 * (259 - contrast));
 
   // Create a new Uint8List for the output image
   Uint8List outputPixels = Uint8List(pixels.length);
@@ -1602,7 +1559,10 @@ Future<ui.Image> imageToBlackOnWhite(
     final int a = pixels[i + 3];
 
     // Calculate brightness using a weighted average
-    final int gray = (0.299 * r + 0.587 * g + 0.114 * b).toInt();
+    int gray = (0.299 * r + 0.587 * g + 0.114 * b).toInt();
+
+    // Apply contrast adjustment
+    gray = (factor * (gray - 128) + 128).clamp(0, 255).toInt();
 
     outputPixels[i] = gray;
     outputPixels[i + 1] = gray;

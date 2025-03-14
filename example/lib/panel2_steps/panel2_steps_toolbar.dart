@@ -36,11 +36,10 @@ class Panel2Toolbar extends StatefulWidget {
 class _Panel2ToolbarState extends State<Panel2Toolbar>
     with SingleTickerProviderStateMixin {
   final Map<ViewAs, String> tabViews = {
-    ViewAs.grayScale: '1 GrayS',
-    ViewAs.blackAndWhite: '2 B&W',
-    ViewAs.region: '3 Regions',
-    ViewAs.artifacts: '4 Artifacts',
-    ViewAs.characters: '5 Characters',
+    ViewAs.blackAndWhite: '1 B&W',
+    ViewAs.region: '2 Regions',
+    ViewAs.artifacts: '3 Artifacts',
+    ViewAs.characters: '4 Characters',
   };
 
   late TabController _tabController;

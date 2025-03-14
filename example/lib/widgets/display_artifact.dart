@@ -20,38 +20,31 @@ class PaintArtifacts extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    if (viewAs == ViewAs.artifacts) {
-      for (final Band band in textify.bands.list) {
-        if (showRegions) {
-          _paintBand(
-            canvas: canvas,
-            title: _getBandTitle(band),
-            rect: Band.getBoundingBox(band.artifacts, useAdjustedRect: false),
-            backgroundColor: Colors.black,
-          );
-        }
+    for (final Band band in textify.bands.list) {
+      if (showRegions) {
+        _paintBand(
+          canvas: canvas,
+          title: _getBandTitle(band),
+          rect: Band.getBoundingBox(
+            band.artifacts,
+            useAdjustedRect: viewAs == ViewAs.characters,
+          ),
+          backgroundColor: Colors.black,
+        );
+      }
+      if (viewAs == ViewAs.artifacts) {
         _paintArtifactsExactlyWhereTheyAreFound(
           canvas: canvas,
           artifacts: band.artifacts,
           showRegions: showRegions,
           showHistogram: showHistogram,
         );
-      }
-    } else {
-      for (final Band band in textify.bands.list) {
-        if (showRegions) {
-          _paintBand(
-            canvas: canvas,
-            title: _getBandTitle(band),
-            rect: Band.getBoundingBox(band.artifacts, useAdjustedRect: true),
-            backgroundColor: Colors.black,
-          );
-        }
+      } else {
         _paintArtifactsInRow(
           canvas: canvas,
+          artifacts: band.artifacts,
           showRegions: showRegions,
           showHistogram: showHistogram,
-          artifacts: band.artifacts,
         );
       }
     }
@@ -187,11 +180,19 @@ class PaintArtifacts extends CustomPainter {
     // artifact in that band
     int index = 0;
     for (Artifact artifact in artifacts) {
+      Color color = colors[index++ % colors.length];
+      if (artifact.needsInspection) {
+        color = Colors.red;
+      }
+      if (artifact.wasParOfSplit) {
+        color = Colors.pink;
+      }
+
       paintMatrix(
         canvas,
-        colors[index++ % colors.length],
-        artifact.matrix.rectOriginal.left.toInt(),
-        artifact.matrix.rectOriginal.top.toInt(),
+        color,
+        artifact.matrix.rectFound.left.toInt(),
+        artifact.matrix.rectFound.top.toInt(),
         showHistogram ? artifact.verticalHistogram : artifact.matrix,
       );
     }

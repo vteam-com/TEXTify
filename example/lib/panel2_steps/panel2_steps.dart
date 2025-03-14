@@ -213,7 +213,7 @@ class _PanelStepsState extends State<PanelSteps> {
         final histogramForThisRect = _regionsHistograms[i];
         if (histogramForThisRect.isNotEmpty) {
           final histogramPaint = Paint()
-            ..color = Colors.blue.withAlpha(150)
+            ..color = Colors.blue.withAlpha(200)
             ..style = PaintingStyle.fill;
 
           final double barWidth = rect.width / histogramForThisRect.length;
@@ -221,47 +221,17 @@ class _PanelStepsState extends State<PanelSteps> {
 
           for (int j = 0; j < histogramForThisRect.length; j++) {
             if (maxValue > 0) {
-              final double barHeight =
-                  (histogramForThisRect[j] / maxValue) * rect.height;
+              final int barHeight = histogramForThisRect[j];
+
               final double x = rect.left + (j * barWidth);
-              final double y = rect.bottom - barHeight;
-
-              canvas.drawRect(
-                Rect.fromLTWH(x, y, barWidth, barHeight),
-                histogramPaint,
-              );
+              final double top = rect.bottom - (barHeight * 2);
+              for (double y = top; y < rect.bottom; y += 2) {
+                canvas.drawRect(
+                  Rect.fromLTWH(x, y, barWidth, 1),
+                  histogramPaint,
+                );
+              }
             }
-          }
-
-          final paintYellowOverlay = Paint()
-            ..color = Colors.yellow.withAlpha(100)
-            ..style = PaintingStyle.fill;
-
-          // Find continuous non-zero regions in histogram
-          int startIndex = -1;
-          for (int k = 0; k < histogramForThisRect.length; k++) {
-            if (startIndex == -1 && histogramForThisRect[k] > 0) {
-              startIndex = k;
-            } else if (startIndex != -1 && histogramForThisRect[k] == 0) {
-              // Draw rectangle for non-zero region
-              final double x = rect.left + (startIndex * barWidth);
-              final double width = (k - startIndex) * barWidth;
-              canvas.drawRect(
-                Rect.fromLTWH(x, rect.top, width, rect.height),
-                paintYellowOverlay,
-              );
-              startIndex = -1;
-            }
-          }
-          // Handle case where non-zero region extends to the end
-          if (startIndex != -1) {
-            final double x = rect.left + (startIndex * barWidth);
-            final double width =
-                (histogramForThisRect.length - startIndex) * barWidth;
-            canvas.drawRect(
-              Rect.fromLTWH(x, rect.top, width, rect.height),
-              paintYellowOverlay,
-            );
           }
         }
       }

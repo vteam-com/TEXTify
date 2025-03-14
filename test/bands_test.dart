@@ -1,5 +1,3 @@
-import 'dart:ui';
-
 import 'package:flutter_test/flutter_test.dart';
 import 'package:textify/artifact.dart';
 import 'package:textify/bands.dart';
@@ -31,12 +29,20 @@ void main() {
     test('merges adjacent bands with vertical alignment', () {
       final Band band1 = Band();
       final Artifact artifact1 = Artifact();
-      artifact1.matrix.setBothRects(Rect.fromLTWH(10, 10, 30, 30));
+      artifact1.matrix.setBothLocation(Offset(10, 10));
+      artifact1.matrix.setGrid([
+        [true, false, true],
+        [true, false, true],
+      ]);
       band1.addArtifact(artifact1);
 
       final Band band2 = Band();
       final Artifact artifact2 = Artifact();
-      artifact2.matrix.setBothRects(Rect.fromLTWH(50, 10, 30, 30));
+      artifact2.matrix.setBothLocation(Offset(14, 10));
+      artifact2.matrix.setGrid([
+        [true, false, true],
+        [true, false, true],
+      ]);
       band2.addArtifact(artifact2);
 
       final Bands bands = Bands([band1, band2]);
@@ -49,12 +55,12 @@ void main() {
     test('does not merge bands with large horizontal gap', () {
       final Band band1 = Band();
       final Artifact artifact1 = Artifact();
-      artifact1.matrix.setBothRects(Rect.fromLTWH(10, 10, 30, 30));
+      artifact1.matrix.setBothLocation(Offset(10, 10));
       band1.addArtifact(artifact1);
 
       final Band band2 = Band();
       final Artifact artifact2 = Artifact();
-      artifact2.matrix.setBothRects(Rect.fromLTWH(500, 10, 30, 30));
+      artifact2.matrix.setBothLocation(Offset(500, 10));
       band2.addArtifact(artifact2);
 
       final Bands bands = Bands([band1, band2]);

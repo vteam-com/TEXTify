@@ -55,6 +55,12 @@ class Artifact {
     return !isEmpty;
   }
 
+  /// Tag the artifact as needs more attentions
+  bool needsInspection = false;
+
+  ///
+  bool wasParOfSplit = false;
+
   /// Converts the artifact to a text representation.
   ///
   /// Parameters:
@@ -127,8 +133,9 @@ class Artifact {
       (toMerge._matrix.rectAdjusted.top - newRect.top).toInt(),
     );
     this.matrix.setGrid(newGrid.data);
-    this.matrix.rectAdjusted =
-        this.matrix.rectAdjusted.expandToInclude(toMerge.matrix.rectAdjusted);
+    // toMerge.matrix.locationFound.left < this.matrix.locationFound.l
+    // this.matrix.locationFound = toMerge.matrix.locationFound;
+    // this.matrix.locationFound = toMerge.matrix.locationFound;
   }
 
   /// Returns:

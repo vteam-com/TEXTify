@@ -273,26 +273,27 @@ class Textify {
   /// 3. Creating bands based on the positions of the merged artifacts.
   ///
   /// Parameters:
-  ///   [imageAsBinary] - A [Matrix] representing the binary image to be processed.
+  ///   [matrix] - A [Matrix] representing the binary image to be processed.
   ///
   /// The method does not return a value, but updates internal state to reflect
   /// the found artifacts and bands.
   ///
   /// Note: This method assumes that the input [Matrix] is a valid binary image.
   /// Behavior may be undefined for non-binary input.
-  void identifyArtifactsAndBandsInBinaryImage(final Matrix imageAsBinary) {
+  void identifyArtifactsAndBandsInBinaryImage(final Matrix matrix) {
     // Create a dilated copy of the binary image to merge nearby pixels
     final Matrix dilatedImage = dilateMatrix(
-      matrixImage: imageAsBinary,
+      matrixImage: matrix,
       kernelSize: dilatingSize,
     );
 
-    regions = findRegions(dilatedMatrixImage: dilatedImage);
+    this.regions = findRegions(dilatedMatrixImage: dilatedImage);
 
     // Clear existing artifacts
     clear();
 
-    regions.sort((a, b) {
+    // Sort top down left-right
+    this.regions.sort((a, b) {
       final aCenterY = a.top + a.height / 2;
       final bCenterY = b.top + b.height / 2;
       if ((aCenterY - bCenterY).abs() < 10) {
@@ -301,10 +302,13 @@ class Textify {
       return aCenterY.compareTo(bCenterY);
     });
 
-    for (final ui.Rect region in regions) {
-      // (1) Find artifact using flood fill
+    // Explore each regions/rectangles
+    for (final ui.Rect region in this.regions) {
+      //
+      // (1) Find Columns inside the Region
+      //
       final List<int> histogram = getHistogramOfRegion(
-        imageAsBinary,
+        matrix,
         region,
       );
 
@@ -313,14 +317,28 @@ class Textify {
         region,
       );
 
-      final List<Artifact> artifactsFoundInRegion =
-          possibleArtifactRects.map((rect) {
-        final artifactMatrix =
-            Matrix.extractSubGrid(binaryImage: imageAsBinary, rect: rect);
-        final artifact = Artifact.fromMatrix(artifactMatrix);
-        artifact.matrix.setBothRects(rect);
-        return artifact;
-      }).toList();
+      final List<Artifact> artifactsFoundInRegion = [];
+
+      for (final rect in possibleArtifactRects) {
+        final Matrix matrixSectionOfRegion =
+            Matrix.extractSubGrid(matrix: matrix, rect: rect);
+
+        final List<ui.Rect> subRegions =
+            findRegions(dilatedMatrixImage: matrixSectionOfRegion);
+
+        for (final ui.Rect subRect in subRegions) {
+          final subArtifactMatrix = Matrix.extractSubGrid(
+            matrix: matrixSectionOfRegion,
+            rect: subRect,
+          );
+          final artifact = Artifact.fromMatrix(subArtifactMatrix);
+          artifact.matrix.locationFound = Offset(
+            artifact.matrix.rectFound.left,
+            rect.top,
+          );
+          artifactsFoundInRegion.add(artifact);
+        }
+      }
 
       // (2) merge overlapping artifact
       _mergeOverlappingArtifacts(artifactsFoundInRegion);
@@ -335,13 +353,11 @@ class Textify {
       // (4) create band based on proximity of artifacts
       final Band newBand = Band();
       artifactsFoundInRegion.forEach((artifact) {
-        // artifact.matrix.originRectangle =
-        //     artifact.matrix.originRectangle.shift(region.topLeft);
-        // // keep a copy of the where it was found on the image
-        // artifact.matrix.foundRectangle = artifact.matrix.originRectangle;
-
         newBand.addArtifact(artifact);
       });
+
+      newBand.identifySuspiciousLargeArtifacts();
+
       bands.add(newBand);
     }
 

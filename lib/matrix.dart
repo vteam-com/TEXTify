@@ -49,7 +49,8 @@ class Matrix {
   factory Matrix.fromMatrix(final Matrix value) {
     final matrix = Matrix();
     matrix.setGrid(value.data);
-    matrix.rectAdjusted = value.rectAdjusted;
+    matrix.locationFound = value.locationFound;
+    matrix.locationAdjusted = value.locationAdjusted;
     return matrix;
   }
 
@@ -199,11 +200,27 @@ class Matrix {
   /// Each boolean value indicates whether a cell is active (true) or inactive (false).
   List<List<bool>> get data => _data;
 
-  /// the rectangle location of this matrix.
-  Rect rectOriginal = Rect.zero;
+  /// the location of this matrix.
+  Offset locationFound = Offset.zero;
 
   /// the rectangle location of this matrix.
-  Rect rectAdjusted = Rect.zero;
+  Rect get rectFound => Rect.fromLTWH(
+        locationFound.dx,
+        locationFound.dy,
+        cols.toDouble(),
+        rows.toDouble(),
+      );
+
+  /// the location moved to
+  Offset locationAdjusted = Offset.zero;
+
+  /// the rectangle location of this matrix.
+  Rect get rectAdjusted => Rect.fromLTWH(
+        locationAdjusted.dx,
+        locationAdjusted.dy,
+        cols.toDouble(),
+        rows.toDouble(),
+      );
 
   /// The number of enclosure found
   int _enclosures = -1;
@@ -218,9 +235,9 @@ class Matrix {
   int get area => cols * rows;
 
   /// rect setting helper
-  void setBothRects(final Rect rect) {
-    rectOriginal = rect;
-    rectAdjusted = rect;
+  void setBothLocation(final Offset location) {
+    locationFound = location;
+    locationAdjusted = location;
   }
 
   /// Calculates the aspect ratio of the content within the matrix.
@@ -272,6 +289,23 @@ class Matrix {
         }
       }
     }
+  }
+
+  ///
+  List<int> getHistogram() {
+    final List<int> histogram = [];
+    int col = 0;
+    for (int x = 0; x < this.cols; x++) {
+      histogram.add(0);
+      for (int y = 0; y < this.rows; y++) {
+        if (this.cellGet(x, y)) {
+          histogram[col]++;
+        }
+      }
+      col++;
+    }
+
+    return histogram;
   }
 
   /// Trims the matrix by removing empty rows and columns from all sides.
@@ -353,19 +387,10 @@ class Matrix {
     int right = 0,
     int bottom = 0,
   }) {
-    this.rectOriginal = Rect.fromLTRB(
-      this.rectOriginal.left + left,
-      this.rectOriginal.top + top,
-      this.rectOriginal.right - right,
-      this.rectOriginal.bottom - bottom,
-    );
-
-    this.rectAdjusted = Rect.fromLTRB(
-      this.rectAdjusted.left + left,
-      this.rectAdjusted.top + top,
-      this.rectAdjusted.right - right,
-      this.rectAdjusted.bottom - bottom,
-    );
+    this.locationFound =
+        this.locationFound.translate(left.toDouble(), top.toDouble());
+    this.locationAdjusted =
+        this.locationAdjusted.translate(left.toDouble(), top.toDouble());
 
     cropGridVertically(top: top, bottom: bottom);
     // cropGridHorizontally(left: left, right: right);
@@ -611,7 +636,7 @@ class Matrix {
   /// the input binary image, as specified by the given rectangle.
   ///
   /// Parameters:
-  /// - [binaryImage]: The source Matrix from which to extract the sub-grid.
+  /// - [matrix]: The source Matrix from which to extract the sub-grid.
   /// - [rect]: A Rect object specifying the region to extract. The rectangle's
   ///   coordinates are relative to the top-left corner of the binaryImage.
   ///
@@ -624,7 +649,7 @@ class Matrix {
   /// - The method uses integer coordinates, so any fractional values in the
   ///   rect will be truncated.
   static Matrix extractSubGrid({
-    required final Matrix binaryImage,
+    required final Matrix matrix,
     required final Rect rect,
   }) {
     final int startX = rect.left.toInt();
@@ -639,13 +664,38 @@ class Matrix {
         final int sourceX = startX + x;
         final int sourceY = startY + y;
 
-        if (sourceX < binaryImage.cols && sourceY < binaryImage.rows) {
-          subImagePixels.cellSet(x, y, binaryImage.cellGet(sourceX, sourceY));
+        if (sourceX < matrix.cols && sourceY < matrix.rows) {
+          subImagePixels.cellSet(x, y, matrix.cellGet(sourceX, sourceY));
         }
       }
     }
 
+    subImagePixels.locationFound = rect.shift(matrix.rectFound.topLeft).topLeft;
+    subImagePixels.locationAdjusted =
+        rect.shift(matrix.rectAdjusted.topLeft).topLeft;
+
     return subImagePixels;
+  }
+
+  ///
+  List<Matrix> split(final int x) {
+    List<Matrix> splits = [];
+
+    // Ensure the provided column is within the valid range
+    if (x < 0 || x >= this.cols) {
+      throw ArgumentError('Column index out of bounds');
+    }
+
+    // Create the first sub-grid from the start to the specified column (inclusive)
+    Rect rectLeft = Rect.fromLTWH(0, 0, x + 1, this.rows.toDouble());
+    splits.add(extractSubGrid(matrix: this, rect: rectLeft));
+
+    // Create the second sub-grid from the next column to the end
+    Rect rectRight =
+        Rect.fromLTWH(x + 1, 0, this.cols - (x + 1), this.rows.toDouble());
+    splits.add(extractSubGrid(matrix: this, rect: rectRight));
+
+    return splits;
   }
 
   /// Calculates the size of the content area in the matrix.
@@ -2022,6 +2072,74 @@ List<Rect> getRectFromHistogram(
     }
   }
   return rects;
+}
+
+///
+int calculateThreshold(List<int> histogram) {
+  if (histogram.length < 3) {
+    return -1;
+  }
+
+  // Find the valleys (local minima)
+  List<int> valleys = [];
+  for (int i = 1; i < histogram.length - 1; i++) {
+    if (histogram[i] < histogram[i - 1] && histogram[i] < histogram[i + 1]) {
+      valleys.add(histogram[i]);
+    }
+  }
+
+  // Calculate the average height of the histogram (representing the typical character height)
+  double averageHeight = histogram.reduce((a, b) => a + b) / histogram.length;
+
+  // Set a threshold as a value below the average to split touching characters
+  // This could be a percentage of the average height or a fixed offset.
+  double threshold =
+      averageHeight * 0.5; // You can adjust this factor (0.5) as needed
+
+  // Optionally, you can adjust this threshold based on the local minima values:
+  if (valleys.isNotEmpty) {
+    threshold = valleys.reduce((a, b) => a < b ? a : b) *
+        0.8; // Adjust threshold based on valleys
+  }
+
+  return threshold.toInt();
+}
+
+///
+List<int> keepIndexBelowValue(final List<int> histogram, final int maxValue) {
+  List<int> indexes = [];
+
+  // Find the first index that does not match the threshold
+  int startIndex = -1;
+  for (int i = 0; i < histogram.length; i++) {
+    if (histogram[i] > maxValue) {
+      startIndex = i + 1;
+      break;
+    }
+  }
+
+  // If no valid start index is found, return an empty list
+  if (startIndex == -1) {
+    return indexes;
+  }
+
+  // Find the last index that does not match the threshold
+  int endIndex = histogram.length;
+  for (int i = histogram.length - 1; i >= 0; i--) {
+    if (histogram[i] > maxValue) {
+      endIndex = i;
+      break;
+    }
+  }
+
+  // Collect all indexes between startIndex and endIndex
+  for (int i = startIndex; i < endIndex; i++) {
+    if (histogram[i] <= maxValue) {
+      indexes.add(i);
+    }
+  }
+
+  return indexes;
 }
 
 /// splitColumns will contains numbers like for example [10,11,12, 22,23,24,25, 33]

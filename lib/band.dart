@@ -77,10 +77,11 @@ class Band {
 
     for (int i = 1; i < artifacts.length; i++) {
       final artifact = artifacts[i];
+      totalWidth += artifact.matrix.rectAdjusted.width;
+
       final double kerning = artifact.matrix.rectAdjusted.left -
           artifacts[i - 1].matrix.rectAdjusted.right;
       totalKerning += kerning;
-      totalWidth += artifact.matrix.rectAdjusted.width;
     }
     _averageWidth = totalWidth / count;
     _averageKerning = totalKerning / count;
@@ -105,6 +106,98 @@ class Band {
       (a, b) =>
           a.matrix.rectAdjusted.left.compareTo(b.matrix.rectAdjusted.left),
     );
+  }
+
+  /// Using the average artifact width, fine the ones that have an outlier width
+  /// and tag them needsInspection=true
+  void identifySuspiciousLargeArtifacts() {
+    final List<Artifact> listToInspect = [];
+
+    final double thresholdWidth = this.averageWidth * 2;
+
+    for (final artifact in this.artifacts) {
+      artifact.needsInspection = artifact.matrix.cols > thresholdWidth;
+      if (artifact.needsInspection) {
+        listToInspect.add(artifact);
+      }
+    }
+
+    for (final artifact in listToInspect) {
+      final List<int> histogramAll = artifact.matrix.getHistogram();
+      final int minValley = calculateThreshold(histogramAll);
+      final List<int> histogramValleys =
+          keepIndexBelowValue(histogramAll, minValley);
+      final List<int> histogramSplits = reduceColumnGroups(histogramValleys);
+
+      final List<Artifact> innerArtifact =
+          splitArtifact(artifact, histogramSplits);
+      replaceOneArtifactWithMore(artifact, innerArtifact);
+    }
+  }
+
+  ///
+  void replaceOneArtifactWithMore(
+    final Artifact artifactToReplace,
+    final List<Artifact> artifactsToInsert,
+  ) {
+    int index = this.artifacts.indexOf(artifactToReplace);
+    this.artifacts.removeAt(index);
+    this.artifacts.insertAll(index, artifactsToInsert);
+  }
+
+  /// Splits artifact in two
+  List<Artifact> splitArtifact(
+    final Artifact artifactToSplit,
+    final List<int> splitOnTheseColumns,
+  ) {
+    List<Artifact> splits = [];
+
+    int startingCol = 0;
+
+    for (int c in splitOnTheseColumns) {
+      // Create the first sub-grid from the start to the specified column (inclusive)
+      splits.add(
+        extractArtifact(
+          artifactToSplit.matrix,
+          startingCol,
+          0,
+          c - startingCol,
+          artifactToSplit.matrix.rows,
+        ),
+      );
+      startingCol = c + 1;
+    }
+
+    // add the right side
+    splits.add(
+      extractArtifact(
+        artifactToSplit.matrix,
+        startingCol,
+        0,
+        artifactToSplit.matrix.cols - startingCol,
+        artifactToSplit.matrix.rows,
+      ),
+    );
+
+    return splits;
+  }
+
+  ///
+  Artifact extractArtifact(
+    Matrix source,
+    int left,
+    int top,
+    int width,
+    int height,
+  ) {
+    Rect rectLeft = Rect.fromLTWH(
+      left.toDouble(),
+      top.toDouble(),
+      width.toDouble(),
+      height.toDouble(),
+    );
+    final sub = Matrix.extractSubGrid(matrix: source, rect: rectLeft);
+    return Artifact.fromMatrix(sub)..wasParOfSplit = true;
   }
 
   /// Identifies and inserts space artifacts between existing artifacts in the band.
@@ -147,10 +240,10 @@ class Band {
             artifacts: this.artifacts,
             insertAtIndex: indexOfArtifact,
             locationFoundAt: Rect.fromLTRB(
-              artifactLeft.matrix.rectOriginal.right + margin,
-              artifactLeft.matrix.rectOriginal.top,
-              artifactRight.matrix.rectOriginal.left - margin,
-              artifactRight.matrix.rectOriginal.bottom,
+              artifactLeft.matrix.rectFound.right + margin,
+              artifactLeft.matrix.rectFound.top,
+              artifactRight.matrix.rectFound.left - margin,
+              artifactRight.matrix.rectFound.bottom,
             ),
             locationAdjusted: Rect.fromLTRB(
               artifactLeft.matrix.rectAdjusted.right + margin,
@@ -189,10 +282,8 @@ class Band {
     final Artifact artifactSpace = Artifact();
     artifactSpace.characterMatched = ' ';
 
-    artifactSpace.matrix.rectOriginal = locationFoundAt;
-    artifactSpace.matrix.rectAdjusted = locationAdjusted;
-
-    artifactSpace.matrix.rectAdjusted = artifactSpace.matrix.rectAdjusted;
+    artifactSpace.matrix.locationFound = locationFoundAt.topLeft;
+    artifactSpace.matrix.locationAdjusted = locationAdjusted.topLeft;
 
     artifactSpace.matrix.setGrid(
       Matrix(
@@ -259,9 +350,10 @@ class Band {
       final double dx = left - artifact.matrix.rectAdjusted.left;
       final double dy =
           rectangleAdjusted.top - artifact.matrix.rectAdjusted.top;
-      artifact.matrix.rectAdjusted =
-          artifact.matrix.rectAdjusted.shift(Offset(dx, dy));
-      artifact.matrix.rectAdjusted = artifact.matrix.rectAdjusted;
+
+      artifact.matrix.locationAdjusted =
+          artifact.matrix.locationAdjusted.translate(dx, dy);
+
       left += artifact.matrix.rectAdjusted.width;
       left += kerningWidth;
     }
@@ -323,7 +415,7 @@ class Band {
     for (final Artifact artifact in artifacts) {
       final Rect rect = useAdjustedRect
           ? artifact.matrix.rectAdjusted
-          : artifact.matrix.rectOriginal;
+          : artifact.matrix.rectFound;
       minX = min(minX, rect.left);
       minY = min(minY, rect.top);
       maxX = max(maxX, rect.right);

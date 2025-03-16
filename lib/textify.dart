@@ -113,15 +113,6 @@ class Textify {
   ///   An [int] representing the number of items in the list.
   int get count => bands.totalArtifacts;
 
-  /// All artifacts from all bands
-  List<Artifact> getAllArtifacts() {
-    List<Artifact> allArtifacts = [];
-    for (final band in bands.list) {
-      allArtifacts.addAll(band.artifacts);
-    }
-    return allArtifacts;
-  }
-
   /// Finds matching character scores for a given artifact.
   ///
   /// [artifact] is the artifact to find matches for.

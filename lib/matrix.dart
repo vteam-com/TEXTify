@@ -722,27 +722,6 @@ class Matrix {
     return subImagePixels;
   }
 
-  ///
-  List<Matrix> split(final int x) {
-    List<Matrix> splits = [];
-
-    // Ensure the provided column is within the valid range
-    if (x < 0 || x >= this.cols) {
-      throw ArgumentError('Column index out of bounds');
-    }
-
-    // Create the first sub-grid from the start to the specified column (inclusive)
-    Rect rectLeft = Rect.fromLTWH(0, 0, x + 1, this.rows.toDouble());
-    splits.add(extractSubGrid(matrix: this, rect: rectLeft));
-
-    // Create the second sub-grid from the next column to the end
-    Rect rectRight =
-        Rect.fromLTWH(x + 1, 0, this.cols - (x + 1), this.rows.toDouble());
-    splits.add(extractSubGrid(matrix: this, rect: rectRight));
-
-    return splits;
-  }
-
   /// Splits the given matrix into multiple row matrices based on the provided row offsets.
   ///
   /// Each row offset in [rowOffsets] marks the start of a new split.
@@ -2035,32 +2014,6 @@ List<Point> floodFill(
 }
 
 ///
-Matrix? findAllIsolatedRegions(final Matrix inputMatrix) {
-  // Create a matrix to track visited pixels
-  final Matrix visited = Matrix(inputMatrix.cols, inputMatrix.rows, false);
-
-  for (int y = 0; y < inputMatrix.rows; y++) {
-    for (int x = 0; x < inputMatrix.cols; x++) {
-      if (!visited.cellGet(x, y) && inputMatrix.cellGet(x, y)) {
-        // Perform flood fill from this point
-        final List<Point> connectedPoints = floodFill(
-          inputMatrix,
-          visited,
-          x,
-          y,
-        );
-
-        // Create a new matrix for the isolated region
-        Matrix regionMatrix = matrixFromPoints(connectedPoints);
-
-        return regionMatrix;
-      }
-    }
-  }
-  return null;
-}
-
-///
 Matrix matrixFromPoints(List<Point<num>> connectedPoints) {
   // Create a new matrix for the isolated region
   final int minX = connectedPoints.map((point) => point.x).reduce(min).toInt();
@@ -2268,50 +2221,6 @@ List<int> getHistogramOfRegion(final Matrix binaryImage, Rect region) {
   return histogram;
 }
 
-/// Calculates a list of [Rect] objects from a histogram of a binary image region.
-///
-/// Given a [histogram] of the pixel counts in each column of a rectangular region
-/// of a binary image, this function identifies the continuous non-zero regions
-/// in the histogram and returns a list of [Rect] objects representing those
-/// regions.
-///
-/// The [region] parameter specifies the overall rectangular region of the image
-/// that the histogram represents.
-///
-/// Returns a list of [Rect] objects, where each rect represents a continuous
-/// non-zero region in the histogram.
-List<Rect> getRectFromHistogram(
-  List<int> histogram,
-  final Rect region,
-) {
-  List<Rect> rects = [];
-
-  int start = -1;
-
-  // Iterate through histogram to find continuous non-zero regions
-  for (int i = 0; i < histogram.length; i++) {
-    if (histogram[i] > 0 && start == -1) {
-      start = i;
-    } else if ((histogram[i] == 0 || i == histogram.length - 1) &&
-        start != -1) {
-      int end = (histogram[i] == 0) ? i - 1 : i;
-
-      final Rect rect = ui.Rect.fromLTRB(
-        (region.left + start).toDouble(),
-        region.top.toDouble(),
-        (region.left + end).toDouble() + 1,
-        region.bottom.toDouble(),
-      );
-
-      if ((rect.width * rect.height) > 2 && !isConsideredLine(rect)) {
-        rects.add(rect);
-      }
-      start = -1;
-    }
-  }
-  return rects;
-}
-
 ///
 int calculateThreshold(List<int> histogram) {
   if (histogram.length < 3) {
@@ -2418,49 +2327,6 @@ List<int> keepIndexBelowValue(final List<int> histogram, final int maxValue) {
   }
 
   return indexes;
-}
-
-/// splitColumns will contains numbers like for example [10,11,12, 22,23,24,25, 33]
-/// optimized to keep only the mid points of groups, so that the above becomes [11,24,33]
-List<int> reduceHistogram(List<int> splitColumns) {
-  // splitColumns will contains numbers like for example [10,11,12, 22,23,24,25, 33]
-  // optimized to keep only the mid points of groups, so that the above becomes [11,24,33]
-  List<int> optimizedSplitColumns = [];
-  if (splitColumns.isNotEmpty) {
-    List<int> currentGroup = [splitColumns[0]];
-
-    for (int j = 1; j < splitColumns.length; j++) {
-      if (splitColumns[j] == splitColumns[j - 1] + 1) {
-        currentGroup.add(splitColumns[j]);
-      } else {
-        // Add middle point of current group
-        optimizedSplitColumns.add(
-          currentGroup[currentGroup.length ~/ 2],
-        );
-        currentGroup = [splitColumns[j]];
-      }
-    }
-
-    // Add the last group's middle point
-    optimizedSplitColumns.add(
-      currentGroup[currentGroup.length ~/ 2],
-    );
-  }
-  return optimizedSplitColumns;
-}
-
-/// Determines whether the given [Rect] represents a line-like shape.
-///
-/// The function calculates the aspect ratios (height/width and width/height) to detect
-/// both vertical and horizontal lines. Returns `true` if either ratio indicates
-/// the rectangle is significantly longer in one dimension compared to the other.
-/// A threshold of 10 means one dimension is at least 10 times larger than the other.
-bool isConsideredLine(Rect rect) {
-  final double verticalRatio = rect.height / rect.width;
-  final double horizontalRatio = rect.width / rect.height;
-  const double threshold = 10.0;
-  (verticalRatio > threshold || horizontalRatio > threshold);
-  return (verticalRatio > threshold || horizontalRatio > threshold);
 }
 
 ///

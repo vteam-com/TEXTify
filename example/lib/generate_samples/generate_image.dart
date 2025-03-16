@@ -9,42 +9,39 @@ Future<ui.Image> generateImageDrawText({
   required final int imageWidth,
   required final int imageHeight,
   required final String text,
-  // Font
   required final String fontFamily,
   required final int fontSize,
+  final Offset? offset,
 }) async {
   final ui.PictureRecorder recorder = ui.PictureRecorder();
   final ui.Canvas newCanvas = ui.Canvas(recorder);
 
-  final ui.Paint paint = ui.Paint();
-  paint.color = Colors.white;
-  paint.style = ui.PaintingStyle.fill;
-
+  // Background color
+  final ui.Paint paint = ui.Paint()..color = Colors.white;
   newCanvas.drawRect(
-    ui.Rect.fromPoints(
-      const ui.Offset(0.0, 0.0),
-      ui.Offset(
-        imageWidth.toDouble(),
-        imageHeight.toDouble(),
-      ),
-    ),
+    ui.Rect.fromLTWH(0, 0, imageWidth.toDouble(), imageHeight.toDouble()),
     paint,
   );
 
-  TextPainter textPainter = myDrawText(
-    paint: paint,
-    width: imageWidth,
-    text: text,
-    color: Colors.black,
-    fontSize: fontSize,
-    fontFamily: fontFamily,
+  // Create TextPainter
+  TextPainter textPainter = TextPainter(
+    text: TextSpan(
+      text: text,
+      style: TextStyle(
+        color: Colors.black,
+        fontSize: fontSize.toDouble(),
+        fontWeight: FontWeight.bold,
+        fontFamily: fontFamily,
+      ),
+    ),
+    textDirection: TextDirection.ltr,
   );
 
-  textPainter.paint(
-    newCanvas,
-    Offset(0, 0),
-  );
+  textPainter.layout();
 
+  textPainter.paint(newCanvas, offset ?? Offset(0, 0));
+
+  // Convert to Image
   final ui.Picture picture = recorder.endRecording();
   final ui.Image image = await picture.toImage(imageWidth, imageHeight);
   return image;

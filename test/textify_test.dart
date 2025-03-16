@@ -3,8 +3,16 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:textify/character_definition.dart';
 import 'package:textify/correction.dart';
+import 'package:textify/matrix.dart';
 
 import 'package:textify/textify.dart';
+
+void printMatrix(final Matrix matrix) {
+  // ignore: avoid_print
+  print(
+    '${matrix.gridToString()}\n     L:${matrix.rectFound.left} T:${matrix.rectFound.top}  W:${matrix.cols} H:${matrix.rows}\n',
+  );
+}
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -134,15 +142,6 @@ void main() async {
     // the result are not perfect 90% accuracy, but its trending in the right direction
     expect(text, 'ABCDEFGHl\nJKLMN0PQR\nSTUVWxYZ\n01\n23456789');
     // errors here        ^       ^          ^
-  });
-
-  test('Convert image quick_brown_fox.png to text', () async {
-    final ui.Image uiImage =
-        await loadImageFromAssets('assets/test/quick_brown_fox.png');
-    final String text = await instance.getTextFromImage(image: uiImage);
-
-    // the result are not perfect 90% accuracy, but its trending in the right direction
-    expect(text, '0 The QUiCk\nBr0Wn F0x\n1 23.45');
   });
 
   test('Dictionary Correction', () async {

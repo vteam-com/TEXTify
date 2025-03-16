@@ -7,13 +7,24 @@ class Panel2Toolbar extends StatefulWidget {
     required this.viewAsStep,
     required this.onViewChanged,
     required this.transformationController,
+    //
     // region
+    //
     required this.showRegions,
     required this.onShowRegionsChanged,
+    //
+    // attempToExtractWideArtifacts
+    //
+    required this.tryToExtractWideArtifacts,
+    required this.onTryToExtractWideArtifactsChanged,
+    //
     // histogram
+    //
     required this.showHistograms,
     required this.onShowHistogramsChanged,
+    //
     // dilate
+    //
     required this.kernelSizeDilate,
     required this.onDelateChanged,
     required this.onReset,
@@ -22,6 +33,8 @@ class Panel2Toolbar extends StatefulWidget {
   final Function(ViewAs) onViewChanged;
   final TransformationController transformationController;
   final bool showRegions;
+  final bool tryToExtractWideArtifacts;
+  final Function(bool) onTryToExtractWideArtifactsChanged;
   final bool showHistograms;
   final int kernelSizeDilate;
   final Function(int) onDelateChanged;
@@ -69,7 +82,7 @@ class _Panel2ToolbarState extends State<Panel2Toolbar>
       spacing: 20,
       runSpacing: 20,
       children: [
-        // TabsVi
+        // TabsView
         IntrinsicWidth(
           child: TabBar(
             isScrollable: true,
@@ -120,6 +133,16 @@ class _Panel2ToolbarState extends State<Panel2Toolbar>
                   Checkbox(
                     value: widget.showRegions,
                     onChanged: (value) => widget.onShowRegionsChanged(value!),
+                  ),
+                ],
+              ),
+              Row(
+                children: [
+                  const Text('InnerSplit'),
+                  Checkbox(
+                    value: widget.tryToExtractWideArtifacts,
+                    onChanged: (value) =>
+                        widget.onTryToExtractWideArtifactsChanged(value!),
                   ),
                 ],
               ),

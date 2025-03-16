@@ -1,4 +1,8 @@
+import 'dart:ui';
+
+import 'package:textify/artifact.dart';
 import 'package:textify/band.dart';
+import 'package:textify/matrix.dart';
 
 /// Exports
 export 'package:textify/band.dart';
@@ -79,6 +83,20 @@ class Bands {
           if (horizontalDistance > 0) {
             // Bands don't overlap
             if (horizontalDistance <= (leftBand.averageWidth * 1.9)) {
+              final Artifact artifactSpace =
+                  Artifact.fromMatrix(Matrix(10, avgHeight, false));
+              final Matrix lastArtifactOfLeftBandMatix =
+                  leftBand.artifacts.last.matrix;
+              final locationForSpaceX =
+                  lastArtifactOfLeftBandMatix.locationFound.dx +
+                      lastArtifactOfLeftBandMatix.cols;
+
+              artifactSpace.matrix.locationFound = Offset(
+                locationForSpaceX + 2,
+                lastArtifactOfLeftBandMatix.locationFound.dy,
+              );
+              leftBand.addArtifact(artifactSpace);
+
               // Merge right band artifacts into left band
               for (var artifact in rightBand.artifacts) {
                 leftBand.addArtifact(artifact);
@@ -107,6 +125,90 @@ class Bands {
   void trimBands() {
     this.list.forEach((band) {
       band.trim();
+    });
+  }
+
+  ///
+  void sortTopLeftToBottomRight() {
+    list.sort(
+      (a, b) => (a.rectangleOriginal.center.dy
+                  .compareTo(b.rectangleOriginal.center.dy) !=
+              0)
+          ? a.rectangleOriginal.center.dy
+              .compareTo(b.rectangleOriginal.center.dy)
+          : a.rectangleOriginal.center.dx
+              .compareTo(b.rectangleOriginal.center.dx),
+    );
+  }
+
+  ///
+  static Bands getBandsOfArtifacts(
+    Matrix matrixSourceImage,
+    List<Rect> regions,
+  ) {
+    Bands bandsFound = Bands();
+
+    // Explore each regions/rectangles
+    for (final Rect regionFromDilated in regions) {
+      //
+      final Matrix regionMatrixFromImage = Matrix.extractSubGrid(
+        matrix: matrixSourceImage,
+        rect: regionFromDilated,
+      );
+      bandsFound.add(
+        rowToBand(
+          regionMatrix: regionMatrixFromImage,
+          offset: regionFromDilated.topLeft,
+        ),
+      );
+    }
+
+    //
+    // Clean up bands
+    //
+    bandsFound.removeEmptyBands();
+
+    // additional clean up of the artifacts in each band
+    for (final Band band in bandsFound.list) {
+      // Start by matching adjusted location to the location found
+      band.artifacts.forEach((a) {
+        a.matrix.locationAdjusted =
+            Offset(a.matrix.locationFound.dx, a.matrix.locationFound.dy);
+      });
+
+      band.sortArtifactsLeftToRight();
+    }
+
+    bandsFound.mergeBandsHorizontally();
+
+    // Pack each Bands
+    sortVeticalyThenHorizontally(bandsFound.list);
+
+    for (final Band band in bandsFound.list) {
+      band.paddVerticallyArtrifactToMatchTheBand();
+      band.packArtifactLeftToRight();
+      band.identifySpacesInBand();
+    }
+    return bandsFound;
+  }
+
+  ///
+  static void sortVeticalyThenHorizontally(
+    List<Band> list, {
+    double threshold = 5.0,
+  }) {
+    list.sort((a, b) {
+      // If the vertical difference is within the threshold, treat them as the same row
+      if ((a.rectangleOriginal.center.dy - b.rectangleOriginal.center.dy)
+              .abs() <=
+          threshold) {
+        return a.rectangleOriginal.center.dx.compareTo(
+          b.rectangleOriginal.center.dx,
+        ); // Sort by X-axis if on the same line
+      }
+      return a.rectangleOriginal.center.dy.compareTo(
+        b.rectangleOriginal.center.dy,
+      ); // Otherwise, sort by Y-axis
     });
   }
 

@@ -14,7 +14,15 @@ class Band {
   Band();
 
   /// List of artifacts contained within this band.
-  final List<Artifact> artifacts = [];
+  List<Artifact> artifacts = [];
+
+  ///
+  String getText() {
+    String text = '';
+
+    artifacts.forEach((a) => text += a.characterMatched);
+    return text;
+  }
 
   /// Private fields to store calculated average of space between each artifacts
   double _averageKerning = -1;
@@ -101,7 +109,7 @@ class Band {
   ///
   /// This method orders the artifacts based on their left edge position,
   /// ensuring they are in the correct sequence as they appear in the band.
-  void sortLeftToRight() {
+  void sortArtifactsLeftToRight() {
     artifacts.sort(
       (a, b) =>
           a.matrix.rectAdjusted.left.compareTo(b.matrix.rectAdjusted.left),
@@ -115,24 +123,24 @@ class Band {
 
     final double thresholdWidth = this.averageWidth * 2;
 
-    for (final artifact in this.artifacts) {
+    for (final Artifact artifact in this.artifacts) {
       artifact.needsInspection = artifact.matrix.cols > thresholdWidth;
       if (artifact.needsInspection) {
         listToInspect.add(artifact);
       }
     }
+  }
 
-    for (final artifact in listToInspect) {
-      final List<int> histogramAll = artifact.matrix.getHistogram();
-      final int minValley = calculateThreshold(histogramAll);
-      final List<int> histogramValleys =
-          keepIndexBelowValue(histogramAll, minValley);
-      final List<int> histogramSplits = reduceColumnGroups(histogramValleys);
-
-      final List<Artifact> innerArtifact =
-          splitArtifact(artifact, histogramSplits);
-      replaceOneArtifactWithMore(artifact, innerArtifact);
-    }
+  ///
+  static void sortArtifactByRectFound(List<Artifact> list) {
+    list.sort((Artifact a, Artifact b) {
+      final aCenterY = a.matrix.rectFound.top + a.matrix.rectFound.height / 2;
+      final bCenterY = b.matrix.rectFound.top + b.matrix.rectFound.height / 2;
+      if ((aCenterY - bCenterY).abs() < 10) {
+        return a.matrix.rectFound.left.compareTo(b.matrix.rectFound.left);
+      }
+      return aCenterY.compareTo(bCenterY);
+    });
   }
 
   ///
@@ -213,47 +221,32 @@ class Band {
   ///
   /// The threshold is set at 50% of the average width of artifacts in the band.
   void identifySpacesInBand() {
-    if (this.artifacts.length <= 2) {
-      // nothing to do here
+    if (artifacts.isEmpty || artifacts.length <= 1) {
       return;
     }
-    final double exceeding = this.averageWidth * 0.75; // in %
+    final double spaceThreshold = averageWidth * 0.5;
 
-    for (int indexOfArtifact = 0;
-        indexOfArtifact < this.artifacts.length;
-        indexOfArtifact++) {
-      if (indexOfArtifact > 0) {
-        // Left
-        final Artifact artifactLeft = this.artifacts[indexOfArtifact - 1];
-        final double x1 = artifactLeft.matrix.rectAdjusted.right;
+    for (int i = 1; i < artifacts.length; i++) {
+      final Artifact leftArtifact = artifacts[i - 1];
+      final Artifact rightArtifact = artifacts[i];
 
-        // Right
-        final Artifact artifactRight = this.artifacts[indexOfArtifact];
-        final double x2 = artifactRight.matrix.rectAdjusted.left;
+      final double leftEdge = leftArtifact.matrix.rectAdjusted.right;
+      final double rightEdge = rightArtifact.matrix.rectAdjusted.left;
+      final double gap = rightEdge - leftEdge;
 
-        final double kerning = x2 - x1;
+      if (gap >= spaceThreshold) {
+        const int borderWidth = 2;
+        final double spaceWidth = gap - (borderWidth * 2);
 
-        if (kerning >= exceeding) {
-          final int margin = 2;
-          // insert Artifact for Space
-          insertArtifactForSpace(
-            artifacts: this.artifacts,
-            insertAtIndex: indexOfArtifact,
-            locationFoundAt: Rect.fromLTRB(
-              artifactLeft.matrix.rectFound.right + margin,
-              artifactLeft.matrix.rectFound.top,
-              artifactRight.matrix.rectFound.left - margin,
-              artifactRight.matrix.rectFound.bottom,
-            ),
-            locationAdjusted: Rect.fromLTRB(
-              artifactLeft.matrix.rectAdjusted.right + margin,
-              artifactLeft.matrix.rectAdjusted.top,
-              artifactRight.matrix.rectAdjusted.left - margin,
-              artifactRight.matrix.rectAdjusted.bottom,
-            ),
-          );
-          indexOfArtifact++;
-        }
+        insertArtifactForSpace(
+          artifacts: artifacts,
+          insertAtIndex: i,
+          cols: spaceWidth.toInt(),
+          rows: rectangleOriginal.height.toInt(),
+          locationFoundAt: leftArtifact.matrix.rectFound.topRight
+              .translate(borderWidth.toDouble(), 0),
+        );
+        i++;
       }
     }
   }
@@ -276,21 +269,14 @@ class Band {
   static void insertArtifactForSpace({
     required final List<Artifact> artifacts,
     required final int insertAtIndex,
-    required final Rect locationFoundAt,
-    required final Rect locationAdjusted,
+    required final int cols,
+    required final int rows,
+    required final Offset locationFoundAt,
   }) {
-    final Artifact artifactSpace = Artifact();
+    final Artifact artifactSpace =
+        Artifact.fromMatrix(Matrix(cols, rows, false));
     artifactSpace.characterMatched = ' ';
-
-    artifactSpace.matrix.locationFound = locationFoundAt.topLeft;
-    artifactSpace.matrix.locationAdjusted = locationAdjusted.topLeft;
-
-    artifactSpace.matrix.setGrid(
-      Matrix(
-        artifactSpace.matrix.rectAdjusted.width.toInt(),
-        artifactSpace.matrix.rectAdjusted.height.toInt(),
-      ).data,
-    );
+    artifactSpace.matrix.locationFound = locationFoundAt;
     artifacts.insert(insertAtIndex, artifactSpace);
   }
 
@@ -337,22 +323,10 @@ class Band {
   /// a left-aligned, properly spaced arrangement.
   void packArtifactLeftToRight() {
     double left = this.rectangleAdjusted.left;
+    double top = artifacts.first.matrix.locationFound.dy;
 
     for (final Artifact artifact in artifacts) {
-      artifact.matrix.padTopBottom(
-        paddingTop:
-            (artifact.matrix.rectAdjusted.top - rectangleAdjusted.top).toInt(),
-        paddingBottom:
-            (rectangleAdjusted.bottom - artifact.matrix.rectAdjusted.bottom)
-                .toInt(),
-      );
-
-      final double dx = left - artifact.matrix.rectAdjusted.left;
-      final double dy =
-          rectangleAdjusted.top - artifact.matrix.rectAdjusted.top;
-
-      artifact.matrix.locationAdjusted =
-          artifact.matrix.locationAdjusted.translate(dx, dy);
+      artifact.matrix.locationAdjusted = Offset(left, top);
 
       left += artifact.matrix.rectAdjusted.width;
       left += kerningWidth;
@@ -439,7 +413,147 @@ class Band {
       );
 
   ///
-  String getText() {
-    return '';
+  void paddVerticallyArtrifactToMatchTheBand() {
+    double bandTop = this.rectangleOriginal.top;
+    double bandBottom = this.rectangleOriginal.bottom;
+
+    for (final Artifact artifact in artifacts) {
+      // Calculate how many rows to pad at the top
+      int rowsToPadTop = (artifact.matrix.locationFound.dy - bandTop).toInt();
+
+      // Calculate how many rows to pad at the bottom
+      int rowsToPadBottom = (bandBottom -
+              (artifact.matrix.locationFound.dy + artifact.matrix.rows))
+          .toInt();
+
+      // If padding is needed, add empty matrix rows at the top and bottom
+      if (rowsToPadTop > 0 || rowsToPadBottom > 0) {
+        // Add the empty rows to the artifact matrix
+        artifact.matrix.padTopBottom(
+          paddingTop: rowsToPadTop,
+          paddingBottom: rowsToPadBottom,
+        );
+
+        // adjust the location found to be the same as the top of the band
+        artifact.matrix.locationFound =
+            Offset(artifact.matrix.locationFound.dx, bandTop);
+      }
+    }
   }
+}
+
+/// Merges connected artifacts based on specified thresholds.
+///
+/// This method iterates through the list of artifacts and merges those that are
+/// considered connected based on vertical and horizontal thresholds.
+///
+/// Parameters:
+///   [verticalThreshold]: The maximum vertical distance between artifacts to be considered connected.
+///   [horizontalThreshold]: The maximum horizontal distance between artifacts to be considered connected.
+///
+/// Returns:
+///   A list of [Artifact] objects after merging connected artifacts.
+List<Artifact> mergeConnectedArtifacts({
+  required final List<Artifact> artifacts,
+  required final double verticalThreshold,
+  required final double horizontalThreshold,
+}) {
+  final List<Artifact> mergedArtifacts = [];
+
+  for (int i = 0; i < artifacts.length; i++) {
+    final Artifact current = artifacts[i];
+
+    for (int j = i + 1; j < artifacts.length; j++) {
+      final Artifact next = artifacts[j];
+
+      if (areArtifactsConnected(
+        current.matrix.rectAdjusted,
+        next.matrix.rectAdjusted,
+        verticalThreshold,
+        horizontalThreshold,
+      )) {
+        current.mergeArtifact(next);
+        artifacts.removeAt(j);
+        j--; // Adjust index since we removed an artifact
+      }
+    }
+
+    mergedArtifacts.add(current);
+  }
+
+  return mergedArtifacts;
+}
+
+/// Determines if two artifacts are connected based on their rectangles and thresholds.
+///
+/// This method checks both horizontal and vertical proximity of the rectangles.
+///
+/// Parameters:
+///   [rect1]: The rectangle of the first artifact.
+///   [rect2]: The rectangle of the second artifact.
+///   [verticalThreshold]: The maximum vertical distance to be considered connected.
+///   [horizontalThreshold]: The maximum horizontal distance to be considered connected.
+///
+/// Returns:
+///   true if the artifacts are considered connected, false otherwise.
+bool areArtifactsConnected(
+  final Rect rect1,
+  final Rect rect2,
+  final double verticalThreshold,
+  final double horizontalThreshold,
+) {
+  // Calculate the center X of each rectangle
+  final double centerX1 = (rect1.left + rect1.right) / 2;
+  final double centerX2 = (rect2.left + rect2.right) / 2;
+
+  // Check horizontal connection using the center X values
+  final bool horizontallyConnected =
+      (centerX1 - centerX2).abs() <= horizontalThreshold;
+
+  // Check vertical connection as before
+  final bool verticallyConnected =
+      (rect1.bottom + verticalThreshold >= rect2.top &&
+          rect1.top - verticalThreshold <= rect2.bottom);
+
+  return horizontallyConnected && verticallyConnected;
+}
+
+///
+Band rowToBand({
+  required final Matrix regionMatrix,
+  required final Offset offset,
+}) {
+  //
+  // Find the Matrices in the Region
+  //
+  final List<Matrix> matrixOfPossibleCharacters =
+      findMatrices(dilatedMatrixImage: regionMatrix);
+
+  //
+  // Offset their locations found
+  //
+  offsetMatrices(
+    matrixOfPossibleCharacters,
+    offset.dx.toInt(),
+    offset.dy.toInt(),
+  );
+
+  //
+  // Band
+  //
+  final Band newBand = Band();
+  for (final matrixFound in matrixOfPossibleCharacters) {
+    Artifact artifact = Artifact.fromMatrix(matrixFound);
+    newBand.addArtifact(artifact);
+  }
+
+  newBand.paddVerticallyArtrifactToMatchTheBand();
+
+  newBand.artifacts = mergeConnectedArtifacts(
+    artifacts: newBand.artifacts,
+    verticalThreshold: 20,
+    horizontalThreshold: 4,
+  );
+
+  return newBand;
 }

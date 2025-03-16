@@ -118,7 +118,20 @@ class _HomeScreenState extends State<HomeScreen> {
                   content: PanelSteps(
                     textify: _textify,
                     imageSource: _imageSource,
-                    regions: _textify.regions,
+                    regions: _textify.regionsFromDilated,
+                    tryToExtractWideArtifacts: _textify.innerSplit,
+                    onInnerSplitChanged: (bool value) {
+                      setState(
+                        () {
+                          _textify.innerSplit = value;
+                          debouncer.run(
+                            () {
+                              _convertImageToText();
+                            },
+                          );
+                        },
+                      );
+                    },
                     kernelSizeDilate: _textify.dilatingSize,
                     displayChoicesChanged: (
                       final int sizeDilate,

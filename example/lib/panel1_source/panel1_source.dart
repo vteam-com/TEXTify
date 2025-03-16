@@ -161,7 +161,7 @@ class PanelStep1SourceState extends State<PanelStep1Source>
               _imageSelected = newImage;
               _expectedText = expectedText;
               _fontName = fontName;
-              _includeSpaceDetection = includeSpaceDetections;
+
               if (mounted) {
                 setState(() {
                   widget.onSourceChanged(

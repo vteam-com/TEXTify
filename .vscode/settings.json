@@ -37,6 +37,7 @@
         "vteam",
         "webp"
     ],
+    "terminal.integrated.wordWrap": false,
     "explorer.fileNesting.enabled": true,
     "editor.formatOnSave": true,
     "workbench.editor.closeOnFileDelete": true,
@@ -44,4 +45,5 @@
     "explorer.fileNesting.patterns": {
         "pubspec.yaml": "changelog.md, readme.md, privacy.html, license, .metadata, pubspec.lock, analysis_options.yaml, devtools_options.yaml, graph.dot, graph.svg, .gitignore",
     },
+    "debug.console.wordWrap": false,
 }

@@ -18,7 +18,7 @@ class Textify {
   final CharacterDefinitions characterDefinitions = CharacterDefinitions();
 
   /// identified regions on the image
-  List<Rect> regions = [];
+  List<Rect> regionsFromDilated = [];
 
   /// List of text bands identified in the image.
   Bands bands = Bands();
@@ -58,6 +58,9 @@ class Textify {
   /// into a single artifact, but may also merge unrelated artifacts. The
   /// optimal value depends on the quality and resolution of the input images.
   int dilatingSize = 22;
+
+  /// WHen letters are touching
+  bool innerSplit = false;
 
   /// Whether to apply dictionary-based corrections during text recognition.
   ///
@@ -252,7 +255,8 @@ class Textify {
 
     identifyArtifactsAndBandsInBinaryImage(imageAsMatrix);
 
-    String result = await _getTextFromArtifacts(
+    String result = await getTextFromArtifacts(
+      listOfBands: this.bands.list,
       supportedCharacters: supportedCharacters,
     );
 
@@ -273,182 +277,35 @@ class Textify {
   /// 3. Creating bands based on the positions of the merged artifacts.
   ///
   /// Parameters:
-  ///   [matrix] - A [Matrix] representing the binary image to be processed.
+  ///   [matrixSourceImage] - A [Matrix] representing the binary image to be processed.
   ///
   /// The method does not return a value, but updates internal state to reflect
   /// the found artifacts and bands.
   ///
   /// Note: This method assumes that the input [Matrix] is a valid binary image.
   /// Behavior may be undefined for non-binary input.
-  void identifyArtifactsAndBandsInBinaryImage(final Matrix matrix) {
-    // Create a dilated copy of the binary image to merge nearby pixels
-    final Matrix dilatedImage = dilateMatrix(
-      matrixImage: matrix,
-      kernelSize: dilatingSize,
-    );
-
-    this.regions = findRegions(dilatedMatrixImage: dilatedImage);
-
+  void identifyArtifactsAndBandsInBinaryImage(final Matrix matrixSourceImage) {
     // Clear existing artifacts
     clear();
 
-    // Sort top down left-right
-    this.regions.sort((a, b) {
-      final aCenterY = a.top + a.height / 2;
-      final bCenterY = b.top + b.height / 2;
-      if ((aCenterY - bCenterY).abs() < 10) {
-        return a.left.compareTo(b.left);
-      }
-      return aCenterY.compareTo(bCenterY);
-    });
+    // Create a dilated copy of the binary image to merge nearby pixels
+    int kernelSize =
+        computeKernelSize(matrixSourceImage.cols, matrixSourceImage.rows, 0.02);
+    final Matrix dilatedImage = dilateMatrix(
+      matrixImage: matrixSourceImage,
+      kernelSize: kernelSize,
+    );
+
+    //
+    // Regions
+    //
+    this.regionsFromDilated = findRegions(dilatedMatrixImage: dilatedImage);
 
     // Explore each regions/rectangles
-    for (final ui.Rect region in this.regions) {
-      //
-      // (1) Find Columns inside the Region
-      //
-      final List<int> histogram = getHistogramOfRegion(
-        matrix,
-        region,
-      );
-
-      List<ui.Rect> possibleArtifactRects = getRectFromHistogram(
-        histogram,
-        region,
-      );
-
-      final List<Artifact> artifactsFoundInRegion = [];
-
-      for (final rect in possibleArtifactRects) {
-        final Matrix matrixSectionOfRegion =
-            Matrix.extractSubGrid(matrix: matrix, rect: rect);
-
-        final List<ui.Rect> subRegions =
-            findRegions(dilatedMatrixImage: matrixSectionOfRegion);
-
-        for (final ui.Rect subRect in subRegions) {
-          final subArtifactMatrix = Matrix.extractSubGrid(
-            matrix: matrixSectionOfRegion,
-            rect: subRect,
-          );
-          final artifact = Artifact.fromMatrix(subArtifactMatrix);
-          artifact.matrix.locationFound = Offset(
-            artifact.matrix.rectFound.left,
-            rect.top,
-          );
-          artifactsFoundInRegion.add(artifact);
-        }
-      }
-
-      // (2) merge overlapping artifact
-      _mergeOverlappingArtifacts(artifactsFoundInRegion);
-
-      // (3) merge proximity artifact for cases like  [i j ; :]
-      _mergeConnectedArtifacts(
-        artifacts: artifactsFoundInRegion,
-        verticalThreshold: 20,
-        horizontalThreshold: 4,
-      );
-
-      // (4) create band based on proximity of artifacts
-      final Band newBand = Band();
-      artifactsFoundInRegion.forEach((artifact) {
-        newBand.addArtifact(artifact);
-      });
-
-      newBand.identifySuspiciousLargeArtifacts();
-
-      bands.add(newBand);
-    }
-
-    this.bands.mergeBandsHorizontally();
-    this.bands.removeEmptyBands();
-    this.bands.trimBands();
-
-    // (5) post-process each band for additional clean up of the artifacts in each band
-    for (final Band band in bands.list) {
-      band.sortLeftToRight();
-      if (this.includeSpaceDetections) {
-        band.identifySpacesInBand();
-      }
-      band.packArtifactLeftToRight();
-    }
-  }
-
-  /// Merges connected artifacts based on specified thresholds.
-  ///
-  /// This method iterates through the list of artifacts and merges those that are
-  /// considered connected based on vertical and horizontal thresholds.
-  ///
-  /// Parameters:
-  ///   [verticalThreshold]: The maximum vertical distance between artifacts to be considered connected.
-  ///   [horizontalThreshold]: The maximum horizontal distance between artifacts to be considered connected.
-  ///
-  /// Returns:
-  ///   A list of [Artifact] objects after merging connected artifacts.
-  List<Artifact> _mergeConnectedArtifacts({
-    required final List<Artifact> artifacts,
-    required final double verticalThreshold,
-    required final double horizontalThreshold,
-  }) {
-    final List<Artifact> mergedArtifacts = [];
-
-    for (int i = 0; i < artifacts.length; i++) {
-      final Artifact current = artifacts[i];
-
-      for (int j = i + 1; j < artifacts.length; j++) {
-        final Artifact next = artifacts[j];
-
-        if (_areArtifactsConnected(
-          current.matrix.rectAdjusted,
-          next.matrix.rectAdjusted,
-          verticalThreshold,
-          horizontalThreshold,
-        )) {
-          current.mergeArtifact(next);
-          artifacts.removeAt(j);
-          j--; // Adjust index since we removed an artifact
-        }
-      }
-
-      mergedArtifacts.add(current);
-    }
-
-    return mergedArtifacts;
-  }
-
-  /// Determines if two artifacts are connected based on their rectangles and thresholds.
-  ///
-  /// This method checks both horizontal and vertical proximity of the rectangles.
-  ///
-  /// Parameters:
-  ///   [rect1]: The rectangle of the first artifact.
-  ///   [rect2]: The rectangle of the second artifact.
-  ///   [verticalThreshold]: The maximum vertical distance to be considered connected.
-  ///   [horizontalThreshold]: The maximum horizontal distance to be considered connected.
-  ///
-  /// Returns:
-  ///   true if the artifacts are considered connected, false otherwise.
-  bool _areArtifactsConnected(
-    final Rect rect1,
-    final Rect rect2,
-    final double verticalThreshold,
-    final double horizontalThreshold,
-  ) {
-    // Calculate the center X of each rectangle
-    final double centerX1 = (rect1.left + rect1.right) / 2;
-    final double centerX2 = (rect2.left + rect2.right) / 2;
-
-    // Check horizontal connection using the center X values
-    final bool horizontallyConnected =
-        (centerX1 - centerX2).abs() <= horizontalThreshold;
-
-    // Check vertical connection as before
-    final bool verticallyConnected =
-        (rect1.bottom + verticalThreshold >= rect2.top &&
-            rect1.top - verticalThreshold <= rect2.bottom);
-
-    return horizontallyConnected && verticallyConnected;
+    this.bands = Bands.getBandsOfArtifacts(
+      matrixSourceImage,
+      this.regionsFromDilated,
+    );
   }
 
   /// Determines the most likely character represented by an artifact.
@@ -588,14 +445,15 @@ class Textify {
   /// Returns:
   ///   A String containing the extracted text, with attempts made to preserve
   ///   the original layout through the use of spaces between rows.
-  Future<String> _getTextFromArtifacts({
+  Future<String> getTextFromArtifacts({
+    required final List<Band> listOfBands,
     final String supportedCharacters = '',
   }) async {
     this.textFound = '';
 
     final List<String> linesFound = [];
 
-    for (final Band band in bands.list) {
+    for (final Band band in listOfBands) {
       String line = '';
 
       for (final Artifact artifact in band.artifacts) {
@@ -616,52 +474,6 @@ class Textify {
     }
 
     return textFound.trim(); // Trim to remove leading space
-  }
-
-  /// Merges overlapping artifacts in the list.
-  ///
-  /// This method performs a global merge operation on all artifacts in the list.
-  /// It identifies overlapping artifacts, merges them, and removes the redundant ones.
-  ///
-  /// The algorithm works as follows:
-  /// 1. Iterate through all pairs of artifacts.
-  /// 2. If two artifacts overlap and haven't been marked for removal:
-  ///    - Merge them using the [_mergeArtifact] method.
-  ///    - Mark the second artifact for removal.
-  /// 3. Remove all marked artifacts from the list.
-  ///
-  /// Time Complexity: O(n^2), where n is the number of artifacts.
-  /// Space Complexity: O(n) in the worst case, for the removal set.
-  ///
-  /// Note: This method modifies the original list of artifacts.
-  void _mergeOverlappingArtifacts(List<Artifact> artifacts) {
-    final int n = artifacts.length;
-
-    final Set<Artifact> toRemove = {};
-
-    for (int i = 0; i < n; i++) {
-      final Artifact artifactA = artifacts[i];
-      if (toRemove.contains(artifactA)) {
-        // already merged
-        continue;
-      }
-
-      for (int j = i + 1; j < n; j++) {
-        final Artifact artifactB = artifacts[j];
-        if (toRemove.contains(artifactB)) {
-          // already merged
-          continue;
-        }
-
-        if (artifactA.matrix.rectAdjusted
-            .overlaps(artifactB.matrix.rectAdjusted)) {
-          artifactA.mergeArtifact(artifactB);
-          toRemove.add(artifactB);
-        }
-      }
-    }
-
-    artifacts.removeWhere((artifact) => toRemove.contains(artifact));
   }
 }
 

@@ -71,7 +71,7 @@ class CharacterGenerationBodyState extends State<CharacterGenerationBody> {
   Future<void> _generateCharacters() async {
     this.textify = await Textify().init();
     // we only want to detect a single character, skip Space detections
-    this.textify.includeSpaceDetections = false;
+
     this.textify.excludeLongLines = false;
     _supportedCharacters =
         this.textify.characterDefinitions.supportedCharacters;

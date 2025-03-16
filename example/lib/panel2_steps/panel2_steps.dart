@@ -17,6 +17,8 @@ class PanelSteps extends StatefulWidget {
     required this.textify,
     required this.imageSource,
     required this.regions,
+    required this.tryToExtractWideArtifacts,
+    required this.onInnerSplitChanged,
     required this.kernelSizeDilate,
     required this.displayChoicesChanged,
     required this.onReset,
@@ -25,6 +27,8 @@ class PanelSteps extends StatefulWidget {
   final Textify textify;
   final ui.Image? imageSource;
   final List<Rect> regions;
+  final bool tryToExtractWideArtifacts;
+  final Function(bool) onInnerSplitChanged;
   final int kernelSizeDilate;
   final Function(int) displayChoicesChanged;
   final Function onReset;
@@ -55,6 +59,8 @@ class _PanelStepsState extends State<PanelSteps> {
   void didUpdateWidget(PanelSteps oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.imageSource != widget.imageSource ||
+        oldWidget.tryToExtractWideArtifacts !=
+            widget.tryToExtractWideArtifacts ||
         oldWidget.kernelSizeDilate != widget.kernelSizeDilate) {
       updateImages();
     }
@@ -71,20 +77,36 @@ class _PanelStepsState extends State<PanelSteps> {
             _viewAs = view;
           });
         },
+
+        //
         // Region
+        //
         showRegions: _showRegions,
         onShowRegionsChanged: (value) {
           setState(() {
             _showRegions = value;
           });
         },
+
+        //
+        // InnerSplit
+        //
+        tryToExtractWideArtifacts: widget.tryToExtractWideArtifacts,
+        onTryToExtractWideArtifactsChanged: widget.onInnerSplitChanged,
+
+        //
+        // Histogram
+        //
         showHistograms: _showHistograms,
         onShowHistogramsChanged: (value) {
           setState(() {
             _showHistograms = value;
           });
         },
-        // dilate
+
+        //
+        // Dilate
+        //
         kernelSizeDilate: widget.kernelSizeDilate,
         onDelateChanged: widget.displayChoicesChanged,
 
@@ -180,7 +202,7 @@ class _PanelStepsState extends State<PanelSteps> {
   ) {
     List<List<int>> regionsHistograms = [];
 
-    for (final ui.Rect region in regions) {
+    for (final Rect region in regions) {
       regionsHistograms.add(getHistogramOfRegion(binaryImage, region));
     }
     return regionsHistograms;
@@ -197,15 +219,20 @@ class _PanelStepsState extends State<PanelSteps> {
     canvas.drawImage(image, Offset.zero, Paint());
 
     // Draw rectangles over the image
-    final paint = Paint()
+    final paintRed = Paint()
       ..color = Colors.red.withAlpha(200)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2.0;
 
+    final paintGreen = Paint()
+      ..color = Colors.green.withAlpha(200)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.0;
+
     for (int i = 0; i < _regions.length; i++) {
-      final rect = _regions[i];
+      final ui.Rect region = _regions[i];
       if (_showRegions) {
-        canvas.drawRect(rect, paint);
+        canvas.drawRect(region, (i % 2) == 0 ? paintRed : paintGreen);
       }
 
       // Paint the histogram in the rect space
@@ -216,16 +243,16 @@ class _PanelStepsState extends State<PanelSteps> {
             ..color = Colors.blue.withAlpha(200)
             ..style = PaintingStyle.fill;
 
-          final double barWidth = rect.width / histogramForThisRect.length;
+          final double barWidth = region.width / histogramForThisRect.length;
           final double maxValue = histogramForThisRect.reduce(max).toDouble();
 
           for (int j = 0; j < histogramForThisRect.length; j++) {
             if (maxValue > 0) {
               final int barHeight = histogramForThisRect[j];
 
-              final double x = rect.left + (j * barWidth);
-              final double top = rect.bottom - (barHeight * 2);
-              for (double y = top; y < rect.bottom; y += 2) {
+              final double x = region.left + (j * barWidth);
+              final double top = region.bottom - (barHeight * 2);
+              for (double y = top; y < region.bottom; y += 2) {
                 canvas.drawRect(
                   Rect.fromLTWH(x, y, barWidth, 1),
                   histogramPaint,

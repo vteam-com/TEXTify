@@ -47,7 +47,7 @@ class Matrix {
   /// Matrix copy = Matrix.fromMatrix(original);
   /// ```
   factory Matrix.fromMatrix(final Matrix value) {
-    final matrix = Matrix();
+    final Matrix matrix = Matrix();
     matrix.setGrid(value.data);
     matrix.locationFound = value.locationFound;
     matrix.locationAdjusted = value.locationAdjusted;
@@ -291,20 +291,59 @@ class Matrix {
     }
   }
 
+  /// Returns the horizontal histogram of the matrix.
   ///
-  List<int> getHistogram() {
-    final List<int> histogram = [];
-    int col = 0;
+  /// The histogram represents the number of `true` (or inked) cells
+  /// in each column of the matrix. The result is a list where each
+  /// index corresponds to a column, and the value at that index
+  /// represents the count of `true` values in that column.
+  ///
+  /// Example:
+  /// ```dart
+  /// Matrix matrix = Matrix(5, 5);
+  /// matrix.cellSet(1, 1, true);
+  /// matrix.cellSet(2, 2, true);
+  /// matrix.cellSet(3, 3, true);
+  ///
+  /// print(matrix.getHistogramHorizontal()); // Output: [0, 1, 1, 1, 0]
+  /// ```
+  List<int> getHistogramHorizontal() {
+    final List<int> histogram = List.filled(this.cols, 0);
     for (int x = 0; x < this.cols; x++) {
-      histogram.add(0);
       for (int y = 0; y < this.rows; y++) {
         if (this.cellGet(x, y)) {
-          histogram[col]++;
+          histogram[x]++;
         }
       }
-      col++;
     }
+    return histogram;
+  }
 
+  /// Returns the vertical histogram of the matrix.
+  ///
+  /// The histogram represents the number of `true` (or inked) cells
+  /// in each row of the matrix. The result is a list where each
+  /// index corresponds to a row, and the value at that index
+  /// represents the count of `true` values in that row.
+  ///
+  /// Example:
+  /// ```dart
+  /// Matrix matrix = Matrix(5, 5);
+  /// matrix.cellSet(1, 1, true);
+  /// matrix.cellSet(2, 2, true);
+  /// matrix.cellSet(3, 3, true);
+  ///
+  /// print(matrix.getHistogramVertical()); // Output: [0, 1, 1, 1, 0]
+  /// ```
+  List<int> getHistogramVertical() {
+    final List<int> histogram = List.filled(this.rows, 0);
+    for (int y = 0; y < this.rows; y++) {
+      for (int x = 0; x < this.cols; x++) {
+        if (this.cellGet(x, y)) {
+          histogram[y]++;
+        }
+      }
+    }
     return histogram;
   }
 
@@ -696,6 +735,52 @@ class Matrix {
     splits.add(extractSubGrid(matrix: this, rect: rectRight));
 
     return splits;
+  }
+
+  /// Splits the given matrix into multiple row matrices based on the provided row offsets.
+  ///
+  /// Each row offset in [rowOffsets] marks the start of a new split.
+  /// The function returns a list of [Matrix] objects, where each matrix represents
+  /// a horizontal slice of the original [input] matrix while maintaining its relative position.
+  ///
+  /// Example:
+  /// ```dart
+  /// Matrix input = Matrix(5, 5);
+  /// List<int> rowOffsets = [0, 2, 4]; // Splits at row indices 0, 2, and 4
+  /// List<Matrix> rowMatrices = Matrix.splitAsRows(input, rowOffsets);
+  /// ```
+  ///
+  /// - [input]: The original matrix to split.
+  /// - [rowOffsets]: A list of row indices where splits should occur.
+  /// - Returns: A list of matrices representing the split rows while preserving `locationFound`.
+  static List<Matrix> splitAsRows(final Matrix input, List<int> rowOffsets) {
+    List<Matrix> result = [];
+
+    for (int i = 0; i < rowOffsets.length; i++) {
+      int startRow = rowOffsets[i];
+      int endRow = (i < rowOffsets.length - 1) ? rowOffsets[i + 1] : input.rows;
+
+      // Create a new matrix with the same width but only the selected row range
+      Matrix rowMatrix = Matrix(input.cols, endRow - startRow);
+
+      // Copy the relevant rows from input to rowMatrix
+      for (int y = startRow; y < endRow; y++) {
+        for (int x = 0; x < input.cols; x++) {
+          rowMatrix.cellSet(x, y - startRow, input.cellGet(x, y));
+        }
+      }
+
+      // Adjust locationFound based on the original matrix
+      rowMatrix.locationFound = Offset(
+        input.locationFound.dx, // Keep the same X position
+        input.locationFound.dy +
+            startRow, // Adjust the Y position based on the split
+      );
+
+      result.add(rowMatrix);
+    }
+
+    return result;
   }
 
   /// Calculates the size of the content area in the matrix.
@@ -1176,6 +1261,30 @@ class Matrix {
     }
 
     return loopCount;
+  }
+
+  ///
+  static void sortMatrices(List<Matrix> list) {
+    list.sort((Matrix a, Matrix b) {
+      final aCenterY = a.rectFound.top + a.rectFound.height / 2;
+      final bCenterY = b.rectFound.top + b.rectFound.height / 2;
+      if ((aCenterY - bCenterY).abs() < 10) {
+        return a.rectFound.left.compareTo(b.rectFound.left);
+      }
+      return aCenterY.compareTo(bCenterY);
+    });
+  }
+
+  ///
+  static void sortRectangles(List<Rect> list, {double threshold = 5.0}) {
+    list.sort((a, b) {
+      // If the vertical difference is within the threshold, treat them as the same row
+      if ((a.center.dy - b.center.dy).abs() <= threshold) {
+        return a.center.dx
+            .compareTo(b.center.dx); // Sort by X-axis if on the same line
+      }
+      return a.center.dy.compareTo(b.center.dy); // Otherwise, sort by Y-axis
+    });
   }
 
   /// Explores a connected region in a grid starting from a given point.
@@ -1783,6 +1892,53 @@ Future<ui.Image> erode(
 /// Returns:
 ///   A list of [Rect] objects representing the bounding boxes of the
 ///   identified regions.
+List<Matrix> findMatrices({required Matrix dilatedMatrixImage}) {
+  // Clear existing regions
+  List<Matrix> regions = [];
+
+  // Create a matrix to track visited pixels
+  final Matrix visited =
+      Matrix(dilatedMatrixImage.cols, dilatedMatrixImage.rows, false);
+
+  // Scan through each pixel
+  for (int y = 0; y < dilatedMatrixImage.rows; y++) {
+    for (int x = 0; x < dilatedMatrixImage.cols; x++) {
+      // If pixel is on and not visited, flood fill from this point
+      if (!visited.cellGet(x, y) && dilatedMatrixImage.cellGet(x, y)) {
+        // Get connected points using flood fill
+        final List<Point> connectedPoints = floodFill(
+          dilatedMatrixImage,
+          visited,
+          x,
+          y,
+        );
+
+        if (connectedPoints.isEmpty) {
+          continue;
+        }
+        regions.add(matrixFromPoints(connectedPoints));
+      }
+    }
+  }
+
+  Matrix.sortMatrices(regions);
+  return regions;
+}
+
+/// Finds the regions in a binary image matrix.
+///
+/// This method performs a flood fill algorithm to identify connected regions
+/// in a binary image matrix. It creates a dilated copy of the binary image
+/// to merge nearby pixels, and then scans through each pixel to find
+/// connected regions. The method returns a list of [Rect] objects
+/// representing the bounding boxes of the identified regions.
+///
+/// Parameters:
+///   [binaryImages]: The binary image matrix to analyze.
+///
+/// Returns:
+///   A list of [Rect] objects representing the bounding boxes of the
+///   identified regions.
 List<Rect> findRegions({required Matrix dilatedMatrixImage}) {
   // Clear existing regions
   List<Rect> regions = [];
@@ -1807,32 +1963,12 @@ List<Rect> findRegions({required Matrix dilatedMatrixImage}) {
         if (connectedPoints.isEmpty) {
           continue;
         }
-
-        // Find bounds of the region
-        int minX = dilatedMatrixImage.cols;
-        int minY = dilatedMatrixImage.rows;
-        int maxX = 0;
-        int maxY = 0;
-
-        for (final point in connectedPoints) {
-          minX = min(minX, point.x.toInt());
-          minY = min(minY, point.y.toInt());
-          maxX = max(maxX, point.x.toInt());
-          maxY = max(maxY, point.y.toInt());
-        }
-
-        // Create rectangle for the region
-        final region = Rect.fromLTRB(
-          minX.toDouble(),
-          minY.toDouble(),
-          maxX.toDouble() + 1,
-          maxY.toDouble() + 1,
-        );
-
-        regions.add(region);
+        regions.add(rectFromPoints(connectedPoints));
       }
     }
   }
+
+  Matrix.sortRectangles(regions);
   return regions;
 }
 
@@ -1892,6 +2028,99 @@ List<Point> floodFill(
   return connectedPoints;
 }
 
+///
+Matrix? findAllIsolatedRegions(final Matrix inputMatrix) {
+  // Create a matrix to track visited pixels
+  final Matrix visited = Matrix(inputMatrix.cols, inputMatrix.rows, false);
+
+  for (int y = 0; y < inputMatrix.rows; y++) {
+    for (int x = 0; x < inputMatrix.cols; x++) {
+      if (!visited.cellGet(x, y) && inputMatrix.cellGet(x, y)) {
+        // Perform flood fill from this point
+        final List<Point> connectedPoints = floodFill(
+          inputMatrix,
+          visited,
+          x,
+          y,
+        );
+
+        // Create a new matrix for the isolated region
+        Matrix regionMatrix = matrixFromPoints(connectedPoints);
+
+        return regionMatrix;
+      }
+    }
+  }
+  return null;
+}
+
+///
+Matrix matrixFromPoints(List<Point<num>> connectedPoints) {
+  // Create a new matrix for the isolated region
+  final int minX = connectedPoints.map((point) => point.x).reduce(min).toInt();
+  final int minY = connectedPoints.map((point) => point.y).reduce(min).toInt();
+  final int maxX = connectedPoints.map((point) => point.x).reduce(max).toInt();
+  final int maxY = connectedPoints.map((point) => point.y).reduce(max).toInt();
+
+  final int regionWidth = maxX - minX + 1;
+  final int regionHeight = maxY - minY + 1;
+
+  final Matrix regionMatrix = Matrix(regionWidth, regionHeight, false);
+  regionMatrix.locationFound = Offset(minX.toDouble(), minY.toDouble());
+  regionMatrix.locationAdjusted = regionMatrix.locationFound;
+
+  for (final Point point in connectedPoints) {
+    final int localX = (point.x - minX).toInt();
+    final int localY = (point.y - minY).toInt();
+    regionMatrix.cellSet(localX, localY, true);
+  }
+  return regionMatrix;
+}
+
+///
+Rect rectFromPoints(List<Point<num>> connectedPoints) {
+  // Create a new matrix for the isolated region
+  final int minX = connectedPoints.map((point) => point.x).reduce(min).toInt();
+  final int minY = connectedPoints.map((point) => point.y).reduce(min).toInt();
+  final int maxX = connectedPoints.map((point) => point.x).reduce(max).toInt();
+  final int maxY = connectedPoints.map((point) => point.y).reduce(max).toInt();
+
+  final int regionWidth = maxX - minX + 1;
+  final int regionHeight = maxY - minY + 1;
+
+  final Rect regionMatrix = Rect.fromLTWH(
+    minX.toDouble(),
+    minY.toDouble(),
+    regionWidth.toDouble(),
+    regionHeight.toDouble(),
+  );
+
+  return regionMatrix;
+}
+
+// (int minX, int minY, int maxX, int maxY) calculateBoundingBox(
+//   List<Point> points,
+// ) {
+//   int minX = double.infinity.toInt();
+//   int minY = double.infinity.toInt();
+//   int maxX = -double.infinity.toInt();
+//   int maxY = -double.infinity.toInt();
+
+//   for (final Point<num> point in points) {
+//     if (point.x < minX) minX = point.x.toInt();
+//     if (point.y < minY) minY = point.y.toInt();
+//     if (point.x > maxX) maxX = point.x.toInt();
+//     if (point.y > maxY) maxY = point.y.toInt();
+//   }
+
+//   return (minX, minY, maxX, maxY);
+// }
+
+///
+int computeKernelSize(int width, int height, double scaleFactor) {
+  return (scaleFactor * width).round().clamp(1, width);
+}
+
 /// Performs a dilation operation on the input matrix.
 ///
 /// This function takes a [Matrix] and performs a dilation operation on it.
@@ -1915,21 +2144,24 @@ Matrix dilateMatrix({
 
   for (int y = 0; y < height; y++) {
     for (int x = 0; x < width; x++) {
-      bool hasInk = false;
+      if (matrixImage.cellGet(x, y)) {
+        output.cellSet(x, y, true);
+        continue; // Already inked, no need to process neighbors
+      }
 
       for (final offset in offsets) {
         final int nx = x + offset.x;
         final int ny = y + offset.y;
 
-        if (nx >= 0 && nx < width && ny >= 0 && ny < height) {
-          if (matrixImage._data[ny][nx]) {
-            hasInk = true;
-            break;
-          }
+        if (nx >= 0 &&
+            nx < width &&
+            ny >= 0 &&
+            ny < height &&
+            matrixImage.cellGet(nx, ny)) {
+          output.cellSet(x, y, true);
+          break; // Early exit when ink is found
         }
       }
-
-      output._data[y][x] = hasInk;
     }
   }
 
@@ -2106,6 +2338,46 @@ int calculateThreshold(List<int> histogram) {
 }
 
 ///
+/// Splits a given matrix into row sections based on vertical histogram valleys.
+///
+/// - A valley is a row where the histogram value is **0**, meaning no data exists there.
+/// - These valleys act as separators for different row sections.
+/// - The function preserves each section's `locationFound` relative to the original.
+///
+/// Example:
+/// ```dart
+/// Matrix region = Matrix(10, 10);
+/// List<Matrix> rows = splitRegionIntoRows(region);
+/// ```
+///
+/// - [region]: The input matrix to be split.
+/// - Returns: A list of matrix sections split by empty rows.
+List<Matrix> splitRegionIntoRows(Matrix matrixImage) {
+  // Compute the vertical histogram (column-wise pixel count per row).
+  final List<int> histogramAll = matrixImage.getHistogramVertical();
+
+  // Find row indices where the histogram is **0**, meaning empty rows.
+  final List<int> rowSeparators = keepIndexBelowValue(histogramAll, 0);
+  if (rowSeparators.isEmpty) {
+    return [matrixImage]; // no need to split
+  }
+
+  // Ensure the first and last rows are included as split points.
+  if (rowSeparators.first != 0) {
+    rowSeparators.insert(0, 0);
+  }
+  if (rowSeparators.last != matrixImage.rectFound.height) {
+    rowSeparators.add(matrixImage.rectFound.height.toInt());
+  }
+
+  // Split the region into meaningful row sections.
+  final List<Matrix> regionAsRows =
+      Matrix.splitAsRows(matrixImage, rowSeparators);
+
+  return regionAsRows;
+}
+
+///
 List<int> keepIndexBelowValue(final List<int> histogram, final int maxValue) {
   List<int> indexes = [];
 
@@ -2144,7 +2416,7 @@ List<int> keepIndexBelowValue(final List<int> histogram, final int maxValue) {
 
 /// splitColumns will contains numbers like for example [10,11,12, 22,23,24,25, 33]
 /// optimized to keep only the mid points of groups, so that the above becomes [11,24,33]
-List<int> reduceColumnGroups(List<int> splitColumns) {
+List<int> reduceHistogram(List<int> splitColumns) {
   // splitColumns will contains numbers like for example [10,11,12, 22,23,24,25, 33]
   // optimized to keep only the mid points of groups, so that the above becomes [11,24,33]
   List<int> optimizedSplitColumns = [];
@@ -2183,4 +2455,12 @@ bool isConsideredLine(Rect rect) {
   const double threshold = 30.0;
   (verticalRatio > threshold || horizontalRatio > threshold);
   return (verticalRatio > threshold || horizontalRatio > threshold);
+}
+
+///
+void offsetMatrices(final List<Matrix> matrices, final int x, final int y) {
+  matrices.forEach(
+    (matrix) => matrix.locationFound =
+        matrix.locationFound.translate(x.toDouble(), y.toDouble()),
+  );
 }

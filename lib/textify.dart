@@ -45,9 +45,6 @@ class Textify {
   int get duration =>
       processEnd.millisecondsSinceEpoch - processBegin.millisecondsSinceEpoch;
 
-  /// Should textify attempt to detect the Space ' ' character
-  bool includeSpaceDetections = true;
-
   /// Ignore horizontal and vertical lines
   bool excludeLongLines = true;
 

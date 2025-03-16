@@ -49,8 +49,6 @@ class ContentState extends State<GenerateImagesForUnitTestsScreen> {
 
   Future<void> _generateImages() async {
     this.textify = await Textify().init();
-    // we only want to detect a single character, skip Space detections
-    this.textify.includeSpaceDetections = false;
     this.textify.excludeLongLines = false;
 
     for (int i = 0; i < numberOfImageToGenerate; i++) {

@@ -101,7 +101,6 @@ class _HomeScreenState extends State<HomeScreen> {
                           .where((str) => str.isNotEmpty)
                           .toList(); // remove empty entries
                       _fontName = fontName;
-                      _textify.includeSpaceDetections = includeSpaceDetection;
                       _convertImageToText();
                     },
                   ),

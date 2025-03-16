@@ -5,7 +5,6 @@ import 'package:textify/artifact.dart';
 import 'package:textify/bands.dart';
 import 'package:textify/character_definitions.dart';
 import 'package:textify/correction.dart';
-import 'package:textify/matrix.dart';
 import 'package:textify/score_match.dart';
 
 /// Textify is a class designed to extract text from clean digital images.
@@ -124,11 +123,10 @@ class Textify {
     final Artifact artifact, [
     final String supportedCharacters = '',
   ]) {
-    final Matrix matrix = artifact.matrix;
-    final int numberOfEnclosure = matrix.enclosures;
-    final bool hasVerticalLineOnTheLeftSide = matrix.verticalLineLeft;
-    final bool hasVerticalLineOnTheRightSide = matrix.verticalLineRight;
-    final bool punctuation = matrix.isPunctuation();
+    final int numberOfEnclosure = artifact.enclosures;
+    final bool hasVerticalLineOnTheLeftSide = artifact.verticalLineLeft;
+    final bool hasVerticalLineOnTheRightSide = artifact.verticalLineRight;
+    final bool punctuation = artifact.isPunctuation();
 
     const double percentageNeeded = 0.5;
     const int totalChecks = 4;
@@ -173,12 +171,12 @@ class Textify {
       qualifiedTemplates = characterDefinitions.definitions;
     }
 
-    final Matrix resizedMatrix =
-        matrix.createNormalizeMatrix(templateWidth, templateHeight);
+    final Artifact resizedArtifact =
+        artifact.createNormalizeMatrix(templateWidth, templateHeight);
 
     // Calculate the final scores
     final List<ScoreMatch> scores =
-        _getDistanceScores(qualifiedTemplates, resizedMatrix);
+        _getDistanceScores(qualifiedTemplates, resizedArtifact);
 
     // Sort scores in descending order (higher score is better)
     scores.sort((a, b) => b.score.compareTo(a.score));
@@ -216,10 +214,11 @@ class Textify {
   }) async {
     final ui.Image imageBlackAndWhite = await imageToBlackOnWhite(image);
 
-    final Matrix imageAsMatrix = await Matrix.fromImage(imageBlackAndWhite);
+    final Artifact imageAsArtifact =
+        await Artifact.fromImage(imageBlackAndWhite);
 
     return await getTextFromMatrix(
-      imageAsMatrix: imageAsMatrix,
+      imageAsMatrix: imageAsArtifact,
       supportedCharacters: supportedCharacters,
     );
   }
@@ -230,7 +229,7 @@ class Textify {
   /// [supportedCharacters] is an optional string of characters to limit the recognition to.
   /// Returns the extracted text as a string.
   Future<String> getTextFromMatrix({
-    required final Matrix imageAsMatrix,
+    required final Artifact imageAsMatrix,
     final String supportedCharacters = '',
   }) async {
     assert(
@@ -256,7 +255,7 @@ class Textify {
 
   /// Processes a binary image to find, merge, and categorize artifacts.
   ///
-  /// This method takes a binary image represented as a [Matrix] and performs
+  /// This method takes a binary image represented as a [Artifact] and performs
   /// a series of operations to identify and process artifacts within the image.
   ///
   /// The process involves three main steps:
@@ -265,21 +264,23 @@ class Textify {
   /// 3. Creating bands based on the positions of the merged artifacts.
   ///
   /// Parameters:
-  ///   [matrixSourceImage] - A [Matrix] representing the binary image to be processed.
+  ///   [matrixSourceImage] - A [Artifact] representing the binary image to be processed.
   ///
   /// The method does not return a value, but updates internal state to reflect
   /// the found artifacts and bands.
   ///
-  /// Note: This method assumes that the input [Matrix] is a valid binary image.
+  /// Note: This method assumes that the input [Artifact] is a valid binary image.
   /// Behavior may be undefined for non-binary input.
-  void identifyArtifactsAndBandsInBinaryImage(final Matrix matrixSourceImage) {
+  void identifyArtifactsAndBandsInBinaryImage(
+    final Artifact matrixSourceImage,
+  ) {
     // Clear existing artifacts
     clear();
 
     // Create a dilated copy of the binary image to merge nearby pixels
     int kernelSize =
         computeKernelSize(matrixSourceImage.cols, matrixSourceImage.rows, 0.02);
-    final Matrix dilatedImage = dilateMatrix(
+    final Artifact dilatedImage = dilateMatrix(
       matrixImage: matrixSourceImage,
       kernelSize: kernelSize,
     );
@@ -347,20 +348,20 @@ class Textify {
   ///   and the character templates, sorted in descending order by score.
   static List<ScoreMatch> _getDistanceScores(
     List<CharacterDefinition> templates,
-    Matrix inputMatrix,
+    Artifact inputMatrix,
   ) {
     final List<ScoreMatch> scores = [];
     // Iterate through each template in the map
     for (final CharacterDefinition template in templates) {
       // Calculate the similarity score and create a ScoreMatch object
       for (int i = 0; i < template.matrices.length; i++) {
-        final Matrix matrix = template.matrices[i];
+        final Artifact artifact = template.matrices[i];
         final ScoreMatch scoreMatch = ScoreMatch(
           character: template.character,
           matrixIndex: i,
-          score: Matrix.hammingDistancePercentage(
+          score: Artifact.hammingDistancePercentage(
             inputMatrix,
-            matrix,
+            artifact,
           ),
         );
 
@@ -386,7 +387,7 @@ class Textify {
         double totalScore2 = 0;
 
         for (final matrix in template1.matrices) {
-          totalScore1 += Matrix.hammingDistancePercentage(
+          totalScore1 += Artifact.hammingDistancePercentage(
             inputMatrix,
             matrix,
           );
@@ -394,7 +395,7 @@ class Textify {
         totalScore1 /= template1.matrices.length; // averaging
 
         for (final matrix in template2.matrices) {
-          totalScore2 += Matrix.hammingDistancePercentage(
+          totalScore2 += Artifact.hammingDistancePercentage(
             inputMatrix,
             matrix,
           );

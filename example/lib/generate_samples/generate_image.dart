@@ -3,7 +3,7 @@ import 'dart:typed_data';
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
-import 'package:textify/matrix.dart';
+import 'package:textify/artifact.dart';
 
 Future<ui.Image> generateImageDrawText({
   required final int imageWidth,
@@ -177,7 +177,7 @@ TextPainter myDrawText({
   return textPainter;
 }
 
-Future<ui.Image> imageFromMatrix(final Matrix matrix) async {
+Future<ui.Image> imageFromMatrix(final Artifact matrix) async {
   final int width = matrix.cols;
   final int height = matrix.rows;
   final Uint8List pixels = Uint8List(width * height * 4);

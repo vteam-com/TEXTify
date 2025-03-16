@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:textify/artifact.dart';
 import 'package:textify/character_definition.dart';
-import 'package:textify/matrix.dart';
 import 'package:textify/textify.dart';
 import 'package:textify_dashboard/generate_samples/generate_image.dart';
 import 'package:textify_dashboard/generate_samples/textify_generated_image.dart';
@@ -223,7 +222,7 @@ class ContentState extends State<GenerateImagesForUnitTestsScreen> {
 
     // Apply image processing pipeline
     final ui.Image imageOptimized = await imageToBlackOnWhite(newImageSource);
-    final Matrix imageAsMatrix = await Matrix.fromImage(imageOptimized);
+    final Artifact imageAsMatrix = await Artifact.fromImage(imageOptimized);
 
     // Find artifacts from the binary image
     textify.identifyArtifactsAndBandsInBinaryImage(imageAsMatrix);
@@ -235,7 +234,7 @@ class ContentState extends State<GenerateImagesForUnitTestsScreen> {
 
       // Filter out artifacts with empty matrices (spaces)
       final artifactsInTheFirstBandNoSpaces = artifactsInTheFirstBand
-          .where((Artifact artifact) => artifact.matrix.isNotEmpty)
+          .where((Artifact artifact) => artifact.isNotEmpty)
           .toList();
 
       // If there are exactly three artifacts (expected for a single character)
@@ -244,7 +243,7 @@ class ContentState extends State<GenerateImagesForUnitTestsScreen> {
             1]; // The middle artifact is the target
 
         // Create a normalized matrix for the character definition
-        final Matrix matrix = targetArtifact.matrix.createNormalizeMatrix(
+        final Artifact matrix = targetArtifact.createNormalizeMatrix(
           CharacterDefinition.templateWidth,
           CharacterDefinition.templateHeight,
         );

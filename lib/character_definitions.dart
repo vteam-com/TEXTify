@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/services.dart';
+import 'package:textify/artifact.dart';
 import 'package:textify/character_definition.dart';
-import 'package:textify/matrix.dart';
 export 'package:textify/character_definition.dart';
 
 /// Manages a collection of character definitions used for text processing.
@@ -61,7 +61,7 @@ class CharacterDefinitions {
         otherCharacters;
   }
 
-  /// Retrieves a specific [Matrix] for a given character.
+  /// Retrieves a specific [Artifact] for a given character.
   ///
   /// This method fetches a character definition and returns the matrix at the specified index.
   /// If the character definition doesn't exist or the index is out of bounds, an empty matrix is returned.
@@ -73,18 +73,13 @@ class CharacterDefinitions {
   ///   definition. Different indices may represent variations or different representations of the character.
   ///
   /// Returns:
-  /// - A [Matrix] object representing the character at the specified index.
-  /// - Returns an empty [Matrix] if:
+  /// - A [Artifact] object representing the character at the specified index.
+  /// - Returns an empty [Artifact] if:
   ///   - No definition is found for the character.
   ///   - The matricesIndex is negative.
   ///   - The matricesIndex is out of bounds for the character's matrices.
   ///
-  /// Example:
-  /// ```dart
-  /// final Matrix aMatrix = getMatrix('A', 0);
-  /// final Matrix emptyMatrix = getMatrix('?', 5); // Assuming '?' is undefined or index 5 is out of bounds
-  /// ```
-  Matrix getMatrix(
+  Artifact getMatrix(
     final String character,
     final int matricesIndex,
   ) {
@@ -92,7 +87,7 @@ class CharacterDefinitions {
     if (definition == null ||
         matricesIndex < 0 ||
         matricesIndex >= definition.matrices.length) {
-      return Matrix();
+      return Artifact();
     }
     return definition.matrices[matricesIndex];
   }
@@ -151,7 +146,7 @@ class CharacterDefinitions {
   bool upsertTemplate(
     final String font,
     final String character,
-    final Matrix matrix,
+    final Artifact matrix,
   ) {
     matrix.font = font;
     final CharacterDefinition? found = getDefinition(character);
@@ -164,7 +159,7 @@ class CharacterDefinitions {
       return true;
     } else {
       final int existingMatrixIndex =
-          found.matrices.indexWhere((final Matrix m) => m.font == font);
+          found.matrices.indexWhere((final Artifact m) => m.font == font);
 
       if (existingMatrixIndex == -1) {
         found.matrices.add(matrix);

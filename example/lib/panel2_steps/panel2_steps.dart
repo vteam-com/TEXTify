@@ -3,7 +3,7 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:textify/matrix.dart';
+import 'package:textify/artifact.dart';
 import 'package:textify/textify.dart';
 import 'package:textify_dashboard/generate_samples/generate_image.dart';
 import 'package:textify_dashboard/panel1_source/panel1_content.dart';
@@ -174,8 +174,8 @@ class _PanelStepsState extends State<PanelSteps> {
       _isReady = false;
       if (widget.imageSource != null) {
         imageToBlackOnWhite(widget.imageSource!).then((final ui.Image imageBW) {
-          Matrix.fromImage(imageBW).then((final Matrix binaryImage) {
-            final Matrix dilatedMatrix = dilateMatrix(
+          Artifact.fromImage(imageBW).then((final Artifact binaryImage) {
+            final Artifact dilatedMatrix = dilateMatrix(
               matrixImage: binaryImage,
               kernelSize: widget.kernelSizeDilate,
             );
@@ -197,7 +197,7 @@ class _PanelStepsState extends State<PanelSteps> {
   }
 
   List<List<int>> getHistogramOfRegions(
-    final Matrix binaryImage,
+    final Artifact binaryImage,
     List<Rect> regions,
   ) {
     List<List<int>> regionsHistograms = [];

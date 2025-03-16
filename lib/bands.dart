@@ -1,8 +1,8 @@
 import 'dart:math';
 import 'dart:ui';
 
+import 'package:textify/artifact.dart';
 import 'package:textify/band.dart';
-import 'package:textify/matrix.dart';
 
 /// Exports
 export 'package:textify/band.dart';
@@ -131,7 +131,7 @@ class Bands {
 
   ///
   static Bands getBandsOfArtifacts(
-    Matrix matrixSourceImage,
+    Artifact matrixSourceImage,
     List<Rect> regions,
   ) {
     Bands bandsFound = Bands();
@@ -139,7 +139,7 @@ class Bands {
     // Explore each regions/rectangles
     for (final Rect regionFromDilated in regions) {
       //
-      final Matrix regionMatrixFromImage = Matrix.extractSubGrid(
+      final Artifact regionMatrixFromImage = Artifact.extractSubGrid(
         matrix: matrixSourceImage,
         rect: regionFromDilated,
       );
@@ -161,8 +161,7 @@ class Bands {
     for (final Band band in bandsFound.list) {
       // Start by matching adjusted location to the location found
       band.artifacts.forEach((a) {
-        a.matrix.locationAdjusted =
-            Offset(a.matrix.locationFound.dx, a.matrix.locationFound.dy);
+        a.locationAdjusted = Offset(a.locationFound.dx, a.locationFound.dy);
       });
 
       band.sortArtifactsLeftToRight();

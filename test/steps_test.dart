@@ -2,8 +2,8 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:textify/artifact.dart';
 import 'package:textify/bands.dart';
-import 'package:textify/matrix.dart';
 import 'package:textify/textify.dart';
 // ignore: avoid_relative_lib_imports
 import '../example/lib/generate_samples/generate_image.dart';
@@ -24,7 +24,7 @@ Future<void> loadTestFont() async {
   await courierFontLoader.load();
 }
 
-void printMatrix(final Matrix matrix, final bool printResult) {
+void printMatrix(final Artifact matrix, final bool printResult) {
   if (printResult) {
     // ignore: avoid_print
     print(
@@ -155,7 +155,8 @@ Future<void> testFromImage(
   //
   // To Matrix
   //
-  final Matrix matrixSourceImage = await Matrix.fromImage(imageBlackAndWhite);
+  final Artifact matrixSourceImage =
+      await Artifact.fromImage(imageBlackAndWhite);
   expect(matrixSourceImage.cols, image.width);
   expect(matrixSourceImage.rows, image.height);
   printMatrix(matrixSourceImage, printResuls);
@@ -166,7 +167,7 @@ Future<void> testFromImage(
   int kernelSize =
       dilateFactor ?? computeKernelSize(image.width, image.height, 0.03);
 
-  final Matrix imageAsMatrixDilated = dilateMatrix(
+  final Artifact imageAsMatrixDilated = dilateMatrix(
     matrixImage: matrixSourceImage,
     kernelSize: kernelSize,
   );
@@ -189,14 +190,14 @@ Future<void> testFromImage(
 }
 
 List<Band> testRegionToBand(
-  Matrix matrixSourceImage,
+  Artifact matrixSourceImage,
   Rect region,
   bool printResuls,
 ) {
   //
   // get the source image for the region
   //
-  final Matrix regionMatrix = Matrix.extractSubGrid(
+  final Artifact regionMatrix = Artifact.extractSubGrid(
     matrix: matrixSourceImage,
     rect: region,
   );
@@ -215,24 +216,24 @@ List<Band> testRegionToBand(
   // Print all charactes found
   bandsFoundInRegion.forEach((Band b) {
     b.artifacts.forEach((a) {
-      printMatrix(a.matrix, printResuls);
+      printMatrix(a, printResuls);
     });
   });
   return bandsFoundInRegion;
 }
 
 List<Band> getBandsFromRegionRow({
-  required final Matrix regionMatrix,
+  required final Artifact regionMatrix,
 }) {
   // Split Region into Rows
-  List<Matrix> regionAsRows = splitRegionIntoRows(regionMatrix);
+  List<Artifact> regionAsRows = splitRegionIntoRows(regionMatrix);
 
   //
   // Find the Matrices in the Row
   //
   List<Band> bandsFoundInRegion = [];
 
-  for (final Matrix regionRow in regionAsRows) {
+  for (final Artifact regionRow in regionAsRows) {
     bandsFoundInRegion.add(
       rowToBand(
         regionMatrix: regionMatrix,

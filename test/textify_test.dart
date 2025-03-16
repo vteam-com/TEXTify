@@ -1,13 +1,13 @@
 import 'dart:ui' as ui;
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:textify/artifact.dart';
 import 'package:textify/character_definition.dart';
 import 'package:textify/correction.dart';
-import 'package:textify/matrix.dart';
 
 import 'package:textify/textify.dart';
 
-void printMatrix(final Matrix matrix) {
+void printMatrix(final Artifact matrix) {
   // ignore: avoid_print
   print(
     '${matrix.gridToString()}\n     L:${matrix.rectFound.left} T:${matrix.rectFound.top}  W:${matrix.cols} H:${matrix.rows}\n',

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:textify/artifact.dart';
 import 'package:textify/character_definitions.dart';
-import 'package:textify/matrix.dart';
 import 'package:textify/score_match.dart';
 
 import 'package:textify/textify.dart';
@@ -46,8 +45,8 @@ class _EditScreenState extends State<EditScreen> {
     );
   }
 
-  String attributeOfMatrix(final String title, Matrix matrix) {
-    return '$title\n${matrix.cols}x${matrix.rows} E:${widget.artifact.matrix.enclosures} '
+  String attributeOfMatrix(final String title, Artifact matrix) {
+    return '$title\n${matrix.cols}x${matrix.rows} E:${widget.artifact.enclosures} '
         '${captionWithYesNo("VL", matrix.verticalLineLeft)} ${captionWithYesNo("VR", matrix.verticalLineRight)} ${captionWithYesNo("P", matrix.isPunctuation())}';
   }
 
@@ -66,8 +65,8 @@ class _EditScreenState extends State<EditScreen> {
   static Widget _buildArtifactGrid(
     final String title,
     final Color headerBackgroundColor,
-    final Matrix matrix1,
-    final Matrix? matrix2,
+    final Artifact matrix1,
+    final Artifact? matrix2,
     final textForClipboard,
   ) {
     return Container(
@@ -134,14 +133,14 @@ class _EditScreenState extends State<EditScreen> {
     final int w = widget.textify.templateWidth;
     final int h = widget.textify.templateHeight;
 
-    final normalized = widget.artifact.matrix.createNormalizeMatrix(w, h);
+    final normalized = widget.artifact.createNormalizeMatrix(w, h);
 
     List<Widget> widgets = [
       // Artifact Original
       _buildArtifactGrid(
-        attributeOfMatrix('Artifact\nFound', widget.artifact.matrix),
+        attributeOfMatrix('Artifact\nFound', widget.artifact),
         Colors.black,
-        widget.artifact.matrix,
+        widget.artifact,
         null,
         widget.artifact.toText(forCode: true),
       ),
@@ -213,7 +212,7 @@ class _EditScreenState extends State<EditScreen> {
     List<ScoreMatch> scoreMatches,
     final int w,
     final int h,
-    final Matrix matrixNormalized,
+    final Artifact matrixNormalized,
     // Expected
     final String characterExpected,
   ) {
@@ -241,7 +240,7 @@ class _EditScreenState extends State<EditScreen> {
               '\n"${match.character}" [${templateMatrix.font}]\nScore ${(match.score * 100).toStringAsFixed(1)}% ${attributeOfCharacterDefinition('', definition)}';
         }
 
-        final Matrix characterMatrix = widget.textify.characterDefinitions
+        final Artifact characterMatrix = widget.textify.characterDefinitions
             .getMatrix(match.character, match.matrixIndex);
 
         widgets.add(
@@ -271,7 +270,7 @@ class _EditScreenState extends State<EditScreen> {
 
   List<Widget> _buildVariations(
     final String character,
-    final Matrix matrixFound,
+    final Artifact matrixFound,
     final List<int> matrixIndexes,
   ) {
     List<Widget> widgets = [];
@@ -286,7 +285,7 @@ class _EditScreenState extends State<EditScreen> {
 
   Widget? _buildVariation(
     final String character,
-    final Matrix matrixFound,
+    final Artifact matrixFound,
     final int matrixIndex,
   ) {
     final CharacterDefinition? definition =
@@ -294,13 +293,13 @@ class _EditScreenState extends State<EditScreen> {
     if (definition != null && matrixIndex < definition.matrices.length) {
       final templatedMatrix = definition.matrices[matrixIndex];
 
-      final double scoreForThisVariation = Matrix.hammingDistancePercentage(
+      final double scoreForThisVariation = Artifact.hammingDistancePercentage(
             matrixFound,
             templatedMatrix,
           ) *
           100;
 
-      final Matrix characterMatrix =
+      final Artifact characterMatrix =
           widget.textify.characterDefinitions.getMatrix(character, matrixIndex);
 
       return _buildArtifactGrid(

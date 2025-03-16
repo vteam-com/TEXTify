@@ -95,47 +95,47 @@ class Artifact {
   ///
   /// Note: This method modifies the current artifact in-place.
   void mergeArtifact(final Artifact toMerge) {
+    assert(this.matrix.rows == toMerge.matrix.rows);
     // Create a new rectangle that encompasses both artifacts
     final Rect newRect = Rect.fromLTRB(
       min(
-        this._matrix.rectAdjusted.left,
-        toMerge._matrix.rectAdjusted.left,
+        this._matrix.rectFound.left,
+        toMerge._matrix.rectFound.left,
       ),
       min(
-        this._matrix.rectAdjusted.top,
-        toMerge._matrix.rectAdjusted.top,
+        this._matrix.rectFound.top,
+        toMerge._matrix.rectFound.top,
       ),
       max(
-        this._matrix.rectAdjusted.right,
-        toMerge._matrix.rectAdjusted.right,
+        this._matrix.rectFound.right,
+        toMerge._matrix.rectFound.right,
       ),
       max(
-        this._matrix.rectAdjusted.bottom,
-        toMerge._matrix.rectAdjusted.bottom,
+        this._matrix.rectFound.bottom,
+        toMerge._matrix.rectFound.bottom,
       ),
     );
 
     // Merge the grids
     final Matrix newGrid = Matrix(newRect.width, newRect.height);
 
-    // Copy both grids onto the new grid
+    // Copy both grids onto the new grid with correct offset
     Matrix.copyGrid(
       this.matrix,
       newGrid,
-      (this._matrix.rectAdjusted.left - newRect.left).toInt(),
-      (this._matrix.rectAdjusted.top - newRect.top).toInt(),
+      (this._matrix.rectFound.left - newRect.left).toInt(),
+      0, //(this._matrix.rectAdjusted.top - newRect.top).toInt(),
     );
 
     Matrix.copyGrid(
       toMerge.matrix,
       newGrid,
-      (toMerge._matrix.rectAdjusted.left - newRect.left).toInt(),
-      (toMerge._matrix.rectAdjusted.top - newRect.top).toInt(),
+      (toMerge._matrix.rectFound.left - newRect.left).toInt(),
+      0, //(toMerge._matrix.rectAdjusted.top - newRect.top).toInt(),
     );
+
+    // Update this matrix with the new grid data
     this.matrix.setGrid(newGrid.data);
-    // toMerge.matrix.locationFound.left < this.matrix.locationFound.l
-    // this.matrix.locationFound = toMerge.matrix.locationFound;
-    // this.matrix.locationFound = toMerge.matrix.locationFound;
   }
 
   /// Returns:

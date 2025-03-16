@@ -437,4 +437,9 @@ class Band {
         0,
         (count, a) => a.characterMatched == ' ' ? count + 1 : count,
       );
+
+  ///
+  String getText() {
+    return '';
+  }
 }

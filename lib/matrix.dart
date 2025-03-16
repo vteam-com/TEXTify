@@ -465,7 +465,7 @@ class Matrix {
   @override
   String toString() {
     final Size size = _getContentSize();
-    return 'W:$cols H:$rows CW:${size.width} CH:${size.height} isEmpty:$isEmpty E:$enclosures LL:$verticalLineLeft LR:$verticalLineRight';
+    return 'left:${locationFound.dx} top:${locationFound.dy} CW:${size.width} CH:${size.height} isEmpty:$isEmpty E:$enclosures LL:$verticalLineLeft LR:$verticalLineRight';
   }
 
   /// Creates a resized version of the current matrix.

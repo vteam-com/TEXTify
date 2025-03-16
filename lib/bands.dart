@@ -29,6 +29,11 @@ class Bands {
   }
 
   ///
+  void addAll(final List<Band> bands) {
+    list.addAll(bands);
+  }
+
+  ///
   int indexOf(final Band band) {
     return list.indexOf(band);
   }
@@ -103,5 +108,16 @@ class Bands {
     this.list.forEach((band) {
       band.trim();
     });
+  }
+
+  ///
+  String getText() {
+    String text = '';
+    list.forEach(
+      (final Band band) {
+        text += band.getText();
+      },
+    );
+    return text;
   }
 }

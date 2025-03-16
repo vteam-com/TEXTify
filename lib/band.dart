@@ -548,7 +548,10 @@ Band rowToBand({
   final Band newBand = Band();
   for (final matrixFound in matrixOfPossibleCharacters) {
     Artifact artifact = Artifact.fromMatrix(matrixFound);
-    newBand.addArtifact(artifact);
+
+    if (artifact.matrix.discardableContent() == false) {
+      newBand.addArtifact(artifact);
+    }
   }
 
   newBand.paddVerticallyArtrifactToMatchTheBand();

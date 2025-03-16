@@ -264,6 +264,12 @@ class Matrix {
     _data[y][x] = value;
   }
 
+  ///
+  bool discardableContent() {
+    return (this.rectFound.size.width * this.rectFound.height) <= 2 ||
+        isConsideredLine();
+  }
+
   /// Copies the contents of a source Matrix into a target Matrix, with an optional offset.
   ///
   /// This method copies the values from the source Matrix into the target Matrix,
@@ -2452,7 +2458,7 @@ List<int> reduceHistogram(List<int> splitColumns) {
 bool isConsideredLine(Rect rect) {
   final double verticalRatio = rect.height / rect.width;
   final double horizontalRatio = rect.width / rect.height;
-  const double threshold = 30.0;
+  const double threshold = 10.0;
   (verticalRatio > threshold || horizontalRatio > threshold);
   return (verticalRatio > threshold || horizontalRatio > threshold);
 }

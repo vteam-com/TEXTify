@@ -143,6 +143,7 @@ class Bands {
         matrix: matrixSourceImage,
         rect: regionFromDilated,
       );
+
       bandsFound.add(
         rowToBand(
           regionMatrix: regionMatrixFromImage,

@@ -3,7 +3,6 @@ import 'dart:collection';
 import 'dart:math';
 import 'dart:typed_data';
 import 'dart:ui';
-import 'dart:ui' as ui;
 
 /// Represents a 2D grid of boolean values, primarily used for image processing
 /// and pattern recognition tasks.
@@ -261,14 +260,14 @@ class Artifact {
     return result;
   }
 
-  /// Creates a [Artifact] from a [ui.Image].
+  /// Creates a [Artifact] from a [Image].
   ///
-  /// This factory constructor takes a [ui.Image] object and transforms it into a [Artifact]
+  /// This factory constructor takes a [Image] object and transforms it into a [Artifact]
   /// representation. The process involves two main steps:
   /// 1. Converting the image to a Uint8List using [imageToUint8List].
   /// 2. Creating a Matrix from the Uint8List using [Matrix.fromUint8List].
   ///
-  /// [image] The ui.Image object to be converted. This should be a valid,
+  /// [image] The Image object to be converted. This should be a valid,
   /// non-null image object.
   ///
   /// Returns a [Future<Matrix>] representing the image data. The returned Matrix
@@ -280,7 +279,7 @@ class Artifact {
   ///
   /// Note: This constructor is asynchronous due to the [imageToUint8List] operation.
   /// Ensure to await its result when calling.
-  static Future<Artifact> fromImage(final ui.Image image) async {
+  static Future<Artifact> fromImage(final Image image) async {
     final Uint8List uint8List = await imageToUint8List(image);
     return Artifact.fromUint8List(uint8List, image.width);
   }
@@ -1739,8 +1738,8 @@ class Artifact {
 ///
 /// Returns:
 /// A Future that resolves to the converted black and white UI image.
-Future<ui.Image> imageToBlackOnWhite(
-  final ui.Image inputImage, {
+Future<Image> imageToBlackOnWhite(
+  final Image inputImage, {
   // Adjust contrast level (0 = normal, 100 = high contrast)
   double contrast = 0,
 }) async {
@@ -1787,7 +1786,7 @@ Future<ui.Image> imageToBlackOnWhite(
     bwPixels[i + 3] = 255; // Drop alpha
   }
 
-  // Convert Uint8List back to ui.Image
+  // Convert Uint8List back to Image
   return await createImageFromPixels(bwPixels, width, height);
 }
 
@@ -1818,9 +1817,9 @@ int computeAdaptiveThreshold(Uint8List pixels, int width, int height) {
   return (sum ~/ count) - 90;
 }
 
-/// Converts a [ui.Image] to a [Uint8List] representation.
+/// Converts a [Image] to a [Uint8List] representation.
 ///
-/// This function takes a [ui.Image] and converts it to a [Uint8List] containing
+/// This function takes a [Image] and converts it to a [Uint8List] containing
 /// the raw RGBA data of the image.
 ///
 /// Parameters:
@@ -1829,18 +1828,18 @@ int computeAdaptiveThreshold(Uint8List pixels, int width, int height) {
 /// Returns:
 /// A [Future] that resolves to a [Uint8List] containing the raw RGBA data of the image.
 /// If the input [image] is null or conversion fails, returns an empty [Uint8List].
-Future<Uint8List> imageToUint8List(final ui.Image? image) async {
+Future<Uint8List> imageToUint8List(final Image? image) async {
   if (image == null) {
     return Uint8List(0);
   }
   final ByteData? data =
-      await image.toByteData(format: ui.ImageByteFormat.rawRgba);
+      await image.toByteData(format: ImageByteFormat.rawRgba);
   return data?.buffer.asUint8List() ?? Uint8List(0);
 }
 
 /// Performs an erosion operation on the input image.
 ///
-/// This function takes a [ui.Image] and performs an erosion operation on it.
+/// This function takes a [Image] and performs an erosion operation on it.
 /// The erosion operation shrinks the black pixels (letters) against the white background.
 ///
 /// Parameters:
@@ -1848,9 +1847,9 @@ Future<Uint8List> imageToUint8List(final ui.Image? image) async {
 /// - [kernelSize]: The size of the erosion kernel (must be an odd number).
 ///
 /// Returns:
-/// A [Future] that resolves to a [ui.Image] containing the eroded image.
-Future<ui.Image> erode(
-  final ui.Image inputImage, {
+/// A [Future] that resolves to a [Image] containing the eroded image.
+Future<Image> erode(
+  final Image inputImage, {
   final int kernelSize = 3,
 }) async {
   final int width = inputImage.width;
@@ -1858,7 +1857,7 @@ Future<ui.Image> erode(
 
   // Get the pixel data from the input image
   final ByteData? byteData =
-      await inputImage.toByteData(format: ui.ImageByteFormat.rawRgba);
+      await inputImage.toByteData(format: ImageByteFormat.rawRgba);
   if (byteData == null) {
     throw Exception('Failed to get image data');
   }
@@ -1907,17 +1906,17 @@ Future<ui.Image> erode(
     }
   }
 
-  // Create a new ui.Image from the output pixels
-  final ui.ImmutableBuffer buffer =
-      await ui.ImmutableBuffer.fromUint8List(outputPixels);
-  final ui.ImageDescriptor descriptor = ui.ImageDescriptor.raw(
+  // Create a new Image from the output pixels
+  final ImmutableBuffer buffer =
+      await ImmutableBuffer.fromUint8List(outputPixels);
+  final ImageDescriptor descriptor = ImageDescriptor.raw(
     buffer,
     width: width,
     height: height,
-    pixelFormat: ui.PixelFormat.rgba8888,
+    pixelFormat: PixelFormat.rgba8888,
   );
-  final ui.Codec codec = await descriptor.instantiateCodec();
-  final ui.FrameInfo frameInfo = await codec.getNextFrame();
+  final Codec codec = await descriptor.instantiateCodec();
+  final FrameInfo frameInfo = await codec.getNextFrame();
   return frameInfo.image;
 }
 
@@ -2218,10 +2217,10 @@ bool _isInsideEllipse(int x, int y, int radius) {
   return (x * x + y * y) <= (radius * radius);
 }
 
-/// Creates a new [ui.Image] from a [Uint8List] of pixel data.
+/// Creates a new [Image] from a [Uint8List] of pixel data.
 ///
 /// This function takes a [Uint8List] containing the pixel data, the [width],
-/// and the [height] of the image, and creates a new [ui.Image] from it.
+/// and the [height] of the image, and creates a new [Image] from it.
 ///
 /// Parameters:
 /// - [pixels]: The [Uint8List] containing the pixel data.
@@ -2229,25 +2228,24 @@ bool _isInsideEllipse(int x, int y, int radius) {
 /// - [height]: The height of the image.
 ///
 /// Returns:
-/// A [Future] that resolves to a [ui.Image] created from the pixel data.
-Future<ui.Image> createImageFromPixels(
+/// A [Future] that resolves to a [Image] created from the pixel data.
+Future<Image> createImageFromPixels(
   final Uint8List pixels,
   final int width,
   final int height,
 ) async {
-  // Create a new ui.Image from the modified pixels
-  final ui.ImmutableBuffer buffer =
-      await ui.ImmutableBuffer.fromUint8List(pixels);
+  // Create a new Image from the modified pixels
+  final ImmutableBuffer buffer = await ImmutableBuffer.fromUint8List(pixels);
 
-  // Create a new ui.Image from the modified pixels
-  final ui.ImageDescriptor descriptor = ui.ImageDescriptor.raw(
+  // Create a new Image from the modified pixels
+  final ImageDescriptor descriptor = ImageDescriptor.raw(
     buffer,
     width: width,
     height: height,
-    pixelFormat: ui.PixelFormat.rgba8888,
+    pixelFormat: PixelFormat.rgba8888,
   );
-  final ui.Codec codec = await descriptor.instantiateCodec();
-  final ui.FrameInfo frameInfo = await codec.getNextFrame();
+  final Codec codec = await descriptor.instantiateCodec();
+  final FrameInfo frameInfo = await codec.getNextFrame();
 
   return frameInfo.image;
 }

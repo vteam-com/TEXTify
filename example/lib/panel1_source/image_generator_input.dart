@@ -53,6 +53,7 @@ class ImageGeneratorInput {
         defaultTextLine3 == other.defaultTextLine3 &&
         fontSize == other.fontSize &&
         imageForegroundColor == other.imageForegroundColor &&
+        imageBackgroundColor == other.imageBackgroundColor &&
         selectedFont == other.selectedFont &&
         lastUpdated == other.lastUpdated;
   }

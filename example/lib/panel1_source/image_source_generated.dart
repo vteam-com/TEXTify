@@ -114,35 +114,39 @@ class _ImageSourceGeneratedState extends State<ImageSourceGenerated> {
         children: [
           Expanded(
             // Slider  [====================]
+            //
             // Font    | Colors Foreground
             //         | Colors Background
             child: Column(
               mainAxisAlignment: MainAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 buildFontSizeSlider(),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                Wrap(
+                  spacing: 20,
                   children: [
-                    buildPickFont(),
-                    Column(
-                      children: [
-                        pickColor(context, 'Foreground',
-                            imageSettings.imageForegroundColor,
-                            (Color color) async {
-                          await _generateImage();
-                          setState(() {
-                            imageSettings.imageForegroundColor = color;
-                          });
-                        }),
-                        pickColor(context, 'Background',
-                            imageSettings.imageBackgroundColor,
-                            (Color color) async {
-                          await _generateImage();
-                          setState(() {
-                            imageSettings.imageBackgroundColor = color;
-                          });
-                        }),
-                      ],
+                    IntrinsicWidth(child: buildPickFont()),
+                    IntrinsicWidth(
+                      child: Column(
+                        children: [
+                          pickColor(context, 'Foreground',
+                              imageSettings.imageForegroundColor,
+                              (Color color) async {
+                            setState(() {
+                              imageSettings.imageForegroundColor = color;
+                              inputHasChanged();
+                            });
+                          }),
+                          pickColor(context, 'Background',
+                              imageSettings.imageBackgroundColor,
+                              (Color color) async {
+                            setState(() {
+                              imageSettings.imageBackgroundColor = color;
+                              inputHasChanged();
+                            });
+                          }),
+                        ],
+                      ),
                     ),
                   ],
                 ),
@@ -231,7 +235,7 @@ class _ImageSourceGeneratedState extends State<ImageSourceGenerated> {
   ) {
     return TextButton(
       key: Key('pickColor_$text'),
-      onPressed: () => _pickColor(context, color, (Color color) {
+      onPressed: () => _pickColorDialog(context, color, (Color color) {
         onSelected(color);
       }),
       child: Row(
@@ -474,7 +478,7 @@ class _ImageSourceGeneratedState extends State<ImageSourceGenerated> {
   }
 }
 
-void _pickColor(
+void _pickColorDialog(
   final BuildContext context,
   final Color color,
   final Function(Color) onSelected,

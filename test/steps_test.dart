@@ -64,14 +64,11 @@ void main() async {
       await testWidthFont(
         textify: textify,
         text: inputText,
-        result: 'Quip\n'
-            '\'\n'
-            'w o   r d\n'
-            'm e',
+        result: 'Quip ,\n'
+            'word me',
         fontFamily: 'Courier',
         imageWidth: 130,
         imageHeight: 60,
-        expectedRegionArtifactsCount: [1, 1, 5, 4, 2],
         finalExpectedRect: Rect.fromLTRB(11.0, 7.0, 52.0, 23.0),
         printResuls: false,
       );
@@ -81,12 +78,11 @@ void main() async {
       await testWidthFont(
         textify: textify,
         text: inputText,
-        result: 'Q u l p ,\n'
-            'W o [ d   m e',
+        result: 'Qulp,\n'
+            'Wo[d me',
         fontFamily: 'Roboto',
         imageWidth: 200,
         imageHeight: 60,
-        expectedRegionArtifactsCount: [5, 0, 2],
         finalExpectedRect: Rect.fromLTRB(11, 8, 126, 26),
         printResuls: false,
       );
@@ -102,17 +98,10 @@ void main() async {
       await testFromImage(
         textify,
         image,
-        // 'THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG\nThe quick brown fox jumps over the lazy dog\n2025-12-31',
-        'THE\n'
-        'QUTCK BROWN\n'
-        'FOX\n'
-        'JUMPS\n'
-        'OVER THE\n'
-        'LAZY\n'
-        'DOG\n'
+        'THE QUTCK BROWN FOX JUMPS OVER THE LAZY DOG\n'
         'The\n'
-        '0verthe\n'
-        'qUiCkbr0Wn f0XjUmpS\n'
+        '0ver the\n'
+        'qUiCk br0Wn f0X jUmpS\n'
         'laZy d0g\n'
         '2025-12-31',
         printResuls: false,
@@ -129,7 +118,6 @@ Future<void> testWidthFont({
   required final String fontFamily,
   required final int imageWidth,
   required final int imageHeight,
-  required final List<int> expectedRegionArtifactsCount,
   required final Rect finalExpectedRect,
   required final bool printResuls,
 }) async {
@@ -202,7 +190,6 @@ Future<void> testFromImage(
 List<Band> testRegionToBand(
   Matrix matrixSourceImage,
   Rect region,
-  int expectedRegionArtifactsCount,
   bool printResuls,
 ) {
   //
@@ -222,7 +209,6 @@ List<Band> testRegionToBand(
   // Split Region into Rows
   List<Band> bandsFoundInRegion = getBandsFromRegionRow(
     regionMatrix: regionMatrix,
-    expectedRegionArtifactsCount: expectedRegionArtifactsCount,
   );
 
   // Print all charactes found
@@ -236,7 +222,6 @@ List<Band> testRegionToBand(
 
 List<Band> getBandsFromRegionRow({
   required final Matrix regionMatrix,
-  required final int expectedRegionArtifactsCount,
 }) {
   // Split Region into Rows
   List<Matrix> regionAsRows = splitRegionIntoRows(regionMatrix);

@@ -54,7 +54,7 @@ void main() {
       expect(bands.length, 1);
       expect(
         bands.list.first.artifacts.length,
-        3, // adding two bands will also add a space artifact between them
+        2,
       );
     });
 

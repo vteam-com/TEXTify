@@ -230,23 +230,27 @@ class Band {
       final Artifact leftArtifact = artifacts[i - 1];
       final Artifact rightArtifact = artifacts[i];
 
-      final double leftEdge = leftArtifact.matrix.rectAdjusted.right;
-      final double rightEdge = rightArtifact.matrix.rectAdjusted.left;
+      final double leftEdge = leftArtifact.matrix.rectFound.right;
+      final double rightEdge = rightArtifact.matrix.rectFound.left;
       final double gap = rightEdge - leftEdge;
 
       if (gap >= spaceThreshold) {
         const int borderWidth = 2;
         final double spaceWidth = gap - (borderWidth * 2);
-
-        insertArtifactForSpace(
-          artifacts: artifacts,
-          insertAtIndex: i,
-          cols: spaceWidth.toInt(),
-          rows: rectangleOriginal.height.toInt(),
-          locationFoundAt: leftArtifact.matrix.rectFound.topRight
-              .translate(borderWidth.toDouble(), 0),
-        );
-        i++;
+        if (spaceWidth > 1) {
+          // this space is big enough
+          insertArtifactForSpace(
+            artifacts: artifacts,
+            insertAtIndex: i,
+            cols: spaceWidth.toInt(),
+            rows: rectangleOriginal.height.toInt(),
+            locationFoundAt: Offset(
+              leftArtifact.matrix.rectFound.right + 2,
+              leftArtifact.matrix.rectFound.top,
+            ),
+          );
+          i++;
+        }
       }
     }
   }
@@ -322,7 +326,7 @@ class Band {
   /// This method modifies the positions of all artifacts in the band to create
   /// a left-aligned, properly spaced arrangement.
   void packArtifactLeftToRight() {
-    double left = this.rectangleAdjusted.left;
+    double left = this.rectangleOriginal.left;
     double top = artifacts.first.matrix.locationFound.dy;
 
     for (final Artifact artifact in artifacts) {

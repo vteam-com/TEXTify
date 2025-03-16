@@ -1,6 +1,6 @@
+import 'dart:math';
 import 'dart:ui';
 
-import 'package:textify/artifact.dart';
 import 'package:textify/band.dart';
 import 'package:textify/matrix.dart';
 
@@ -72,7 +72,7 @@ class Bands {
             2;
 
         // Check if bands are horizontally adjacent and vertically aligned
-        if (centerDiff < avgHeight * 0.3) {
+        if (centerDiff < avgHeight * 1.5) {
           //
           // Step 2 - Calculate horizontal distance between bands
           //
@@ -81,22 +81,10 @@ class Bands {
 
           // Centers are within 30% of average height
           if (horizontalDistance > 0) {
+            final maxAvgWidth =
+                max(leftBand.averageWidth, rightBand.averageWidth);
             // Bands don't overlap
-            if (horizontalDistance <= (leftBand.averageWidth * 1.9)) {
-              final Artifact artifactSpace =
-                  Artifact.fromMatrix(Matrix(10, avgHeight, false));
-              final Matrix lastArtifactOfLeftBandMatix =
-                  leftBand.artifacts.last.matrix;
-              final locationForSpaceX =
-                  lastArtifactOfLeftBandMatix.locationFound.dx +
-                      lastArtifactOfLeftBandMatix.cols;
-
-              artifactSpace.matrix.locationFound = Offset(
-                locationForSpaceX + 2,
-                lastArtifactOfLeftBandMatix.locationFound.dy,
-              );
-              leftBand.addArtifact(artifactSpace);
-
+            if (horizontalDistance <= (maxAvgWidth * 3)) {
               // Merge right band artifacts into left band
               for (var artifact in rightBand.artifacts) {
                 leftBand.addArtifact(artifact);
@@ -186,8 +174,8 @@ class Bands {
 
     for (final Band band in bandsFound.list) {
       band.paddVerticallyArtrifactToMatchTheBand();
-      band.packArtifactLeftToRight();
       band.identifySpacesInBand();
+      band.packArtifactLeftToRight();
     }
     return bandsFound;
   }

@@ -42,7 +42,6 @@ digraph "" {
   "/lib/character_definitions.dart" -> "/lib/matrix.dart";
   "/lib/character_definitions.dart" -> "/lib/character_definition.dart" [style=dashed];
   "/lib/correction.dart" -> "/lib/english_words.dart";
-  "/lib/bands.dart" -> "/lib/artifact.dart";
   "/lib/bands.dart" -> "/lib/band.dart";
   "/lib/bands.dart" -> "/lib/matrix.dart";
   "/lib/bands.dart" -> "/lib/band.dart" [style=dashed];

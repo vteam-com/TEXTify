@@ -43,6 +43,7 @@ void main() async {
   final Textify textify = await Textify().init(
     pathToAssetsDefinition: 'assets/matrices.json',
   );
+  textify.applyDictionary = true;
 
   group('Steps', () {
     test('Empty image', () async {
@@ -64,8 +65,8 @@ void main() async {
       await testWidthFont(
         textify: textify,
         text: inputText,
-        result: 'Quip ,\n'
-            'word me',
+        result: 'Quit ,\n'
+            'word we',
         fontFamily: 'Courier',
         imageWidth: 130,
         imageHeight: 60,
@@ -78,8 +79,8 @@ void main() async {
       await testWidthFont(
         textify: textify,
         text: inputText,
-        result: 'Qulp,\n'
-            'Wo[d me',
+        result: 'Quick\n'
+            'WO[D WE',
         fontFamily: 'Roboto',
         imageWidth: 200,
         imageHeight: 60,
@@ -98,11 +99,11 @@ void main() async {
       await testFromImage(
         textify,
         image,
-        'THE QUTCK BROWN FOX JUMPS OVER THE LAZY DOG\n'
+        'THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG\n'
         'The\n'
-        '0ver the\n'
-        'qUiCk br0Wn f0X jUmpS\n'
-        'laZy d0g\n'
+        'Over the\n'
+        'quick brown fox jumps\n'
+        'lazy dog\n'
         '2025-12-31',
         printResuls: false,
         dilateFactor: 22,

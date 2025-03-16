@@ -1,11 +1,11 @@
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
+import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:textify/textify.dart';
 import 'package:textify_dashboard/generate_samples/generate_image.dart';
 import 'package:textify_dashboard/generate_samples/generate_unit_test_sample_images.dart';
 import 'package:textify_dashboard/panel1_source/update_character_definitions.dart';
-import 'package:textify_dashboard/widgets/gap.dart';
 import 'package:textify_dashboard/widgets/image_viewer.dart';
 
 import 'debounce.dart';
@@ -110,24 +110,51 @@ class _ImageSourceGeneratedState extends State<ImageSourceGenerated> {
     return Padding(
       padding: const EdgeInsets.all(20.0),
       child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Expanded(
+            // Slider  [====================]
+            // Font    | Colors Foreground
+            //         | Colors Background
             child: Column(
+              mainAxisAlignment: MainAxisAlignment.start,
               children: [
                 buildFontSizeSlider(),
-                gap(),
-                buildPickFont(),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    buildPickFont(),
+                    Column(
+                      children: [
+                        pickColor(context, 'Foreground',
+                            imageSettings.imageForegroundColor,
+                            (Color color) async {
+                          await _generateImage();
+                          setState(() {
+                            imageSettings.imageForegroundColor = color;
+                          });
+                        }),
+                        pickColor(context, 'Background',
+                            imageSettings.imageBackgroundColor,
+                            (Color color) async {
+                          await _generateImage();
+                          setState(() {
+                            imageSettings.imageBackgroundColor = color;
+                          });
+                        }),
+                      ],
+                    ),
+                  ],
+                ),
               ],
             ),
           ),
-          gap(),
           Expanded(
             child: Column(
+              mainAxisAlignment: MainAxisAlignment.start,
               children: [
                 buildTextInputLine1(),
-                gap(),
                 buildTextInputLine2(),
-                gap(),
                 buildTextInputLine3(),
               ],
             ),
@@ -194,6 +221,47 @@ class _ImageSourceGeneratedState extends State<ImageSourceGenerated> {
         ),
       ],
     );
+  }
+
+  static Widget pickColor(
+    final BuildContext context,
+    final String text,
+    Color color,
+    Function(Color) onSelected,
+  ) {
+    return TextButton(
+      key: Key('pickColor_$text'),
+      onPressed: () => _pickColor(context, color, (Color color) {
+        onSelected(color);
+      }),
+      child: Row(
+        spacing: 5,
+        children: [
+          Text(text),
+          Container(
+            // width: 60,
+            height: 20,
+            padding: EdgeInsets.symmetric(horizontal: 5),
+            decoration: BoxDecoration(
+              color: color,
+              border: Border.all(color: Colors.grey),
+            ),
+            child: Text(
+              color.toARGB32().toRadixString(16).substring(2).toUpperCase(),
+              style: TextStyle(color: getContrastColor(color)),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  static Color getContrastColor(Color backgroundColor) {
+    // Get luminance directly from the color
+    double luminance = backgroundColor.computeLuminance();
+
+    // Return black for bright colors, white for dark colors
+    return luminance > 0.5 ? Colors.black : Colors.white;
   }
 
   /// Builds a TextField for text input.
@@ -390,11 +458,11 @@ class _ImageSourceGeneratedState extends State<ImageSourceGenerated> {
         fontFamily: imageSettings.selectedFont,
         backgroundColor: imageSettings.imageBackgroundColor,
         text1: _textControllerLine1.text,
-        textColor1: imageSettings.imageTextColorAlphabet,
+        textColor1: imageSettings.imageForegroundColor,
         text2: _textControllerLine2.text,
-        textColor2: imageSettings.imageTextColorAlphabet,
+        textColor2: imageSettings.imageForegroundColor,
         text3: _textControllerLine3.text,
-        textColor3: imageSettings.imageTextColorNumbers,
+        textColor3: imageSettings.imageForegroundColor,
         fontSize: imageSettings.fontSize.toInt(),
       ).then((newImageSource) {
         _imageGenerated = newImageSource;
@@ -404,4 +472,35 @@ class _ImageSourceGeneratedState extends State<ImageSourceGenerated> {
       });
     }
   }
+}
+
+void _pickColor(
+  final BuildContext context,
+  final Color color,
+  final Function(Color) onSelected,
+) {
+  showDialog(
+    context: context,
+    builder: (context) {
+      return AlertDialog(
+        title: const Text('Pick a color'),
+        content: SingleChildScrollView(
+          child: ColorPicker(
+            pickerColor: color,
+            onColorChanged: (color) {
+              onSelected(color);
+            },
+          ),
+        ),
+        actions: <Widget>[
+          TextButton(
+            child: const Text('Got it'),
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+          ),
+        ],
+      );
+    },
+  );
 }

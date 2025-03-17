@@ -38,7 +38,7 @@ class Band {
   /// The average kerning as a double, or -1 if there are fewer than 2 artifacts.
   int get averageKerning {
     if ((_averageKerning == -1 || _averageWidth == -1)) {
-      _updateStatistics();
+      updateStatistics();
     }
     return _averageKerning;
   }
@@ -54,7 +54,7 @@ class Band {
   /// The average width as a double, or -1 if there are fewer than 2 artifacts.
   int get averageWidth {
     if ((_averageKerning == -1 || _averageWidth == -1)) {
-      _updateStatistics();
+      updateStatistics();
     }
     return _averageWidth;
   }
@@ -62,6 +62,12 @@ class Band {
   ///
   void removeEmptyArtifacts() {
     artifacts.removeWhere((artifact) => artifact.isEmpty);
+  }
+
+  ///
+  void clearStats() {
+    _averageKerning = -1;
+    _averageWidth = -1;
   }
 
   /// Calculates the average Kerning between adjacent artifacts and their average width.
@@ -72,7 +78,7 @@ class Band {
   /// to be sorted from left to right.
   ///
   /// If there are fewer than 2 artifacts, both averages are set to -1.
-  void _updateStatistics() {
+  void updateStatistics() {
     if (artifacts.length < 2) {
       _averageKerning = -1;
       _averageWidth = rectangleAdjusted.width;
@@ -103,6 +109,7 @@ class Band {
   void addArtifact(final Artifact artifact) {
     // reset the cached rectangle each time an artifact is added or removed
     this.artifacts.add(artifact);
+    clearStats();
   }
 
   /// Sorts the artifacts in this band from left to right.
@@ -210,6 +217,7 @@ class Band {
     int index = this.artifacts.indexOf(artifactToReplace);
     this.artifacts.removeAt(index);
     this.artifacts.insertAll(index, artifactsToInsert);
+    clearStats();
   }
 
   /// Splits artifact in two
@@ -283,7 +291,7 @@ class Band {
     if (artifacts.isEmpty || artifacts.length <= 1) {
       return;
     }
-    final double spaceThreshold = averageWidth * 0.5;
+    final int spaceThreshold = averageKerning * 2;
 
     for (int i = 1; i < artifacts.length; i++) {
       final Artifact leftArtifact = artifacts[i - 1];
@@ -370,6 +378,7 @@ class Band {
     for (final Artifact artifact in artifacts) {
       artifact.cropBy(top: trimTop, bottom: trimBottom);
     }
+    clearStats();
   }
 
   /// Adjusts the positions of artifacts to pack them from left to right.
@@ -618,6 +627,8 @@ Band rowToBand({
     verticalThreshold: 20,
     horizontalThreshold: 4,
   );
+
+  newBand.clearStats();
 
   return newBand;
 }

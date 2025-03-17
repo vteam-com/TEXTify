@@ -101,8 +101,8 @@ void main() async {
       await testFromImage(
         textify,
         image,
-        'THE QUT CK BROWN FOX JUMPS OVER THE LAZ Y DOG\n'
-        'The\n'
+        'THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG\n'
+        'Th e\n'
         'Over the\n'
         'quick brown fox jumps\n'
         'lazy dog\n'
@@ -148,6 +148,7 @@ Future<void> testFromImage(
   final String expectedText, {
   final printResuls = false,
   final int? dilateFactor,
+  final bool innerSplit = false,
 }) async {
   // Black and White
   final ui.Image imageBlackAndWhite = await imageToBlackOnWhite(image);
@@ -183,7 +184,8 @@ Future<void> testFromImage(
   final List<IntRect> regions =
       findRegions(dilatedMatrixImage: imageAsMatrixDilated);
 
-  Bands bands = Bands.getBandsOfArtifacts(matrixSourceImage, regions);
+  Bands bands =
+      Bands.getBandsOfArtifacts(matrixSourceImage, regions, innerSplit);
 
   String resultingText = await textify.getTextFromArtifacts(
     listOfBands: bands.list,

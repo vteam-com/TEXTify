@@ -139,6 +139,7 @@ class PaintArtifacts extends CustomPainter {
         artifact.rectAdjusted.left.toInt(),
         artifact.rectAdjusted.top.toInt(),
         showHistogram ? artifact.verticalHistogram : artifact,
+        background: artifact.characterMatched == ' ' ? Colors.white : null,
       );
 
       _drawText(

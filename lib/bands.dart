@@ -131,6 +131,7 @@ class Bands {
   static Bands getBandsOfArtifacts(
     Artifact matrixSourceImage,
     List<IntRect> regions,
+    bool innerSplit,
   ) {
     Bands bandsFound = Bands();
 
@@ -172,6 +173,9 @@ class Bands {
 
     for (final Band band in bandsFound.list) {
       band.padVerticallyArtifactToMatchTheBand();
+      if (innerSplit) {
+        band.identifySuspiciousLargeArtifacts();
+      }
       band.identifySpacesInBand();
       band.packArtifactLeftToRight();
     }

@@ -23,22 +23,21 @@ class Bands {
   int get length => list.length;
 
   ///
-  int get totalArtifacts =>
-      this.list.fold(0, (sum, band) => sum + band.artifacts.length);
+  int get totalArtifacts {
+    int countCharacters = 0;
+
+    for (final band in this.list) {
+      countCharacters += band.artifacts.length;
+      countCharacters += 1; // For NewLine '\n'
+    }
+    // last \n needs to be discounted since, the returned string will not include the last '\n'
+    countCharacters--;
+    return countCharacters;
+  }
 
   ///
   void add(final Band band) {
     list.add(band);
-  }
-
-  ///
-  void addAll(final List<Band> bands) {
-    list.addAll(bands);
-  }
-
-  ///
-  int indexOf(final Band band) {
-    return list.indexOf(band);
   }
 
   /// Groups artifacts into horizontal bands based on their vertical positions.
@@ -105,13 +104,6 @@ class Bands {
     list.removeWhere((band) {
       band.removeEmptyArtifacts();
       return band.artifacts.isEmpty;
-    });
-  }
-
-  ///
-  void trimBands() {
-    this.list.forEach((band) {
-      band.trim();
     });
   }
 

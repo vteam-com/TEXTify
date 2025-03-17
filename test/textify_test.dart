@@ -140,13 +140,14 @@ void main() async {
     final String text = await instance.getTextFromImage(image: uiImage);
 
     // the result are not perfect 90% accuracy, but its trending in the right direction
+    expect(instance.count, text.length);
+
     expect(
       text,
       'ABCDEFGHl\n'
       'JKLMN0PQR\n'
       'STUVWxYZ 0123456789',
     );
-    // errors here        ^       ^          ^
   });
 
   test('Convert image to text', () async {

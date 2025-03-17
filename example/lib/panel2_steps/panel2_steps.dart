@@ -121,7 +121,7 @@ class _PanelStepsState extends State<PanelSteps> {
       ),
       center: centerContent(),
       bottom: buildPanelHeader(
-        '${widget.textify.count} Artifacts',
+        '${widget.textify.bands.totalArtifacts} Artifacts',
         '',
         '${NumberFormat.decimalPattern().format(widget.textify.duration)}ms',
       ),

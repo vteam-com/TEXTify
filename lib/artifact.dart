@@ -125,17 +125,6 @@ class Artifact {
   /// The character that this artifact matches.
   String characterMatched = '';
 
-  /// Gets the vertical profile of the artifact.
-  ///
-  /// The vertical profile is a `Matrix` that represents the vertical projection
-  /// of the artifact's pixels. Each column in the vertical profile matrix
-  /// represents a vertical line in the original matrix, with 'on' pixels
-  /// indicating the presence of at least one 'on' pixel in that column.
-  ///
-  /// For example, if the artifact's matrix looks like this:
-  ///
-  Artifact get verticalHistogram => this.verticalProjection();
-
   /// Tag the artifact as needs more attentions
   bool needsInspection = false;
 
@@ -236,30 +225,42 @@ class Artifact {
   /// [source] The source Matrix to take the vertical projection of.
   /// Returns a new Matrix with the same number of rows as the source, and a number
   /// of columns equal to the number of columns in the source.
-  Artifact verticalProjection() {
+  Artifact getHistogramHorizontalArtifact() {
     int width = this.cols;
 
     // Step 1: Compute vertical projection (count active pixels per column)
-    List<int> projection = List.filled(width, 0);
-    for (int x = 0; x < width; x++) {
-      for (int y = 0; y < this.rows; y++) {
-        if (this.matrix[y][x]) {
-          projection[x]++;
-        }
-      }
-    }
+    List<int> histogram = getHistogramHorizontal();
 
     // Step 2: Create an empty matrix for the projection
     Artifact result = Artifact(this.cols, this.rows, false);
 
     // Step 3: Fill the matrix from the bottom up based on the projection counts
     for (int x = 0; x < width; x++) {
-      for (int y = 0; y < projection[x]; y++) {
+      for (int y = 0; y < histogram[x]; y++) {
         result._matrix[this.rows - 1 - y][x] = true; // Fill from bottom up
       }
     }
 
     return result;
+  }
+
+  /// Returns the horizontal histogram of the matrix.
+  ///
+  /// The histogram represents the number of `true` (or inked) cells
+  /// in each column of the matrix. The result is a list where each
+  /// index corresponds to a column, and the value at that index
+  /// represents the count of `true` values in that column.
+  ///
+  List<int> getHistogramHorizontal() {
+    final List<int> histogram = List.filled(this.cols, 0);
+    for (int x = 0; x < this.cols; x++) {
+      for (int y = 0; y < this.rows; y++) {
+        if (this.cellGet(x, y)) {
+          histogram[x]++;
+        }
+      }
+    }
+    return histogram;
   }
 
   /// Creates a [Artifact] from a [Image].
@@ -400,25 +401,6 @@ class Artifact {
         }
       }
     }
-  }
-
-  /// Returns the horizontal histogram of the matrix.
-  ///
-  /// The histogram represents the number of `true` (or inked) cells
-  /// in each column of the matrix. The result is a list where each
-  /// index corresponds to a column, and the value at that index
-  /// represents the count of `true` values in that column.
-  ///
-  List<int> getHistogramHorizontal() {
-    final List<int> histogram = List.filled(this.cols, 0);
-    for (int x = 0; x < this.cols; x++) {
-      for (int y = 0; y < this.rows; y++) {
-        if (this.cellGet(x, y)) {
-          histogram[x]++;
-        }
-      }
-    }
-    return histogram;
   }
 
   /// Returns the vertical histogram of the matrix.

@@ -187,9 +187,15 @@ Future<void> testFromImage(
   Bands bands =
       Bands.getBandsOfArtifacts(matrixSourceImage, regions, innerSplit);
 
+  final stringInAllBands1 = bands.getText();
+  expect(stringInAllBands1.trim(), isEmpty);
+
   String resultingText = await textify.getTextFromArtifacts(
     listOfBands: bands.list,
   );
+  final stringInAllBands2 = bands.getText();
+  expect(stringInAllBands2, isNotEmpty);
+
   expect(resultingText, expectedText);
 }
 

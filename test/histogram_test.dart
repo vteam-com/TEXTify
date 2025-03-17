@@ -3,60 +3,60 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:textify/artifact.dart';
 
 void main() async {
-  group('Matrix Histograms', () {
+  group('artifact Histograms', () {
     test('Horizontal Histogram', () {
-      final matrix = Artifact(3, 3);
-      matrix.cellSet(0, 0, true);
-      matrix.cellSet(1, 1, true);
-      matrix.cellSet(2, 2, true);
+      final artifact = Artifact(3, 3);
+      artifact.cellSet(0, 0, true);
+      artifact.cellSet(1, 1, true);
+      artifact.cellSet(2, 2, true);
 
-      final result = matrix.getHistogramHorizontal();
+      final result = artifact.getHistogramHorizontal();
       expect(result, [1, 1, 1]);
     });
 
     test('Vertical Histogram', () {
-      final matrix = Artifact(3, 3);
-      matrix.cellSet(0, 0, true);
-      matrix.cellSet(1, 1, true);
-      matrix.cellSet(2, 2, true);
+      final artifact = Artifact(3, 3);
+      artifact.cellSet(0, 0, true);
+      artifact.cellSet(1, 1, true);
+      artifact.cellSet(2, 2, true);
 
-      final result = matrix.getHistogramVertical();
+      final result = artifact.getHistogramVertical();
       expect(result, [1, 1, 1]);
     });
 
-    test('Horizontal Histogram with empty matrix', () {
-      final matrix = Artifact(3, 3);
+    test('Horizontal Histogram with empty artifact', () {
+      final artifact = Artifact(3, 3);
 
-      final result = matrix.getHistogramHorizontal();
+      final result = artifact.getHistogramHorizontal();
       expect(result, [0, 0, 0]);
     });
 
-    test('Vertical Histogram with empty matrix', () {
-      final matrix = Artifact(3, 3);
+    test('Vertical Histogram with empty artifact', () {
+      final artifact = Artifact(3, 3);
 
-      final result = matrix.getHistogramVertical();
+      final result = artifact.getHistogramVertical();
       expect(result, [0, 0, 0]);
     });
 
     test('Horizontal Histogram with a row filled', () {
-      final matrix = Artifact(3, 3);
-      matrix.cellSet(0, 0, true);
-      matrix.cellSet(0, 1, true);
-      matrix.cellSet(0, 2, true);
+      final artifact = Artifact(3, 3);
+      artifact.cellSet(0, 0, true);
+      artifact.cellSet(0, 1, true);
+      artifact.cellSet(0, 2, true);
 
-      final result = matrix.getHistogramHorizontal();
+      final result = artifact.getHistogramHorizontal();
       expect(result, [3, 0, 0]);
     });
 
     test('Vertical Histogram with a column filled', () {
-      final matrix = Artifact(2, 5);
-      matrix.cellSet(0, 0, true);
-      matrix.cellSet(0, 1, true);
-      matrix.cellSet(0, 2, false);
-      matrix.cellSet(0, 3, true);
-      matrix.cellSet(0, 4, true);
+      final artifact = Artifact(2, 5);
+      artifact.cellSet(0, 0, true);
+      artifact.cellSet(0, 1, true);
+      artifact.cellSet(0, 2, false);
+      artifact.cellSet(0, 3, true);
+      artifact.cellSet(0, 4, true);
 
-      final List<int> result = matrix.getHistogramVertical();
+      final List<int> result = artifact.getHistogramVertical();
       expect(result, [1, 1, 0, 1, 1]);
     });
   });

@@ -114,7 +114,7 @@ class PaintArtifacts extends CustomPainter {
   }
 
   String _getBandTitle(final Band band) {
-    int id = textify.bands.indexOf(band) + 1;
+    int id = textify.bands.list.indexOf(band) + 1;
 
     return 'B[$id] A[${band.artifacts.length}] Avg(W:${band.averageWidth.toStringAsFixed(1)},G:${band.averageKerning.toStringAsFixed(1)}) S[${band.spacesCount}]';
   }
@@ -138,7 +138,7 @@ class PaintArtifacts extends CustomPainter {
         colors[id % colors.length],
         artifact.rectAdjusted.left.toInt(),
         artifact.rectAdjusted.top.toInt(),
-        showHistogram ? artifact.verticalHistogram : artifact,
+        showHistogram ? artifact.getHistogramHorizontalArtifact() : artifact,
         background: artifact.characterMatched == ' ' ? Colors.white : null,
       );
 
@@ -196,7 +196,7 @@ class PaintArtifacts extends CustomPainter {
         color,
         artifact.rectFound.left.toInt(),
         artifact.rectFound.top.toInt(),
-        showHistogram ? artifact.verticalHistogram : artifact,
+        showHistogram ? artifact.getHistogramHorizontalArtifact() : artifact,
       );
     }
   }

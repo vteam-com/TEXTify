@@ -92,7 +92,10 @@ void main() {
 
     test('toString returns correct string representation', () {
       final rect = IntRect(10, 20, 30, 40);
-      expect(rect.toString(), equals('IntRect(10, 20, 30, 40)'));
+      expect(
+        rect.toString(),
+        equals('IntRect(L:10, T:20, R:40 B:60 W:30, H:40)'),
+      );
     });
   });
 }

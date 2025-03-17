@@ -104,7 +104,7 @@ class _ImageSourceSamplesState extends State<ImageSourceSamples> {
                   }
                 : null,
           ),
-          Text('Sample #$_currentIndex'),
+          Text('Sample #${_currentIndex + 1}'),
           IconButton(
             icon: const Icon(Icons.arrow_forward),
             onPressed: _currentIndex < imageFileData.length - 1

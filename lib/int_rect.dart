@@ -123,15 +123,18 @@ class IntRect {
   /// [other] The other rectangle to check for intersection.
   /// Returns true if the rectangles intersect, false otherwise.
   bool intersects(final IntRect other) {
-    return !(other.left >= right ||
-        other.right <= left ||
-        other.top >= bottom ||
-        other.bottom <= top);
+    if (intersectHorizontal(other) && intersectVertical(other)) {
+      return true;
+    }
+    return false;
   }
 
   ///
   bool intersectHorizontal(final IntRect other) {
-    return !(other.top >= bottom || other.bottom <= top);
+    if (other.top > bottom || other.bottom < top) {
+      return false;
+    }
+    return true;
   }
 
   ///
@@ -139,9 +142,8 @@ class IntRect {
     if (other.left >= this.right || other.right <= this.left) {
       // off sides
       return false;
-    } else {
-      return true;
     }
+    return true;
   }
 
   /// Creates a new rectangle shifted by the specified amounts.
@@ -171,5 +173,6 @@ class IntRect {
   }
 
   @override
-  String toString() => 'IntRect($left, $top, $width, $height)';
+  String toString() =>
+      'IntRect(L:$left, T:$top, R:$right B:$bottom W:$width, H:$height)';
 }

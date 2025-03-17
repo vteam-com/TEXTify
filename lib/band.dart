@@ -178,6 +178,7 @@ class Band {
   void mergeConnectedArtifactsInPlace() {
     this.artifacts = mergeConnectedArtifacts(
       artifacts: this.artifacts,
+      verticalTolerance: this.rectangleOriginal.height,
     );
   }
 
@@ -194,6 +195,7 @@ class Band {
   ///   A list of [Artifact] objects after merging connected artifacts.
   static List<Artifact> mergeConnectedArtifacts({
     required final List<Artifact> artifacts,
+    required final int verticalTolerance,
   }) {
     final List<Artifact> mergedArtifacts = [];
 
@@ -203,7 +205,11 @@ class Band {
       for (int j = i + 1; j < artifacts.length; j++) {
         final Artifact next = artifacts[j];
 
-        if (areArtifactsOnTheSameColumn(current.rectFound, next.rectFound)) {
+        if (areArtifactsOnTheSameColumn(
+          current.rectFound,
+          next.rectFound,
+          verticalTolerance,
+        )) {
           current.mergeArtifact(next);
           artifacts.removeAt(j);
           j--; // Adjust index since we removed an artifact
@@ -584,11 +590,11 @@ class Band {
 bool areArtifactsOnTheSameColumn(
   final IntRect rect1,
   final IntRect rect2,
+  final int verticalTolerance,
 ) {
-  if (rect1.intersectVertical(rect2)) {
+  if (rect1.intersects(rect2)) {
     return true;
   }
-
   return false;
 }
 
@@ -617,6 +623,9 @@ Band rowToBand({
   // Band
   //
   final Band newBand = Band();
+
+  // sort horizontally
+  artifactsFound.sort((a, b) => a.locationFound.x.compareTo(b.locationFound.x));
 
   for (final Artifact artifact in artifactsFound) {
     if (artifact.discardableContent() == false) {

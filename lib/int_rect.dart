@@ -1,5 +1,8 @@
 import 'package:textify/int_offset.dart';
 
+/// Exports
+export 'package:textify/int_offset.dart';
+
 /// A class representing a rectangle with integer coordinates and dimensions.
 class IntRect {
   /// Creates a new [IntRect] with the specified position and dimensions.

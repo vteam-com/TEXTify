@@ -2,7 +2,6 @@ import 'dart:math';
 
 import 'package:flutter/widgets.dart';
 import 'package:textify/artifact.dart';
-import 'package:textify/int_offset.dart';
 import 'package:textify/int_rect.dart';
 
 /// Represents a horizontal band (aka strip) in an image/document.

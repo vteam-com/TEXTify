@@ -1,7 +1,6 @@
 import 'dart:math';
 import 'package:textify/artifact.dart';
 import 'package:textify/band.dart';
-import 'package:textify/int_offset.dart';
 import 'package:textify/int_rect.dart';
 
 /// Exports

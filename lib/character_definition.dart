@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:textify/matrix.dart';
+import 'package:textify/artifact.dart';
 
 /// A class that defines the characteristics and properties of a single character for OCR processing.
 ///
@@ -75,7 +75,7 @@ class CharacterDefinition {
       isDigit: json['isDigit'] as bool,
       isPunctuation: json['isPunctuation'] as bool,
       matrices: (json['matrices'] as List)
-          .map((m) => Matrix.fromJson(m as Map<String, dynamic>))
+          .map((m) => Artifact.fromJson(m as Map<String, dynamic>))
           .toList(),
     );
   }
@@ -132,7 +132,7 @@ class CharacterDefinition {
   final bool lineRight;
 
   /// List of matrices representing this character's visual pattern.
-  final List<Matrix> matrices;
+  final List<Artifact> matrices;
 
   /// Converts this [CharacterDefinition] to a JSON map.
   ///

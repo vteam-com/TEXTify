@@ -20,4 +20,6 @@ dev_dependencies:
 flutter:
   assets:
     - assets/matrices.json
+    - assets/fonts/Roboto-Regular.ttf
+    - assets/fonts/CourierPrime-Regular.ttf
     - assets/test/

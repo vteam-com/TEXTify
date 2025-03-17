@@ -5,7 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:textify_dashboard/widgets/image_viewer.dart';
 
 import 'debounce.dart';
-import 'panel_content.dart';
+import 'panel1_content.dart';
 
 class ImageSourceSamples extends StatefulWidget {
   const ImageSourceSamples({
@@ -30,7 +30,7 @@ class _ImageSourceSamplesState extends State<ImageSourceSamples> {
     ImageData(
       'generated-odd-colors.png',
       // cspell:disable-next-line
-      'ABCDEFGHI\nJKLMNOPQR\nSTUVWXYZ 01 23456789',
+      'ABCDEFGHI\nJKLMNOPQR\nSTUVWXYZ\n01\n23456789',
     ),
     ImageData(
       'black-on-white-rounded.png',
@@ -45,7 +45,7 @@ class _ImageSourceSamplesState extends State<ImageSourceSamples> {
     ImageData(
       'back-on-white-the_example_text.png',
       // cspell:disable-next-line
-      'THEEXAMPLETEXT',
+      'THE EXAMPLE TEXT',
     ),
     ImageData(
       'classy.png',
@@ -91,14 +91,29 @@ class _ImageSourceSamplesState extends State<ImageSourceSamples> {
 
   @override
   Widget build(BuildContext context) {
-    return PanelContent(
-      left: IconButton(
-        icon: const Icon(Icons.arrow_back),
-        onPressed: _currentIndex > 0
-            ? () {
-                _changeIndex(_currentIndex - 1);
-              }
-            : null,
+    return PanelStepContent(
+      top: Row(
+        mainAxisAlignment: MainAxisAlignment.start,
+        spacing: 20,
+        children: [
+          IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: _currentIndex > 0
+                ? () {
+                    _changeIndex(_currentIndex - 1);
+                  }
+                : null,
+          ),
+          Text('Sample #${_currentIndex + 1}'),
+          IconButton(
+            icon: const Icon(Icons.arrow_forward),
+            onPressed: _currentIndex < imageFileData.length - 1
+                ? () {
+                    _changeIndex(_currentIndex + 1);
+                  }
+                : null,
+          ),
+        ],
       ),
       center: CustomInteractiveViewer(
         transformationController: widget.transformationController,
@@ -107,21 +122,11 @@ class _ImageSourceSamplesState extends State<ImageSourceSamples> {
           fit: BoxFit.contain,
         ),
       ),
-      right: IconButton(
-        icon: const Icon(Icons.arrow_forward),
-        onPressed: _currentIndex < imageFileData.length - 1
-            ? () {
-                _changeIndex(_currentIndex + 1);
-              }
-            : null,
-      ),
     );
   }
 
   List<String> getSampleExpectedText(int index) {
-    if (index < 0 && index >= imageFileData.length) {
-      index = 0;
-    }
+    index = index.clamp(0, imageFileData.length - 1);
     if (imageFileData[index].expected.isEmpty) {
       return [];
     } else {
@@ -130,9 +135,7 @@ class _ImageSourceSamplesState extends State<ImageSourceSamples> {
   }
 
   String getSampleAssetName(int index) {
-    if (index < 0 && index >= imageFileData.length) {
-      index = 0;
-    }
+    index = index.clamp(0, imageFileData.length - 1);
     return 'assets/samples/${imageFileData[index].file}';
   }
 

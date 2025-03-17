@@ -9,8 +9,7 @@ class ImageGeneratorInput {
     required this.defaultTextLine3,
     required this.fontSize,
     required this.imageBackgroundColor,
-    required this.imageTextColorAlphabet,
-    required this.imageTextColorNumbers,
+    required this.imageForegroundColor,
     required this.selectedFont,
     this.lastUpdated,
   });
@@ -22,8 +21,7 @@ class ImageGeneratorInput {
       defaultTextLine3: '0123456789/\\(){}[]<>,;:.!@#\$&*-+=?',
       fontSize: 40,
       imageBackgroundColor: Colors.yellow.shade100,
-      imageTextColorAlphabet: Colors.pink,
-      imageTextColorNumbers: Colors.purple,
+      imageForegroundColor: Colors.pink,
       selectedFont: 'Arial',
       lastUpdated: DateTime.now(),
     );
@@ -34,8 +32,7 @@ class ImageGeneratorInput {
   String defaultTextLine3;
   double fontSize;
   Color imageBackgroundColor;
-  Color imageTextColorAlphabet;
-  Color imageTextColorNumbers;
+  Color imageForegroundColor;
   String selectedFont;
 
   DateTime? lastUpdated;
@@ -55,8 +52,8 @@ class ImageGeneratorInput {
         defaultTextLine2 == other.defaultTextLine2 &&
         defaultTextLine3 == other.defaultTextLine3 &&
         fontSize == other.fontSize &&
-        imageTextColorAlphabet == other.imageTextColorAlphabet &&
-        imageTextColorNumbers == other.imageTextColorNumbers &&
+        imageForegroundColor == other.imageForegroundColor &&
+        imageBackgroundColor == other.imageBackgroundColor &&
         selectedFont == other.selectedFont &&
         lastUpdated == other.lastUpdated;
   }
@@ -68,8 +65,7 @@ class ImageGeneratorInput {
         defaultTextLine3.hashCode ^
         fontSize.hashCode ^
         imageBackgroundColor.hashCode ^
-        imageTextColorAlphabet.hashCode ^
-        imageTextColorNumbers.hashCode ^
+        imageForegroundColor.hashCode ^
         selectedFont.hashCode ^
         lastUpdated.hashCode;
   }
@@ -81,8 +77,7 @@ class ImageGeneratorInput {
       defaultTextLine3: this.defaultTextLine3,
       fontSize: this.fontSize,
       imageBackgroundColor: this.imageBackgroundColor,
-      imageTextColorAlphabet: this.imageTextColorAlphabet,
-      imageTextColorNumbers: this.imageTextColorNumbers,
+      imageForegroundColor: this.imageForegroundColor,
       selectedFont: this.selectedFont,
       lastUpdated: this.lastUpdated,
     );

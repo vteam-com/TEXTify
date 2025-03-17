@@ -1,17 +1,14 @@
 import 'dart:math';
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
-import 'package:textify/matrix.dart';
 import 'package:textify/textify.dart';
 import 'package:textify_dashboard/panel1_source/debounce.dart';
-import 'package:textify_dashboard/panel1_source/image_source_selector.dart';
-import 'package:textify_dashboard/panel1_source/panel_content.dart';
-import 'package:textify_dashboard/panel2_optimized_image/panel_optimized_image.dart';
-import 'package:textify_dashboard/panel3_artifacts/panel_artifacts_found.dart';
+
+import 'package:textify_dashboard/panel1_source/panel1_source.dart';
+import 'package:textify_dashboard/panel2_steps/panel2_steps.dart';
 import 'package:textify_dashboard/settings.dart';
-import 'package:textify_dashboard/widgets/display_artifact.dart';
-import 'panel4_results/panel_matched_artifacts.dart';
+import 'package:textify_dashboard/widgets/image_viewer.dart';
+import 'panel3_results/panel3_results.dart';
 
 ///
 class HomeScreen extends StatefulWidget {
@@ -25,43 +22,26 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final Textify _textify = Textify();
 
-  // The image that will be use for detecting the text
-  ui.Image? _imageBlackOnWhite;
-
   Debouncer debouncer = Debouncer(const Duration(milliseconds: 1000));
 
   final Settings _settings = Settings();
 
-  late int _grayScale;
-  bool _erodeFirst = true;
-  late int _kernelSizeErode;
-  late int _kernelSizeDilate;
-
   ui.Image? _imageSource;
   String _fontName = '';
   List<String> _stringsExpectedToBeFoundInTheImage = [];
-  ViewAs viewAs = ViewAs.original;
-
-  String _textFound = '';
+  ViewAs viewAs = ViewAs.characters;
 
   final TransformationController _transformationController =
       TransformationController();
 
-  void _initializeSettings() {
-    _grayScale = 190;
-    _kernelSizeErode = 0;
-    _kernelSizeDilate = 0;
-    _imageBlackOnWhite = null;
-  }
-
   @override
   void initState() {
     super.initState();
-    _initializeSettings();
 
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      await _textify.init();
-      _convertImageToText();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _textify.init().then((_) {
+        _debouceStartConvertImageToText();
+      });
     });
     _settings.load();
   }
@@ -70,18 +50,16 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
 
-    final String textFoundSingleString = _textFound.replaceAll('\n', ' ');
-
     return Scaffold(
-      backgroundColor: colorScheme.primaryContainer,
+      backgroundColor: colorScheme.secondaryContainer,
       body: SingleChildScrollView(
         child: Padding(
-          padding: const EdgeInsets.all(8.0),
+          padding: const EdgeInsets.all(10.0),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(13),
             child: ExpansionPanelList(
               expandedHeaderPadding: const EdgeInsets.all(0),
-              materialGapSize: 2,
+              materialGapSize: 10,
               expansionCallback: (int index, bool isExpanded) {
                 setState(() {
                   switch (index) {
@@ -106,7 +84,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   titleCenter: 'Source',
                   titleRight: '',
                   isExpanded: _settings.isExpandedSource,
-                  content: ImageSourceSelector(
+                  content: PanelStep1Source(
                     transformationController: _transformationController,
                     onSourceChanged: (
                       final ui.Image? newImage,
@@ -114,80 +92,60 @@ class _HomeScreenState extends State<HomeScreen> {
                       final String fontName,
                       final bool includeSpaceDetection,
                     ) {
-                      _imageSource = newImage;
-                      _stringsExpectedToBeFoundInTheImage = expectedText
-                          .where((str) => str.isNotEmpty)
-                          .toList(); // remove empty entries
-                      _fontName = fontName;
-                      _textify.includeSpaceDetections = includeSpaceDetection;
-                      _convertImageToText();
+                      setState(() {
+                        _imageSource = newImage;
+                        centerViewers();
+                        _stringsExpectedToBeFoundInTheImage = expectedText
+                            .where((str) => str.isNotEmpty)
+                            .toList(); // remove empty entries
+                        _fontName = fontName;
+                      });
+
+                      _debouceStartConvertImageToText();
                     },
                   ),
                 ),
 
                 //
-                // Panel 2 - Input optimized image
+                // Panel 2 - Input Steps
                 //
                 buildExpansionPanel(
-                  titleLeft: 'Optimized image',
+                  titleLeft: 'Steps',
                   titleCenter: _getDimensionOfImageSource(_imageSource),
                   titleRight: '',
                   isExpanded: _settings.isExpandedOptimized,
-                  content: panelOptimizedImage(
-                    imageBlackOnWhite: _imageBlackOnWhite,
-                    erodeFirst: _erodeFirst,
-                    kernelSizeErode: _kernelSizeErode,
-                    kernelSizeDilate: _kernelSizeDilate,
-                    grayscaleLevel: _grayScale,
+                  content: PanelSteps(
+                    textify: _textify,
+                    imageSource: _imageSource,
+                    regions: _textify.regionsFromDilated,
+                    tryToExtractWideArtifacts: _textify.innerSplit,
+                    onInnerSplitChanged: (bool value) {
+                      setState(
+                        () {
+                          _textify.innerSplit = value;
+                          _debouceStartConvertImageToText();
+                        },
+                      );
+                    },
+                    kernelSizeDilate: _textify.dilatingSize,
                     displayChoicesChanged: (
-                      final bool erodeFirst,
-                      final int sizeErode,
                       final int sizeDilate,
-                      int grayscale,
                     ) {
                       setState(
                         () {
-                          _erodeFirst = erodeFirst;
-                          _kernelSizeErode = max(0, sizeErode);
-                          _kernelSizeDilate = max(0, sizeDilate);
-                          _grayScale = max(0, grayscale);
-                          _imageBlackOnWhite = null;
-                          debouncer.run(
-                            () {
-                              _convertImageToText();
-                            },
-                          );
+                          _textify.dilatingSize = max(0, sizeDilate);
+                          _debouceStartConvertImageToText();
                         },
                       );
                     },
                     onReset: () {
                       // Reset
                       setState(() {
-                        _initializeSettings();
+                        _textify.dilatingSize = 22;
+                        centerViewers();
                       });
                     },
                     transformationController: _transformationController,
-                  ),
-                ),
-
-                //
-                // Panel 3 - Bands and Artifacts
-                //
-                buildExpansionPanel(
-                  titleLeft: '${_textify.bands.length} Bands',
-                  titleCenter: '${_textify.count} Artifacts',
-                  titleRight:
-                      '${NumberFormat.decimalPattern().format(_textify.duration)}ms',
-                  isExpanded: _settings.isExpandedArtifactFound,
-                  content: panelArtifactFound(
-                    textify: _textify,
-                    transformationController: _transformationController,
-                    viewAs: viewAs,
-                    onChangeView: (ViewAs viewAs) {
-                      setState(() {
-                        this.viewAs = viewAs;
-                      });
-                    },
                   ),
                 ),
 
@@ -196,17 +154,17 @@ class _HomeScreenState extends State<HomeScreen> {
                 //
                 buildExpansionPanel(
                   titleLeft: 'Results',
-                  titleCenter: getPercentageText(textFoundSingleString),
+                  titleCenter: getPercentageText(_textify.textFound),
                   titleRight: '',
                   isExpanded: _settings.isExpandedResults,
-                  content: PanelMatchedArtifacts(
+                  content: PanelStep4Results(
                     font: _fontName,
                     expectedStrings: _stringsExpectedToBeFoundInTheImage,
                     textify: _textify,
                     settings: _settings,
                     onSettingsChanged: () {
                       setState(() {
-                        _convertImageToText();
+                        _debouceStartConvertImageToText();
                       });
                     },
                   ),
@@ -219,6 +177,10 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  void centerViewers() {
+    _transformationController.value = Matrix4.identity();
+  }
+
   String getPercentageText(String textFoundSingleString) {
     String percentage = '${textFoundSingleString.length} characters';
 
@@ -226,7 +188,7 @@ class _HomeScreenState extends State<HomeScreen> {
       percentage += ' ';
       percentage += compareStringPercentage(
         _stringsExpectedToBeFoundInTheImage.join(),
-        _textFound.replaceAll('\n', ''),
+        _textify.textFound.replaceAll('\n', ''),
       ).toStringAsFixed(0);
       percentage += '%';
     }
@@ -236,9 +198,8 @@ class _HomeScreenState extends State<HomeScreen> {
   void _clearState() {
     if (mounted) {
       setState(() {
-        _imageBlackOnWhite = null;
         _textify.applyDictionary = _settings.applyDictionary;
-        _textFound = '';
+        _textify.textFound = '';
       });
     }
   }
@@ -250,56 +211,22 @@ class _HomeScreenState extends State<HomeScreen> {
     return '${imageSource!.width} x ${imageSource!.height}';
   }
 
-  Future<void> _convertImageToText() async {
+  void _debouceStartConvertImageToText() {
     if (_imageSource == null) {
       _clearState();
       return;
     }
 
-    // Convert color image source to a grid of on=ink/off=paper
-    ui.Image tmpImageBlackOnWhite = await imageToBlackOnWhite(
-      _imageSource!,
-      backgroundBrightnessThreshold_0_255: _grayScale,
+    debouncer.run(
+      () {
+        _textify.getTextFromImage(image: _imageSource!).then((_) {
+          if (mounted) {
+            setState(() {
+              // update the ui
+            });
+          }
+        });
+      },
     );
-
-    if (_erodeFirst) {
-      if (_kernelSizeErode > 0) {
-        tmpImageBlackOnWhite = await erode(
-          tmpImageBlackOnWhite,
-          kernelSize: _kernelSizeErode,
-        );
-      }
-
-      if (_kernelSizeDilate > 0) {
-        tmpImageBlackOnWhite = await dilate(
-          inputImage: tmpImageBlackOnWhite,
-          kernelSize: _kernelSizeDilate,
-        );
-      }
-    } else {
-      if (_kernelSizeDilate > 0) {
-        tmpImageBlackOnWhite = await dilate(
-          inputImage: tmpImageBlackOnWhite,
-          kernelSize: _kernelSizeDilate,
-        );
-      }
-
-      if (_kernelSizeErode > 0) {
-        tmpImageBlackOnWhite = await erode(
-          tmpImageBlackOnWhite,
-          kernelSize: _kernelSizeErode,
-        );
-      }
-    }
-    final String theTextFound = await _textify.getTextFromMatrix(
-      imageAsMatrix: await Matrix.fromImage(tmpImageBlackOnWhite),
-    );
-
-    if (mounted) {
-      setState(() {
-        _imageBlackOnWhite = tmpImageBlackOnWhite;
-        _textFound = theTextFound;
-      });
-    }
   }
 }

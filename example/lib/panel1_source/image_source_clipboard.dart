@@ -7,7 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../widgets/image_viewer.dart';
 import 'debounce.dart';
-import 'panel_content.dart';
+import 'panel1_content.dart';
 
 /// Provides functionality to retrieve images from the system clipboard.
 ///
@@ -68,40 +68,49 @@ class _ImageSourceClipboardState extends State<ImageSourceClipboard> {
 
   @override
   Widget build(BuildContext context) {
-    return PanelContent(
+    return PanelStepContent(
       // Paste button
-      left: IconButton(
-        icon: const Icon(Icons.paste),
-        onPressed: () async {
-          final Uint8List? bytes = await Pasteboard.image;
-          if (bytes != null) {
-            if (context.mounted) {
-              _clipboardToImage(context, bytes);
-            }
-          } else {
-            if (context.mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('No image found in clipboard.'),
-                ),
-              );
-            }
-          }
-        },
+      top: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Row(
+          spacing: 10,
+          children: [
+            OutlinedButton.icon(
+              label: Text('Paste'),
+              icon: const Icon(Icons.paste),
+              onPressed: () async {
+                final Uint8List? bytes = await Pasteboard.image;
+                if (bytes != null) {
+                  if (context.mounted) {
+                    _clipboardToImage(context, bytes);
+                  }
+                } else {
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('No image found in clipboard.'),
+                      ),
+                    );
+                  }
+                }
+              },
+            ),
+            OutlinedButton.icon(
+              label: Text('Clear'),
+              icon: const Icon(Icons.clear),
+              onPressed: () async {
+                if (mounted) {
+                  await _updateImageFromBytes(Uint8List(0));
+                  setState(() {});
+                }
+                widget.onImageChanged(null); // Notify image cleared
+              },
+            ),
+          ],
+        ),
       ),
       // Display image
       center: _buildDisplayImage(),
-      // Clear button
-      right: IconButton(
-        icon: const Icon(Icons.clear),
-        onPressed: () async {
-          if (mounted) {
-            await _updateImageFromBytes(Uint8List(0));
-            setState(() {});
-          }
-          widget.onImageChanged(null); // Notify image cleared
-        },
-      ),
     );
   }
 

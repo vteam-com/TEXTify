@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:textify/artifact.dart';
 import 'package:textify/character_definition.dart';
-import 'package:textify/matrix.dart';
 import 'package:textify/textify.dart';
+import 'package:textify_dashboard/generate_samples/generate_image.dart';
 import 'package:textify_dashboard/panel1_source/image_source_generated.dart';
 import 'package:textify_dashboard/widgets/gap.dart';
 
@@ -70,7 +70,7 @@ class CharacterGenerationBodyState extends State<CharacterGenerationBody> {
   Future<void> _generateCharacters() async {
     this.textify = await Textify().init();
     // we only want to detect a single character, skip Space detections
-    this.textify.includeSpaceDetections = false;
+
     this.textify.excludeLongLines = false;
     _supportedCharacters =
         this.textify.characterDefinitions.supportedCharacters;
@@ -179,7 +179,7 @@ class CharacterGenerationBodyState extends State<CharacterGenerationBody> {
                               ? Colors.green
                               : Colors.orange,
                         ),
-                        artifact.matrix.gridToString(),
+                        artifact.gridToString(),
                       ),
                     ),
                   );
@@ -266,30 +266,30 @@ class CharacterGenerationBodyState extends State<CharacterGenerationBody> {
     ProcessedCharacter processedCharacter,
   ) async {
     // Generate an image for the character and font
-    final ui.Image newImageSource = await createColorImageSingleCharacter(
+    final ui.Image newImageSource = await generateImageDrawText(
       imageWidth: 40 * 6,
       imageHeight: 60,
       // Surround the character with 'A' and 'W' for better detection
-      character: 'A $char W',
+      text: 'A $char W',
       fontFamily: fontName,
       fontSize: imageSettings.fontSize.toInt(),
     );
 
     // Apply image processing pipeline
     final ui.Image imageOptimized = await imageToBlackOnWhite(newImageSource);
-    final Matrix imageAsMatrix = await Matrix.fromImage(imageOptimized);
+    final Artifact imageAsMatrix = await Artifact.fromImage(imageOptimized);
 
     // Find artifacts from the binary image
-    textify.identifyArtifactsAndBandsInBinaryImage(imageAsMatrix);
+    textify.extractBandsAndArtifacts(imageAsMatrix);
 
     // If there is only one band (expected for a single character)
     if (textify.bands.length == 1) {
       final List<Artifact> artifactsInTheFirstBand =
-          textify.bands.first.artifacts;
+          textify.bands.list.first.artifacts;
 
       // Filter out artifacts with empty matrices (spaces)
       final artifactsInTheFirstBandNoSpaces = artifactsInTheFirstBand
-          .where((Artifact artifact) => artifact.matrix.isNotEmpty)
+          .where((Artifact artifact) => artifact.isNotEmpty)
           .toList();
 
       // If there are exactly three artifacts (expected for a single character)
@@ -298,7 +298,7 @@ class CharacterGenerationBodyState extends State<CharacterGenerationBody> {
             1]; // The middle artifact is the target
 
         // Create a normalized matrix for the character definition
-        final Matrix matrix = targetArtifact.matrix.createNormalizeMatrix(
+        final Artifact matrix = targetArtifact.createNormalizeMatrix(
           CharacterDefinition.templateWidth,
           CharacterDefinition.templateHeight,
         );

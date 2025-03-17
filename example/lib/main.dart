@@ -10,8 +10,9 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // load your image
-  final ui.Image uiImage =
-      await loadImageFromAssets('assets/samples/the-quick-brown-fox.png');
+  final ui.Image uiImage = await Textify.loadImageFromAssets(
+    'assets/samples/the-quick-brown-fox.png',
+  );
 
   // instentiate Textify once
   Textify textify = await Textify().init();

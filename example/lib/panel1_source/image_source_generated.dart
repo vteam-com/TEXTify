@@ -1,14 +1,16 @@
-import 'dart:math';
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
+import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:textify/textify.dart';
+import 'package:textify_dashboard/generate_samples/generate_image.dart';
+import 'package:textify_dashboard/generate_samples/generate_unit_test_sample_images.dart';
 import 'package:textify_dashboard/panel1_source/update_character_definitions.dart';
-import 'package:textify_dashboard/widgets/gap.dart';
 import 'package:textify_dashboard/widgets/image_viewer.dart';
 
 import 'debounce.dart';
 import 'image_generator_input.dart';
-import 'panel_content.dart';
+import 'panel1_content.dart';
 
 ImageGeneratorInput imageSettings = ImageGeneratorInput.empty();
 
@@ -84,7 +86,7 @@ class _ImageSourceGeneratedState extends State<ImageSourceGenerated> {
       children: [
         _buildDashboardInputs(),
         Expanded(
-          child: PanelContent(
+          child: PanelStepContent(
             top: _buildActionButtons(),
             center: _imageGenerated == null
                 ? Center(child: Text('Loading...'))
@@ -108,24 +110,55 @@ class _ImageSourceGeneratedState extends State<ImageSourceGenerated> {
     return Padding(
       padding: const EdgeInsets.all(20.0),
       child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Expanded(
+            // Slider  [====================]
+            //
+            // Font    | Colors Foreground
+            //         | Colors Background
             child: Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 buildFontSizeSlider(),
-                gap(),
-                buildPickFont(),
+                Wrap(
+                  spacing: 20,
+                  children: [
+                    IntrinsicWidth(child: buildPickFont()),
+                    IntrinsicWidth(
+                      child: Column(
+                        children: [
+                          pickColor(context, 'Foreground',
+                              imageSettings.imageForegroundColor,
+                              (Color color) async {
+                            setState(() {
+                              imageSettings.imageForegroundColor = color;
+                              inputHasChanged();
+                            });
+                          }),
+                          pickColor(context, 'Background',
+                              imageSettings.imageBackgroundColor,
+                              (Color color) async {
+                            setState(() {
+                              imageSettings.imageBackgroundColor = color;
+                              inputHasChanged();
+                            });
+                          }),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ],
             ),
           ),
-          gap(),
           Expanded(
             child: Column(
+              mainAxisAlignment: MainAxisAlignment.start,
               children: [
                 buildTextInputLine1(),
-                gap(),
                 buildTextInputLine2(),
-                gap(),
                 buildTextInputLine3(),
               ],
             ),
@@ -192,6 +225,47 @@ class _ImageSourceGeneratedState extends State<ImageSourceGenerated> {
         ),
       ],
     );
+  }
+
+  static Widget pickColor(
+    final BuildContext context,
+    final String text,
+    Color color,
+    Function(Color) onSelected,
+  ) {
+    return TextButton(
+      key: Key('pickColor_$text'),
+      onPressed: () => _pickColorDialog(context, color, (Color color) {
+        onSelected(color);
+      }),
+      child: Row(
+        spacing: 5,
+        children: [
+          Text(text),
+          Container(
+            // width: 60,
+            height: 20,
+            padding: EdgeInsets.symmetric(horizontal: 5),
+            decoration: BoxDecoration(
+              color: color,
+              border: Border.all(color: Colors.grey),
+            ),
+            child: Text(
+              color.toARGB32().toRadixString(16).substring(2).toUpperCase(),
+              style: TextStyle(color: getContrastColor(color)),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  static Color getContrastColor(Color backgroundColor) {
+    // Get luminance directly from the color
+    double luminance = backgroundColor.computeLuminance();
+
+    // Return black for bright colors, white for dark colors
+    return luminance > 0.5 ? Colors.black : Colors.white;
   }
 
   /// Builds a TextField for text input.
@@ -318,6 +392,20 @@ class _ImageSourceGeneratedState extends State<ImageSourceGenerated> {
     });
   }
 
+  void switchToGenerateUnitTestSamplesScreen() {
+    Textify textify = Textify();
+    textify.init();
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => GenerateImagesForUnitTestsScreen(
+          textify: textify,
+        ),
+      ),
+    );
+  }
+
   void switchToRegenerateTemplatesScreen() {
     Navigator.push(
       context,
@@ -339,7 +427,8 @@ class _ImageSourceGeneratedState extends State<ImageSourceGenerated> {
 
   Widget _buildActionButtons() {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
+      spacing: 10,
+      mainAxisAlignment: MainAxisAlignment.start,
       children: [
         SizedBox(
           width: 150,
@@ -348,12 +437,18 @@ class _ImageSourceGeneratedState extends State<ImageSourceGenerated> {
             child: const Text('Reset'),
           ),
         ),
-        gap(),
+        SizedBox(
+          width: 150,
+          child: OutlinedButton(
+            onPressed: switchToGenerateUnitTestSamplesScreen,
+            child: const Text('UnitTests'),
+          ),
+        ),
         SizedBox(
           width: 150,
           child: OutlinedButton(
             onPressed: switchToRegenerateTemplatesScreen,
-            child: const Text('Regenerate'),
+            child: const Text('Templatize'),
           ),
         ),
       ],
@@ -367,11 +462,11 @@ class _ImageSourceGeneratedState extends State<ImageSourceGenerated> {
         fontFamily: imageSettings.selectedFont,
         backgroundColor: imageSettings.imageBackgroundColor,
         text1: _textControllerLine1.text,
-        textColor1: imageSettings.imageTextColorAlphabet,
+        textColor1: imageSettings.imageForegroundColor,
         text2: _textControllerLine2.text,
-        textColor2: imageSettings.imageTextColorAlphabet,
+        textColor2: imageSettings.imageForegroundColor,
         text3: _textControllerLine3.text,
-        textColor3: imageSettings.imageTextColorNumbers,
+        textColor3: imageSettings.imageForegroundColor,
         fontSize: imageSettings.fontSize.toInt(),
       ).then((newImageSource) {
         _imageGenerated = newImageSource;
@@ -383,177 +478,33 @@ class _ImageSourceGeneratedState extends State<ImageSourceGenerated> {
   }
 }
 
-Future<ui.Image> createColorImageSingleCharacter({
-  required final int imageWidth,
-  required final int imageHeight,
-  required final String character,
-  // Font
-  required final String fontFamily,
-  required final int fontSize,
-}) async {
-  final ui.PictureRecorder recorder = ui.PictureRecorder();
-  final ui.Canvas newCanvas = ui.Canvas(recorder);
-
-  final ui.Paint paint = ui.Paint();
-  paint.color = Colors.white;
-  paint.style = ui.PaintingStyle.fill;
-
-  newCanvas.drawRect(
-    ui.Rect.fromPoints(
-      const ui.Offset(0.0, 0.0),
-      ui.Offset(
-        imageWidth.toDouble(),
-        imageHeight.toDouble(),
-      ),
-    ),
-    paint,
-  );
-
-  TextPainter textPainter = myDrawText(
-    paint: paint,
-    width: imageWidth,
-    text: character,
-    color: Colors.black,
-    fontSize: fontSize,
-    fontFamily: fontFamily,
-  );
-
-  textPainter.paint(
-    newCanvas,
-    Offset(0, 0),
-  );
-
-  final ui.Picture picture = recorder.endRecording();
-  final ui.Image image = await picture.toImage(imageWidth, imageHeight);
-  return image;
-}
-
-Future<ui.Image> createColorImageUsingTextPainter({
-  required final Color backgroundColor,
-  // text 1
-  required final String text1,
-  required final Color textColor1,
-  // text 2
-  required final String text2,
-  required final Color textColor2,
-  // text 3
-  required final String text3,
-  required final Color textColor3,
-  // Font
-  required final String fontFamily,
-  required final int fontSize,
-}) async {
-  final ui.PictureRecorder recorder = ui.PictureRecorder();
-  final ui.Canvas newCanvas = ui.Canvas(recorder);
-
-  final ui.Paint paint = ui.Paint();
-  paint.color = backgroundColor;
-  paint.style = ui.PaintingStyle.fill;
-
-  const letterSpacing = 4;
-
-  final int maxWidthLine1 = text1.length * (fontSize + letterSpacing);
-  final int maxWidthLine2 = text2.length * (fontSize + letterSpacing);
-  final int maxWidthLine3 = text2.length * (fontSize + letterSpacing);
-
-  const int padding = 20;
-  final int imageWidth = padding +
-      max(
-        1,
-        max(
-          max(
-            maxWidthLine1,
-            maxWidthLine2,
+void _pickColorDialog(
+  final BuildContext context,
+  final Color color,
+  final Function(Color) onSelected,
+) {
+  showDialog(
+    context: context,
+    builder: (context) {
+      return AlertDialog(
+        title: const Text('Pick a color'),
+        content: SingleChildScrollView(
+          child: ColorPicker(
+            pickerColor: color,
+            onColorChanged: (color) {
+              onSelected(color);
+            },
           ),
-          maxWidthLine3,
         ),
+        actions: <Widget>[
+          TextButton(
+            child: const Text('Got it'),
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+          ),
+        ],
       );
-  final int imageHeight = padding + (5 * fontSize);
-
-  newCanvas.drawRect(
-    ui.Rect.fromPoints(
-      const ui.Offset(0.0, 0.0),
-      ui.Offset(
-        imageWidth.toDouble(),
-        imageHeight.toDouble(),
-      ),
-    ),
-    paint,
+    },
   );
-
-  // Line 1
-  TextPainter textPainter = myDrawText(
-    paint: paint,
-    width: imageWidth,
-    text: text1,
-    color: textColor1,
-    fontSize: fontSize,
-    fontFamily: fontFamily,
-  );
-  textPainter.paint(
-    newCanvas,
-    Offset(padding.toDouble(), padding.toDouble()),
-  );
-
-  // Line 2
-  TextPainter textPainter2 = myDrawText(
-    paint: paint,
-    width: imageWidth,
-    text: text2,
-    color: textColor2,
-    fontSize: fontSize,
-    fontFamily: fontFamily,
-  );
-  textPainter2.paint(
-    newCanvas,
-    Offset(padding.toDouble(), 2 * fontSize.toDouble()),
-  );
-
-  // Line 3
-  TextPainter textPainter3 = myDrawText(
-    paint: paint,
-    width: imageWidth,
-    text: text3,
-    color: textColor3,
-    fontSize: fontSize,
-    fontFamily: fontFamily,
-  );
-  textPainter3.paint(
-    newCanvas,
-    Offset(padding.toDouble(), 4 * fontSize.toDouble()),
-  );
-
-  final ui.Picture picture = recorder.endRecording();
-  final ui.Image image = await picture.toImage(imageWidth, imageHeight);
-  return image;
-}
-
-TextPainter myDrawText({
-  required final Paint paint,
-  required final Color color,
-  required final String text,
-  required final int fontSize,
-  required final String fontFamily,
-  required final int width,
-  int letterSpacing = 4,
-}) {
-  paint.color = color;
-
-  final TextPainter textPainter = TextPainter(
-    text: TextSpan(
-      text: text,
-      style: TextStyle(
-        color: color,
-        letterSpacing: letterSpacing.toDouble(),
-        fontSize: fontSize.toDouble(),
-        fontFamily: fontFamily,
-      ),
-    ),
-    textDirection: ui.TextDirection.ltr,
-  );
-
-  textPainter.layout(
-    maxWidth: width.toDouble(),
-  );
-  return textPainter;
 }

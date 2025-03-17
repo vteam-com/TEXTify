@@ -2,7 +2,9 @@ import 'dart:math';
 
 import 'package:flutter/widgets.dart';
 import 'package:textify/artifact.dart';
-import 'package:textify/matrix.dart';
+import 'package:textify/int_rect.dart';
+
+export 'package:textify/artifact.dart';
 
 /// Represents a horizontal band (aka strip) in an image/document.
 ///
@@ -14,13 +16,21 @@ class Band {
   Band();
 
   /// List of artifacts contained within this band.
-  final List<Artifact> artifacts = [];
+  List<Artifact> artifacts = [];
+
+  ///
+  String getText() {
+    String text = '';
+
+    artifacts.forEach((a) => text += a.characterMatched);
+    return text;
+  }
 
   /// Private fields to store calculated average of space between each artifacts
-  double _averageKerning = -1;
+  int _averageKerning = -1;
 
   /// Private fields to store calculated average of artifact width
-  double _averageWidth = -1;
+  int _averageWidth = -1;
 
   /// Gets the average kerning between adjacent artifacts in the band.
   ///
@@ -28,9 +38,9 @@ class Band {
   ///
   /// Returns:
   /// The average kerning as a double, or -1 if there are fewer than 2 artifacts.
-  double get averageKerning {
+  int get averageKerning {
     if ((_averageKerning == -1 || _averageWidth == -1)) {
-      _updateStatistics();
+      updateStatistics();
     }
     return _averageKerning;
   }
@@ -44,11 +54,29 @@ class Band {
   ///
   /// Returns:
   /// The average width as a double, or -1 if there are fewer than 2 artifacts.
-  double get averageWidth {
+  int get averageWidth {
     if ((_averageKerning == -1 || _averageWidth == -1)) {
-      _updateStatistics();
+      updateStatistics();
     }
     return _averageWidth;
+  }
+
+  /// Removes all empty artifacts from the band's artifact list.
+  ///
+  /// An empty artifact is determined by the [Artifact.isEmpty] property.
+  /// This method modifies the artifacts list in-place, filtering out any artifacts
+  /// that are considered empty.
+  void removeEmptyArtifacts() {
+    artifacts.removeWhere((artifact) => artifact.isEmpty);
+  }
+
+  /// Resets the cached statistics for kerning and width.
+  ///
+  /// This method sets the average kerning and average width to their default
+  /// uninitialized state, forcing recalculation when next accessed.
+  void clearStats() {
+    _averageKerning = -1;
+    _averageWidth = -1;
   }
 
   /// Calculates the average Kerning between adjacent artifacts and their average width.
@@ -59,10 +87,10 @@ class Band {
   /// to be sorted from left to right.
   ///
   /// If there are fewer than 2 artifacts, both averages are set to -1.
-  void _updateStatistics() {
+  void updateStatistics() {
     if (artifacts.length < 2) {
       _averageKerning = -1;
-      _averageWidth = -1;
+      _averageWidth = rectangleAdjusted.width;
       return;
     }
 
@@ -72,13 +100,14 @@ class Band {
 
     for (int i = 1; i < artifacts.length; i++) {
       final artifact = artifacts[i];
-      final double kerning = artifact.matrix.rectangle.left -
-          artifacts[i - 1].matrix.rectangle.right;
+      totalWidth += artifact.rectAdjusted.width;
+
+      final int kerning =
+          artifact.rectAdjusted.left - artifacts[i - 1].rectAdjusted.right;
       totalKerning += kerning;
-      totalWidth += artifact.matrix.rectangle.width;
     }
-    _averageWidth = totalWidth / count;
-    _averageKerning = totalKerning / count;
+    _averageWidth = (totalWidth / count).round();
+    _averageKerning = (totalKerning / count).round();
   }
 
   /// Adds the given artifact to the band.
@@ -89,16 +118,224 @@ class Band {
   void addArtifact(final Artifact artifact) {
     // reset the cached rectangle each time an artifact is added or removed
     this.artifacts.add(artifact);
+    clearStats();
   }
 
   /// Sorts the artifacts in this band from left to right.
   ///
   /// This method orders the artifacts based on their left edge position,
   /// ensuring they are in the correct sequence as they appear in the band.
-  void sortLeftToRight() {
+  void sortArtifactsLeftToRight() {
     artifacts.sort(
-      (a, b) => a.matrix.rectangle.left.compareTo(b.matrix.rectangle.left),
+      (a, b) => a.rectAdjusted.left.compareTo(b.rectAdjusted.left),
     );
+  }
+
+  /// Using the average artifact width, fine the ones that have an outlier width
+  /// and tag them needsInspection=true
+  void identifySuspiciousLargeArtifacts() {
+    final List<Artifact> listToInspect = [];
+
+    final double thresholdWidth = this.averageWidth * 2;
+
+    for (final Artifact artifact in this.artifacts) {
+      artifact.needsInspection = artifact.cols > thresholdWidth;
+      if (artifact.needsInspection) {
+        listToInspect.add(artifact);
+      }
+    }
+
+    for (final artifactToSplit in listToInspect) {
+      final List<int> peaksAndValleys =
+          artifactToSplit.getHistogramHorizontal();
+
+      final int valleySeparatorValueToSplitOn =
+          calculateThreshold(peaksAndValleys);
+
+      // Find the valley where two characters are touching
+      List<int> columnSeparators =
+          keepIndexBelowValue(peaksAndValleys, valleySeparatorValueToSplitOn);
+
+      columnSeparators = normalizeHistogram(columnSeparators);
+      if (columnSeparators.isNotEmpty) {
+        // Ensure the first and last rows are included as split points.
+        if (columnSeparators.first != 0) {
+          columnSeparators.insert(0, 0);
+        }
+        if (columnSeparators.last != artifactToSplit.cols) {
+          columnSeparators.add(artifactToSplit.cols);
+        }
+
+        final List<Artifact> artifactsFromColumns =
+            Artifact.splitAsColumns(artifactToSplit, columnSeparators);
+
+        this.replaceOneArtifactWithMore(artifactToSplit, artifactsFromColumns);
+      }
+    }
+  }
+
+  ///
+  void mergeConnectedArtifactsInPlace() {
+    this.artifacts = mergeConnectedArtifacts(
+      artifacts: this.artifacts,
+      verticalTolerance: this.rectangleOriginal.height,
+    );
+  }
+
+  /// Merges connected artifacts based on specified thresholds.
+  ///
+  /// This method iterates through the list of artifacts and merges those that are
+  /// considered connected based on vertical and horizontal thresholds.
+  ///
+  /// Parameters:
+  ///   [verticalThreshold]: The maximum vertical distance between artifacts to be considered connected.
+  ///   [horizontalThreshold]: The maximum horizontal distance between artifacts to be considered connected.
+  ///
+  /// Returns:
+  ///   A list of [Artifact] objects after merging connected artifacts.
+  static List<Artifact> mergeConnectedArtifacts({
+    required final List<Artifact> artifacts,
+    required final int verticalTolerance,
+  }) {
+    final List<Artifact> mergedArtifacts = [];
+
+    for (int i = 0; i < artifacts.length; i++) {
+      final Artifact current = artifacts[i];
+
+      for (int j = i + 1; j < artifacts.length; j++) {
+        final Artifact next = artifacts[j];
+
+        if (areArtifactsOnTheSameColumn(
+          current.rectFound,
+          next.rectFound,
+          verticalTolerance,
+        )) {
+          current.mergeArtifact(next);
+          artifacts.removeAt(j);
+          j--; // Adjust index since we removed an artifact
+        }
+      }
+
+      mergedArtifacts.add(current);
+    }
+
+    return mergedArtifacts;
+  }
+
+  /// Normalizes a histogram by extracting the middle index of consecutive sequences.
+  ///
+  /// Converts a list of potentially scattered indices into a more compact
+  /// representation by selecting the middle index of each consecutive sequence.
+  ///
+  /// Returns a list of normalized indices representing the middle points
+  /// of consecutive index groups in the original histogram.
+  List<int> normalizeHistogram(List<int> histogram) {
+    List<int> normalized = [];
+    List<int> sequence = [];
+
+    for (int i = 0; i < histogram.length; i++) {
+      if (sequence.isEmpty) {
+        sequence.add(histogram[i]);
+      } else {
+        // Check if the current value is consecutive to the last value
+        if (histogram[i] == sequence.last + 1) {
+          sequence.add(histogram[i]);
+        } else {
+          // If the sequence ends, find the middle point and add it
+          int middle = sequence[(sequence.length - 1) ~/ 2];
+          normalized.add(middle);
+
+          // Reset sequence for the next consecutive sequence
+          sequence = [histogram[i]];
+        }
+      }
+    }
+
+    // Don't forget to add the last sequence
+    if (sequence.isNotEmpty) {
+      int middle = sequence[(sequence.length - 1) ~/ 2];
+      normalized.add(middle);
+    }
+
+    return normalized;
+  }
+
+  ///
+  static void sortArtifactByRectFound(List<Artifact> list) {
+    list.sort((Artifact a, Artifact b) {
+      final aCenterY = a.rectFound.top + a.rectFound.height / 2;
+      final bCenterY = b.rectFound.top + b.rectFound.height / 2;
+      if ((aCenterY - bCenterY).abs() < 10) {
+        return a.rectFound.left.compareTo(b.rectFound.left);
+      }
+      return aCenterY.compareTo(bCenterY);
+    });
+  }
+
+  ///
+  void replaceOneArtifactWithMore(
+    final Artifact artifactToReplace,
+    final List<Artifact> artifactsToInsert,
+  ) {
+    int index = this.artifacts.indexOf(artifactToReplace);
+    this.artifacts.removeAt(index);
+    this.artifacts.insertAll(index, artifactsToInsert);
+    clearStats();
+  }
+
+  /// Splits artifact in two
+  List<Artifact> splitArtifact(
+    final Artifact artifactToSplit,
+    final List<int> splitOnTheseColumns,
+  ) {
+    List<Artifact> splits = [];
+
+    int startingCol = 0;
+
+    for (int c in splitOnTheseColumns) {
+      // Create the first sub-grid from the start to the specified column (inclusive)
+      splits.add(
+        extractArtifact(
+          artifactToSplit,
+          startingCol,
+          0,
+          c - startingCol,
+          artifactToSplit.rows,
+        ),
+      );
+      startingCol = c + 1;
+    }
+
+    // add the right side
+    splits.add(
+      extractArtifact(
+        artifactToSplit,
+        startingCol,
+        0,
+        artifactToSplit.cols - startingCol,
+        artifactToSplit.rows,
+      ),
+    );
+
+    return splits;
+  }
+
+  ///
+  Artifact extractArtifact(
+    Artifact source,
+    int left,
+    int top,
+    int width,
+    int height,
+  ) {
+    IntRect rectLeft = IntRect.fromLTWH(
+      left,
+      top,
+      width,
+      height,
+    );
+    final sub = Artifact.extractSubGrid(matrix: source, rect: rectLeft);
+    return Artifact.fromMatrix(sub)..wasPartOfSplit = true;
   }
 
   /// Identifies and inserts space artifacts between existing artifacts in the band.
@@ -114,42 +351,37 @@ class Band {
   ///
   /// The threshold is set at 50% of the average width of artifacts in the band.
   void identifySpacesInBand() {
-    final double exceeding = this.averageWidth * 0.50; // in %
+    if (artifacts.isEmpty || artifacts.length <= 1) {
+      return;
+    }
+    final int spaceThreshold = averageKerning * 2;
 
-    final List<Artifact> insertInFrontOfTheseArtifacts = [];
+    for (int i = 1; i < artifacts.length; i++) {
+      final Artifact leftArtifact = artifacts[i - 1];
+      final Artifact rightArtifact = artifacts[i];
 
-    for (int indexOfArtifact = 0;
-        indexOfArtifact < this.artifacts.length;
-        indexOfArtifact++) {
-      if (indexOfArtifact > 0) {
-        // Left
-        final Artifact artifactLeft = this.artifacts[indexOfArtifact - 1];
-        final double x1 = artifactLeft.matrix.rectangle.right;
+      final int leftEdge = leftArtifact.rectFound.right;
+      final int rightEdge = rightArtifact.rectFound.left;
+      final int gap = rightEdge - leftEdge;
 
-        // Right
-        final Artifact artifactRight = this.artifacts[indexOfArtifact];
-        final double x2 = artifactRight.matrix.rectangle.left;
-
-        final double kerning = x2 - x1;
-
-        if (kerning >= exceeding) {
-          // insert Artifact for Space
-          insertInFrontOfTheseArtifacts.add(artifactRight);
+      if (gap >= spaceThreshold) {
+        const int borderWidth = 2;
+        final int spaceWidth = (gap - (borderWidth * 2)).toInt();
+        if (spaceWidth > 1) {
+          // this space is big enough
+          insertArtifactForSpace(
+            artifacts: artifacts,
+            insertAtIndex: i,
+            cols: spaceWidth,
+            rows: rectangleOriginal.height.toInt(),
+            locationFoundAt: IntOffset(
+              leftArtifact.rectFound.right + 2,
+              leftArtifact.rectFound.top,
+            ),
+          );
+          i++;
         }
       }
-    }
-
-    for (final Artifact artifactOnTheRightSide
-        in insertInFrontOfTheseArtifacts) {
-      final int indexOfArtifact =
-          this.artifacts.indexOf(artifactOnTheRightSide);
-      insertArtifactForSpace(
-        indexOfArtifact,
-        artifactOnTheRightSide.matrix.rectangle.left -
-            averageWidth -
-            averageKerning,
-        artifactOnTheRightSide.matrix.rectangle.left - averageKerning,
-      );
     }
   }
 
@@ -159,7 +391,7 @@ class Band {
   /// into the artifacts list at the specified index.
   ///
   /// Parameters:
-  /// - [indexOfArtifact]: The index at which to insert the space artifact.
+  /// - [insertAtIndex]: The index at which to insert the space artifact.
   /// - [x1]: The left x-coordinate of the space artifact.
   /// - [x2]: The right x-coordinate of the space artifact.
   ///
@@ -168,29 +400,48 @@ class Band {
   /// - Band ID is set to the current band's ID.
   /// - Rectangle is set based on the provided x-coordinates and the band's top and bottom.
   /// - A matrix is created based on the dimensions of the rectangle.
-  void insertArtifactForSpace(
-    final int indexOfArtifact,
-    final double x1,
-    final double x2,
-  ) {
-    final Artifact artifactSpace = Artifact();
+  static void insertArtifactForSpace({
+    required final List<Artifact> artifacts,
+    required final int insertAtIndex,
+    required final int cols,
+    required final int rows,
+    required final IntOffset locationFoundAt,
+  }) {
+    final Artifact artifactSpace =
+        Artifact.fromMatrix(Artifact(cols, rows, false));
     artifactSpace.characterMatched = ' ';
+    artifactSpace.locationFound = locationFoundAt;
+    artifacts.insert(insertAtIndex, artifactSpace);
+  }
 
-    artifactSpace.matrix.rectangle = Rect.fromLTRB(
-      x1,
-      rectangle.top,
-      x2,
-      rectangle.bottom,
-    );
-    artifactSpace.matrix.rectangle = artifactSpace.matrix.rectangle;
+  /// Trim the band to fit the inner artifacts
+  void trim() {
+    if (artifacts.isEmpty) {
+      return;
+    }
 
-    artifactSpace.matrix.setGrid(
-      Matrix(
-        artifactSpace.matrix.rectangle.width.toInt(),
-        artifactSpace.matrix.rectangle.height.toInt(),
-      ).data,
+    IntRect boundingBox = IntRect.fromCenter(
+      center: this.rectangleAdjusted.center,
+      width: 0,
+      height: 0,
     );
-    this.artifacts.insert(indexOfArtifact, artifactSpace);
+
+    for (final Artifact artifact in artifacts) {
+      IntRect rectOfContent = artifact.getContentRectAdjusted();
+      boundingBox = boundingBox.expandToInclude(rectOfContent);
+    }
+
+    int trimTop = (boundingBox.top - this.rectangleAdjusted.top).toInt();
+
+    int trimBottom =
+        (this.rectangleAdjusted.bottom - boundingBox.bottom).toInt();
+
+    // now that we have the outer most bounding rect of the content
+    // we trim the artifacts
+    for (final Artifact artifact in artifacts) {
+      artifact.cropBy(top: trimTop, bottom: trimBottom);
+    }
+    clearStats();
   }
 
   /// Adjusts the positions of artifacts to pack them from left to right.
@@ -207,21 +458,13 @@ class Band {
   /// This method modifies the positions of all artifacts in the band to create
   /// a left-aligned, properly spaced arrangement.
   void packArtifactLeftToRight() {
-    double left = this.rectangle.left;
+    int left = this.rectangleOriginal.left;
+    int top = artifacts.first.locationFound.y;
 
     for (final Artifact artifact in artifacts) {
-      artifact.matrix.padTopBottom(
-        paddingTop: (artifact.matrix.rectangle.top - rectangle.top).toInt(),
-        paddingBottom:
-            (rectangle.bottom - artifact.matrix.rectangle.bottom).toInt(),
-      );
+      artifact.locationAdjusted = IntOffset(left, top);
 
-      final double dx = left - artifact.matrix.rectangle.left;
-      final double dy = rectangle.top - artifact.matrix.rectangle.top;
-      artifact.matrix.rectangle =
-          artifact.matrix.rectangle.shift(Offset(dx, dy));
-      artifact.matrix.rectangle = artifact.matrix.rectangle;
-      left += artifact.matrix.rectangle.width;
+      left += artifact.rectAdjusted.width;
       left += kerningWidth;
     }
   }
@@ -237,8 +480,23 @@ class Band {
   /// Note: If the object's dimensions or position can change, this cached
   /// value may become outdated. In such cases, consider adding a method
   /// to invalidate the cache when necessary.
-  Rect get rectangle {
-    return getBoundingBox(this.artifacts);
+  IntRect get rectangleOriginal {
+    return getBoundingBox(this.artifacts, useAdjustedRect: false);
+  }
+
+  /// Gets the bounding rectangle of this object.
+  ///
+  /// This getter uses lazy initialization to compute the bounding box
+  /// only when first accessed, and then caches the result for subsequent calls.
+  ///
+  /// Returns:
+  ///   A [Rect] representing the bounding box of this object.
+  ///
+  /// Note: If the object's dimensions or position can change, this cached
+  /// value may become outdated. In such cases, consider adding a method
+  /// to invalidate the cache when necessary.
+  IntRect get rectangleAdjusted {
+    return getBoundingBox(this.artifacts, useAdjustedRect: true);
   }
 
   /// Calculates the bounding rectangle that encloses a list of artifacts.
@@ -251,25 +509,29 @@ class Band {
   ///
   /// Returns:
   ///   A [Rect] representing the bounding box of the provided artifacts.
-  static Rect getBoundingBox(final List<Artifact> artifacts) {
+  static IntRect getBoundingBox(
+    final List<Artifact> artifacts, {
+    bool useAdjustedRect = true,
+  }) {
     if (artifacts.isEmpty) {
-      return Rect.zero;
+      return IntRect();
     }
 
-    double minX = double.infinity;
-    double minY = double.infinity;
-    double maxX = double.negativeInfinity;
-    double maxY = double.negativeInfinity;
+    int minX = artifacts.first.rectFound.left;
+    int minY = artifacts.first.rectFound.top;
+    int maxX = artifacts.first.rectFound.right;
+    int maxY = artifacts.first.rectFound.bottom;
 
     for (final Artifact artifact in artifacts) {
-      final Rect rect = artifact.matrix.rectangle;
+      final IntRect rect =
+          useAdjustedRect ? artifact.rectAdjusted : artifact.rectFound;
       minX = min(minX, rect.left);
       minY = min(minY, rect.top);
       maxX = max(maxX, rect.right);
       maxY = max(maxY, rect.bottom);
     }
 
-    return Rect.fromLTRB(minX, minY, maxX, maxY);
+    return IntRect.fromLTRB(minX, minY, maxX, maxY);
   }
 
   /// Returns the count of space characters in the artifacts.
@@ -284,4 +546,100 @@ class Band {
         0,
         (count, a) => a.characterMatched == ' ' ? count + 1 : count,
       );
+
+  ///
+  void padVerticallyArtifactToMatchTheBand() {
+    int bandTop = this.rectangleOriginal.top;
+    int bandBottom = this.rectangleOriginal.bottom;
+
+    for (final Artifact artifact in artifacts) {
+      // Calculate how many rows to pad at the top
+      int rowsToPadTop = (artifact.locationFound.y - bandTop).toInt();
+
+      // Calculate how many rows to pad at the bottom
+      int rowsToPadBottom =
+          (bandBottom - (artifact.locationFound.y + artifact.rows)).toInt();
+
+      // If padding is needed, add empty matrix rows at the top and bottom
+      if (rowsToPadTop > 0 || rowsToPadBottom > 0) {
+        // Add the empty rows to the artifact matrix
+        artifact.padTopBottom(
+          paddingTop: rowsToPadTop,
+          paddingBottom: rowsToPadBottom,
+        );
+
+        // adjust the location found to be the same as the top of the band
+        artifact.locationFound = IntOffset(artifact.locationFound.x, bandTop);
+      }
+    }
+  }
+}
+
+/// Determines if two artifacts are connected based on their rectangles and thresholds.
+///
+/// This method checks both horizontal and vertical proximity of the rectangles.
+///
+/// Parameters:
+///   [rect1]: The rectangle of the first artifact.
+///   [rect2]: The rectangle of the second artifact.
+///   [verticalThreshold]: The maximum vertical distance to be considered connected.
+///   [horizontalThreshold]: The maximum horizontal distance to be considered connected.
+///
+/// Returns:
+///   true if the artifacts are considered connected, false otherwise.
+bool areArtifactsOnTheSameColumn(
+  final IntRect rect1,
+  final IntRect rect2,
+  final int verticalTolerance,
+) {
+  if (rect1.intersects(rect2)) {
+    return true;
+  }
+  return false;
+}
+
+///
+Band rowToBand({
+  required final Artifact regionMatrix,
+  required final IntOffset offset,
+}) {
+  //
+  // Find the Matrices in the Region
+  //
+  List<Artifact> artifactsFound = findMatrices(
+    dilatedMatrixImage: regionMatrix,
+  );
+
+  //
+  // IntOffset their locations found
+  //
+  offsetMatrices(
+    artifactsFound,
+    offset.x.toInt(),
+    offset.y.toInt(),
+  );
+
+  //
+  // Band
+  //
+  final Band newBand = Band();
+
+  // sort horizontally
+  artifactsFound.sort((a, b) => a.locationFound.x.compareTo(b.locationFound.x));
+
+  for (final Artifact artifact in artifactsFound) {
+    if (artifact.discardableContent() == false) {
+      newBand.addArtifact(artifact);
+    }
+  }
+
+  // All artifact will have the same grid height
+  newBand.padVerticallyArtifactToMatchTheBand();
+
+  // Clean up inner Matrix overlap for example the letter X may have one of the lines not touching the others like so  `/,
+  newBand.mergeConnectedArtifactsInPlace();
+
+  newBand.clearStats();
+
+  return newBand;
 }

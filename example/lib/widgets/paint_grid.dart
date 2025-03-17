@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:textify/matrix.dart';
+import 'package:textify/artifact.dart';
 
 class DisplayMatrix extends StatelessWidget {
   const DisplayMatrix({
@@ -9,8 +9,8 @@ class DisplayMatrix extends StatelessWidget {
     this.pixelSize = 1,
   });
 
-  final Matrix matrix1;
-  final Matrix? matrix2;
+  final Artifact matrix1;
+  final Artifact? matrix2;
   final double pixelSize;
 
   @override
@@ -36,8 +36,8 @@ class DisplayMatrixPaint extends CustomPainter {
     this.pixelSize = 1,
   });
 
-  final Matrix matrix1;
-  final Matrix? matrix2;
+  final Artifact matrix1;
+  final Artifact? matrix2;
   final double pixelSize;
 
   @override
@@ -59,7 +59,7 @@ void paintMatrix(
   final Color pixelColor,
   final int startX,
   final int startY,
-  final Matrix matrix, {
+  final Artifact matrix, {
   final double pixelSize = 1,
   Color? background,
 }) {
@@ -115,8 +115,8 @@ void paintOverlay(
   final Canvas canvas,
   final int startX,
   final int startY,
-  final Matrix matrix1,
-  final Matrix matrix2, [
+  final Artifact matrix1,
+  final Artifact matrix2, [
   final double pixelSize = 1,
 ]) {
   paintMatrix(

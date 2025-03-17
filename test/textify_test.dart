@@ -1,10 +1,18 @@
 import 'dart:ui' as ui;
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:textify/artifact.dart';
 import 'package:textify/character_definition.dart';
 import 'package:textify/correction.dart';
 
 import 'package:textify/textify.dart';
+
+void printMatrix(final Artifact matrix) {
+  // ignore: avoid_print
+  print(
+    '${matrix.gridToString()}\n     L:${matrix.rectFound.left} T:${matrix.rectFound.top}  W:${matrix.cols} H:${matrix.rows}\n',
+  );
+}
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -128,11 +136,43 @@ void main() async {
 
   test('Convert image to text', () async {
     final ui.Image uiImage =
-        await loadImageFromAssets('assets/test/input_test_image.png');
+        await Textify.loadImageFromAssets('assets/test/input_test_image.png');
     final String text = await instance.getTextFromImage(image: uiImage);
 
     // the result are not perfect 90% accuracy, but its trending in the right direction
-    expect(text, 'ABCDEFGHl\nJKLMN0PQR\nSTUVWxYZ 01 23456789');
+    expect(instance.count, text.length);
+
+    expect(
+      text,
+      'ABCDEFGHl\n'
+      'JKLMN0PQR\n'
+      'STUVWxYZ 0123456789',
+    );
+  });
+
+  test('Convert image to text', () async {
+    final ui.Image uiImage = await Textify.loadImageFromAssets(
+      'assets/test/bank_statement_test.png',
+    );
+    instance.innerSplit = true;
+    instance.applyDictionary = true;
+    final String text = await instance.getTextFromImage(image: uiImage);
+
+    // the result are not perfect 90% accuracy, but its trending in the right direction
+    expect(
+      text,
+      'FIND GOLD CAUSE MA\'I\'0SINH0S\n'
+      'C0NTINENTE AIM DR, MATOSINHOS\n'
+      'www.AMAZ0N. * IS ]AK28IB , LUXEMB0URG\n'
+      'REMAPKABLE , BALL\n'
+      'PING0 D0CE MA\'I\'0SINH0 , MA\'I\'0SINH0S\n'
+      'C0NTINENTE AIM DR, MATOSINHOS\n'
+      'PAB PORT MA\'I\'0 , MATOSINHOS\n'
+      'CASE DAS UTILIDADES , GUIMARAES\n'
+      'EUR0L0B MA\'I\'0SINH0S , MA\'I\'0SINH0S\n'
+      'CARES SAB0RES B0LI]A0, PORTO\n'
+      'TUCA CHA E CAFE, PORTO',
+    );
     // errors here        ^       ^          ^
   });
 

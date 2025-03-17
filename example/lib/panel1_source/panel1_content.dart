@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-class PanelContent extends StatelessWidget {
-  const PanelContent({
+class PanelStepContent extends StatelessWidget {
+  const PanelStepContent({
     super.key,
     this.left,
     this.top,
@@ -24,6 +24,7 @@ class PanelContent extends StatelessWidget {
         if (left != null) left!,
         Expanded(
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               if (top != null) top!,
               Container(

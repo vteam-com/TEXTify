@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:textify/artifact.dart';
 import 'package:textify/band.dart';
 import 'package:textify/textify.dart';
-import 'package:textify_dashboard/panel1_source/panel_content.dart';
+import 'package:textify_dashboard/panel1_source/panel1_content.dart';
+import 'package:textify_dashboard/panel3_results/panel3_toolbar.dart';
 import 'package:textify_dashboard/settings.dart';
 import 'package:textify_dashboard/widgets/gap.dart';
 import 'edit.dart';
 import 'matched_artifact.dart';
 
-class PanelMatchedArtifacts extends StatefulWidget {
-  const PanelMatchedArtifacts({
+class PanelStep4Results extends StatefulWidget {
+  const PanelStep4Results({
     super.key,
     required this.textify,
     required this.expectedStrings,
@@ -25,10 +25,10 @@ class PanelMatchedArtifacts extends StatefulWidget {
   final Settings settings;
 
   @override
-  State<PanelMatchedArtifacts> createState() => _PanelMatchedArtifactsState();
+  State<PanelStep4Results> createState() => _PanelStep4ResultsState();
 }
 
-class _PanelMatchedArtifactsState extends State<PanelMatchedArtifacts> {
+class _PanelStep4ResultsState extends State<PanelStep4Results> {
   @override
   Widget build(BuildContext context) {
     if (widget.expectedStrings.isEmpty) {
@@ -38,10 +38,24 @@ class _PanelMatchedArtifactsState extends State<PanelMatchedArtifacts> {
     }
   }
 
+  void onApplyDictionaryToggled(final bool onOff) async {
+    widget.settings.applyDictionary = (onOff == true);
+    await widget.settings.save();
+    widget.textify.applyDictionary = widget.settings.applyDictionary;
+    await widget.onSettingsChanged();
+
+    setState(() {
+      // update
+    });
+  }
+
   /// Builds a free-style results view for the `Textify` data, displaying the full text found in a selectable `Text` widget with a Courier font and blue cursor.
   Widget _buildFreeStyleResults(final BuildContext context) {
-    return PanelContent(
-      top: _buildCheckbox(),
+    return PanelStepContent(
+      top: panelStep4toolbar(
+        widget.settings.applyDictionary,
+        onApplyDictionaryToggled,
+      ),
       center: SizedBox(
         height: 300,
         child: SingleChildScrollView(
@@ -82,7 +96,7 @@ class _PanelMatchedArtifactsState extends State<PanelMatchedArtifacts> {
         lineIndex < widget.textify.bands.length;
         lineIndex++) {
       // Band
-      final Band band = widget.textify.bands[lineIndex];
+      final Band band = widget.textify.bands.list[lineIndex];
 
       // Line
       final String currentLine =
@@ -95,10 +109,10 @@ class _PanelMatchedArtifactsState extends State<PanelMatchedArtifacts> {
 
       widgets.addAll(
         _buildArtifactsForBand(
-          context,
-          band,
-          currentLine,
-          expectedText,
+          context: context,
+          band: band,
+          currentLine: currentLine,
+          expectedText: expectedText,
         ),
       );
 
@@ -130,19 +144,19 @@ class _PanelMatchedArtifactsState extends State<PanelMatchedArtifacts> {
   /// Returns:
   /// A list of `MatchedArtifact` widgets representing the matched artifacts for
   /// the given band.
-  List<Widget> _buildArtifactsForBand(
-    BuildContext context,
-    Band band,
-    String currentLine,
-    String expectedText,
-  ) {
+  List<Widget> _buildArtifactsForBand({
+    required BuildContext context,
+    required Band band,
+    required String currentLine,
+    required String expectedText,
+  }) {
     return band.artifacts.asMap().entries.map((entry) {
       final int charIndex = entry.key;
 
       final Artifact artifact = entry.value;
 
       final String expectedCharacter =
-          charIndex < expectedText.length ? expectedText[charIndex] : '!';
+          charIndex < expectedText.length ? expectedText[charIndex] : ' ';
 
       final String characterCorrected =
           charIndex < currentLine.length ? currentLine[charIndex] : '!';
@@ -162,9 +176,9 @@ class _PanelMatchedArtifactsState extends State<PanelMatchedArtifacts> {
           );
         },
         child: MatchedArtifact(
-          characterExpected: expectedCharacter,
           characterFound: artifact.characterMatched,
           characterCorrected: characterCorrected,
+          characterExpected: expectedCharacter,
           showCorrectionRow: widget.textify.applyDictionary,
         ),
       );
@@ -184,8 +198,11 @@ class _PanelMatchedArtifactsState extends State<PanelMatchedArtifacts> {
   /// Returns:
   ///   A `Widget` that displays the matching characters for the given context.
   Widget _buildMatchingCharacter(final BuildContext context) {
-    return PanelContent(
-      top: _buildCheckbox(),
+    return PanelStepContent(
+      top: panelStep4toolbar(
+        widget.settings.applyDictionary,
+        onApplyDictionaryToggled,
+      ),
       center: Center(
         child: Padding(
           padding: const EdgeInsets.all(8.0),
@@ -198,24 +215,6 @@ class _PanelMatchedArtifactsState extends State<PanelMatchedArtifacts> {
             ),
           ),
         ),
-      ),
-    );
-  }
-
-  SizedBox _buildCheckbox() {
-    return SizedBox(
-      width: 220,
-      child: CheckboxListTile(
-        title: const Text('Apply Dictionary'),
-        value: widget.settings.applyDictionary,
-        onChanged: (bool? value) {
-          setState(() async {
-            widget.settings.applyDictionary = (value == true);
-            await widget.settings.save();
-            widget.textify.applyDictionary = widget.settings.applyDictionary;
-            widget.onSettingsChanged();
-          });
-        },
       ),
     );
   }

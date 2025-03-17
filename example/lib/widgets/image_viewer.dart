@@ -2,6 +2,13 @@ import 'dart:ui' as ui;
 import 'package:flutter/gestures.dart';
 import 'package:flutter/widgets.dart';
 
+enum ViewAs {
+  blackAndWhite,
+  region,
+  artifacts,
+  characters,
+}
+
 class ImageViewer extends StatelessWidget {
   const ImageViewer({super.key, required this.image});
 

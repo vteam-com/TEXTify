@@ -171,7 +171,7 @@ class Bands {
     sortVeticalyThenHorizontally(bandsFound.list);
 
     for (final Band band in bandsFound.list) {
-      band.paddVerticallyArtrifactToMatchTheBand();
+      band.padVerticallyArtifactToMatchTheBand();
       band.identifySpacesInBand();
       band.packArtifactLeftToRight();
     }

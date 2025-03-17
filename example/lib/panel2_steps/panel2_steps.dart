@@ -7,6 +7,7 @@ import 'package:textify/artifact.dart';
 import 'package:textify/int_rect.dart';
 import 'package:textify/textify.dart';
 import 'package:textify_dashboard/generate_samples/generate_image.dart';
+import 'package:textify_dashboard/panel1_source/debounce.dart';
 import 'package:textify_dashboard/panel1_source/panel1_content.dart';
 import 'package:textify_dashboard/panel2_steps/display_bands_and_artifacts.dart';
 import 'package:textify_dashboard/panel2_steps/panel2_steps_toolbar.dart';
@@ -50,6 +51,8 @@ class _PanelStepsState extends State<PanelSteps> {
   bool _showRegions = false;
   bool _showHistograms = false;
 
+  Debouncer debouncer = Debouncer(const Duration(milliseconds: 1000));
+
   @override
   void initState() {
     super.initState();
@@ -63,6 +66,9 @@ class _PanelStepsState extends State<PanelSteps> {
         oldWidget.tryToExtractWideArtifacts !=
             widget.tryToExtractWideArtifacts ||
         oldWidget.kernelSizeDilate != widget.kernelSizeDilate) {
+      setState(() {
+        _isReady = false;
+      });
       updateImages();
     }
   }
@@ -171,29 +177,57 @@ class _PanelStepsState extends State<PanelSteps> {
   }
 
   void updateImages() {
-    setState(() {
-      _isReady = false;
-      if (widget.imageSource != null) {
-        imageToBlackOnWhite(widget.imageSource!).then((final ui.Image imageBW) {
-          Artifact.fromImage(imageBW).then((final Artifact binaryImage) {
-            final Artifact dilatedMatrix = dilateMatrix(
-              matrixImage: binaryImage,
-              kernelSize: widget.kernelSizeDilate,
-            );
+    debouncer.run(() {
+      if (!mounted) {
+        return;
+      }
 
-            imageFromMatrix(dilatedMatrix).then((imageDilated) {
-              setState(() {
-                _isReady = true;
-                _regions = findRegions(dilatedMatrixImage: dilatedMatrix);
-                _regionsHistograms =
-                    getHistogramOfRegions(binaryImage, _regions);
-                _imageBW = imageBW;
-                _imageDilated = imageDilated;
-              });
+      if (widget.imageSource == null) {
+        setState(() {
+          _isReady = true;
+          _regions = [];
+          _regionsHistograms = [];
+          _imageBW = null;
+          _imageDilated = null;
+        });
+        return;
+      }
+
+      //
+      // Task 1 - Convert to B&W
+      //
+      imageToBlackOnWhite(widget.imageSource!).then((final ui.Image imageBW) {
+        //
+        // Task 2 - Convert ot Binary Matrix
+        //
+        Artifact.fromImage(imageBW).then((final Artifact binaryImage) {
+          final Artifact dilatedMatrix = dilateMatrix(
+            matrixImage: binaryImage,
+            kernelSize: widget.kernelSizeDilate,
+          );
+
+          //
+          // Task 3 - Dilated
+          //
+          imageFromMatrix(dilatedMatrix).then((imageDilated) {
+            //
+            // Task 4 - Find Regions
+            //
+            _regions = findRegions(dilatedMatrixImage: dilatedMatrix);
+
+            //
+            // Task 5 - Histograms
+            //
+            _regionsHistograms = getHistogramOfRegions(binaryImage, _regions);
+            _imageBW = imageBW;
+            _imageDilated = imageDilated;
+
+            setState(() {
+              _isReady = true;
             });
           });
         });
-      }
+      });
     });
   }
 

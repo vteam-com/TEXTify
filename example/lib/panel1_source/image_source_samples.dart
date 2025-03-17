@@ -126,9 +126,7 @@ class _ImageSourceSamplesState extends State<ImageSourceSamples> {
   }
 
   List<String> getSampleExpectedText(int index) {
-    if (index < 0 && index >= imageFileData.length) {
-      index = 0;
-    }
+    index = index.clamp(0, imageFileData.length - 1);
     if (imageFileData[index].expected.isEmpty) {
       return [];
     } else {
@@ -137,9 +135,7 @@ class _ImageSourceSamplesState extends State<ImageSourceSamples> {
   }
 
   String getSampleAssetName(int index) {
-    if (index < 0 && index >= imageFileData.length) {
-      index = 0;
-    }
+    index = index.clamp(0, imageFileData.length - 1);
     return 'assets/samples/${imageFileData[index].file}';
   }
 

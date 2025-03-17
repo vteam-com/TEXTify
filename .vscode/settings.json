@@ -18,6 +18,7 @@
         "ARGB",
         "binarize",
         "binarized",
+        "debouce",
         "Debouncer",
         "explorable",
         "grayscale",

@@ -416,7 +416,7 @@ class Band {
       );
 
   ///
-  void paddVerticallyArtrifactToMatchTheBand() {
+  void padVerticallyArtifactToMatchTheBand() {
     int bandTop = this.rectangleOriginal.top;
     int bandBottom = this.rectangleOriginal.bottom;
 
@@ -551,7 +551,7 @@ Band rowToBand({
     }
   }
 
-  newBand.paddVerticallyArtrifactToMatchTheBand();
+  newBand.padVerticallyArtifactToMatchTheBand();
 
   newBand.artifacts = mergeConnectedArtifacts(
     artifacts: newBand.artifacts,

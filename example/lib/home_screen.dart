@@ -92,19 +92,22 @@ class _HomeScreenState extends State<HomeScreen> {
                       final String fontName,
                       final bool includeSpaceDetection,
                     ) {
-                      _imageSource = newImage;
-                      centerViewers();
-                      _stringsExpectedToBeFoundInTheImage = expectedText
-                          .where((str) => str.isNotEmpty)
-                          .toList(); // remove empty entries
-                      _fontName = fontName;
+                      setState(() {
+                        _imageSource = newImage;
+                        centerViewers();
+                        _stringsExpectedToBeFoundInTheImage = expectedText
+                            .where((str) => str.isNotEmpty)
+                            .toList(); // remove empty entries
+                        _fontName = fontName;
+                      });
+
                       _debouceStartConvertImageToText();
                     },
                   ),
                 ),
 
                 //
-                // Panel 2 - Input optimized image
+                // Panel 2 - Input Steps
                 //
                 buildExpansionPanel(
                   titleLeft: 'Steps',

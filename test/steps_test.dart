@@ -93,8 +93,9 @@ void main() async {
     test('Using image QuickBrownFox', () async {
       WidgetsFlutterBinding.ensureInitialized();
 
-      final ui.Image image =
-          await loadImageFromAssets('assets/test/the-quick-brown-fox.png');
+      final ui.Image image = await Textify.loadImageFromAssets(
+        'assets/test/the-quick-brown-fox.png',
+      );
 
       // Run test on a image
       await testFromImage(

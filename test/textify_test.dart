@@ -136,7 +136,7 @@ void main() async {
 
   test('Convert image to text', () async {
     final ui.Image uiImage =
-        await loadImageFromAssets('assets/test/input_test_image.png');
+        await Textify.loadImageFromAssets('assets/test/input_test_image.png');
     final String text = await instance.getTextFromImage(image: uiImage);
 
     // the result are not perfect 90% accuracy, but its trending in the right direction

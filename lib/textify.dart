@@ -113,77 +113,6 @@ class Textify {
   ///   An [int] representing the number of items in the list.
   int get count => bands.totalArtifacts;
 
-  /// Finds matching character scores for a given artifact.
-  ///
-  /// [artifact] is the artifact to find matches for.
-  /// [supportedCharacters] is an optional string of characters to limit the search to.
-  ///
-  /// Returns:
-  ///   A list of [ScoreMatch] objects sorted by descending score.
-  List<ScoreMatch> getMatchingScoresOfNormalizedMatrix(
-    final Artifact artifact, [
-    final String supportedCharacters = '',
-  ]) {
-    final int numberOfEnclosure = artifact.enclosures;
-    final bool hasVerticalLineOnTheLeftSide = artifact.verticalLineLeft;
-    final bool hasVerticalLineOnTheRightSide = artifact.verticalLineRight;
-    final bool punctuation = artifact.isPunctuation();
-
-    const double percentageNeeded = 0.5;
-    const int totalChecks = 4;
-
-    List<CharacterDefinition> qualifiedTemplates = characterDefinitions
-        .definitions
-        .where((final CharacterDefinition template) {
-      if (supportedCharacters.isNotEmpty &&
-          !supportedCharacters.contains(template.character)) {
-        return false;
-      }
-
-      int matchingChecks = 0;
-      // Enclosures
-      if (numberOfEnclosure == template.enclosures) {
-        matchingChecks++;
-      }
-
-      // Punctuation
-      if (punctuation == template.isPunctuation) {
-        matchingChecks++;
-      }
-
-      // Left Line
-      if (hasVerticalLineOnTheLeftSide == template.lineLeft) {
-        matchingChecks++;
-      }
-
-      // Right Line
-      if (hasVerticalLineOnTheRightSide == template.lineRight) {
-        matchingChecks++;
-      }
-
-      // Calculate match percentage
-      final double matchPercentage = matchingChecks / totalChecks;
-
-      // Include templates that meet or exceed the percentage needed
-      return matchPercentage >= percentageNeeded;
-    }).toList();
-
-    if (qualifiedTemplates.isEmpty) {
-      qualifiedTemplates = characterDefinitions.definitions;
-    }
-
-    final Artifact resizedArtifact =
-        artifact.createNormalizeMatrix(templateWidth, templateHeight);
-
-    // Calculate the final scores
-    final List<ScoreMatch> scores =
-        _getDistanceScores(qualifiedTemplates, resizedArtifact);
-
-    // Sort scores in descending order (higher score is better)
-    scores.sort((a, b) => b.score.compareTo(a.score));
-    return scores;
-  }
-
   /// Extracts text from an image.
   ///
   /// This method converts the input image to black and white, transforms it into a matrix,
@@ -465,25 +394,96 @@ class Textify {
 
     return textFound.trim(); // Trim to remove leading space
   }
-}
 
-/// Loads an image from the specified asset path.
-///
-/// This function asynchronously loads an image from the specified asset path and
-/// returns a [Future] that completes with the loaded [ui.Image] instance.
-///
-/// The function uses [AssetImage] to resolve the image and listens to the
-/// [ImageStream] to get the loaded image.
-///
-/// Example usage:
-///
-/// final image = await loadImage('assets/my_image.png');
-///
-Future<ui.Image> loadImageFromAssets(String assetPath) async {
-  final assetImage = AssetImage(assetPath);
-  final completer = Completer<ui.Image>();
-  assetImage.resolve(ImageConfiguration.empty).addListener(
-        ImageStreamListener((info, _) => completer.complete(info.image)),
-      );
-  return completer.future;
+  /// Finds matching character scores for a given artifact.
+  ///
+  /// [artifact] is the artifact to find matches for.
+  /// [supportedCharacters] is an optional string of characters to limit the search to.
+  ///
+  /// Returns:
+  ///   A list of [ScoreMatch] objects sorted by descending score.
+  List<ScoreMatch> getMatchingScoresOfNormalizedMatrix(
+    final Artifact artifact, [
+    final String supportedCharacters = '',
+  ]) {
+    final int numberOfEnclosure = artifact.enclosures;
+    final bool hasVerticalLineOnTheLeftSide = artifact.verticalLineLeft;
+    final bool hasVerticalLineOnTheRightSide = artifact.verticalLineRight;
+    final bool punctuation = artifact.isPunctuation();
+
+    const double percentageNeeded = 0.5;
+    const int totalChecks = 4;
+
+    List<CharacterDefinition> qualifiedTemplates = characterDefinitions
+        .definitions
+        .where((final CharacterDefinition template) {
+      if (supportedCharacters.isNotEmpty &&
+          !supportedCharacters.contains(template.character)) {
+        return false;
+      }
+
+      int matchingChecks = 0;
+      // Enclosures
+      if (numberOfEnclosure == template.enclosures) {
+        matchingChecks++;
+      }
+
+      // Punctuation
+      if (punctuation == template.isPunctuation) {
+        matchingChecks++;
+      }
+
+      // Left Line
+      if (hasVerticalLineOnTheLeftSide == template.lineLeft) {
+        matchingChecks++;
+      }
+
+      // Right Line
+      if (hasVerticalLineOnTheRightSide == template.lineRight) {
+        matchingChecks++;
+      }
+
+      // Calculate match percentage
+      final double matchPercentage = matchingChecks / totalChecks;
+
+      // Include templates that meet or exceed the percentage needed
+      return matchPercentage >= percentageNeeded;
+    }).toList();
+
+    if (qualifiedTemplates.isEmpty) {
+      qualifiedTemplates = characterDefinitions.definitions;
+    }
+
+    final Artifact resizedArtifact =
+        artifact.createNormalizeMatrix(templateWidth, templateHeight);
+
+    // Calculate the final scores
+    final List<ScoreMatch> scores =
+        _getDistanceScores(qualifiedTemplates, resizedArtifact);
+
+    // Sort scores in descending order (higher score is better)
+    scores.sort((a, b) => b.score.compareTo(a.score));
+    return scores;
+  }
+
+  /// Loads an image from the specified asset path.
+  ///
+  /// This function asynchronously loads an image from the specified asset path and
+  /// returns a [Future] that completes with the loaded [ui.Image] instance.
+  ///
+  /// The function uses [AssetImage] to resolve the image and listens to the
+  /// [ImageStream] to get the loaded image.
+  ///
+  /// Example usage:
+  ///
+  /// final image = await loadImage('assets/my_image.png');
+  ///
+  static Future<ui.Image> loadImageFromAssets(String assetPath) async {
+    final assetImage = AssetImage(assetPath);
+    final completer = Completer<ui.Image>();
+    assetImage.resolve(ImageConfiguration.empty).addListener(
+          ImageStreamListener((info, _) => completer.complete(info.image)),
+        );
+    return completer.future;
+  }
 }

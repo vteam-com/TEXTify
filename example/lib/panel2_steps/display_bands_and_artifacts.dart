@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:textify/band.dart';
+import 'package:textify/int_rect.dart';
 import 'package:textify/textify.dart';
 import 'package:textify_dashboard/widgets/display_artifact.dart';
 import 'package:textify_dashboard/widgets/image_viewer.dart';
@@ -25,12 +26,12 @@ class DisplayBandsAndArtifacts extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    double maxWidth = 0;
-    double maxHeight = 0;
+    int maxWidth = 0;
+    int maxHeight = 0;
 
     for (final Band band in textify.bands.list) {
       if (band.artifacts.isNotEmpty) {
-        late Rect rect;
+        late IntRect rect;
         if (viewAs == ViewAs.characters) {
           rect = band.rectangleAdjusted;
         } else {
@@ -42,7 +43,7 @@ class DisplayBandsAndArtifacts extends StatelessWidget {
     }
 
     return SizedBox(
-      width: maxWidth,
+      width: maxWidth.toDouble(),
       height: maxHeight + 100,
       child: CustomPaint(
         key: Key(textify.processEnd.toString()),
@@ -52,7 +53,7 @@ class DisplayBandsAndArtifacts extends StatelessWidget {
           showRegions: showRegions,
           showHistogram: showHistogram,
         ),
-        size: Size(maxWidth, maxHeight),
+        size: Size(maxWidth.toDouble(), maxHeight.toDouble()),
       ),
     );
   }

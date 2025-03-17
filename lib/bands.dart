@@ -1,8 +1,8 @@
 import 'dart:math';
-import 'dart:ui';
-
 import 'package:textify/artifact.dart';
 import 'package:textify/band.dart';
+import 'package:textify/int_offset.dart';
+import 'package:textify/int_rect.dart';
 
 /// Exports
 export 'package:textify/band.dart';
@@ -64,11 +64,11 @@ class Bands {
         //
         // Step 1 - Calculate vertical center overlap
         //
-        double leftCenter = leftBand.rectangleAdjusted.center.dy;
-        double rightCenter = rightBand.rectangleAdjusted.center.dy;
-        double centerDiff = (leftCenter - rightCenter).abs();
-        double avgHeight = (leftBand.rectangleAdjusted.height +
-                rightBand.rectangleAdjusted.height) /
+        int leftCenter = leftBand.rectangleAdjusted.center.dy;
+        int rightCenter = rightBand.rectangleAdjusted.center.dy;
+        int centerDiff = (leftCenter - rightCenter).abs();
+        int avgHeight = (leftBand.rectangleAdjusted.height +
+                rightBand.rectangleAdjusted.height) ~/
             2;
 
         // Check if bands are horizontally adjacent and vertically aligned
@@ -76,7 +76,7 @@ class Bands {
           //
           // Step 2 - Calculate horizontal distance between bands
           //
-          double horizontalDistance = rightBand.rectangleAdjusted.left -
+          int horizontalDistance = rightBand.rectangleAdjusted.left -
               leftBand.rectangleAdjusted.right;
 
           // Centers are within 30% of average height
@@ -132,12 +132,12 @@ class Bands {
   ///
   static Bands getBandsOfArtifacts(
     Artifact matrixSourceImage,
-    List<Rect> regions,
+    List<IntRect> regions,
   ) {
     Bands bandsFound = Bands();
 
     // Explore each regions/rectangles
-    for (final Rect regionFromDilated in regions) {
+    for (final IntRect regionFromDilated in regions) {
       //
       final Artifact regionMatrixFromImage = Artifact.extractSubGrid(
         matrix: matrixSourceImage,
@@ -161,7 +161,7 @@ class Bands {
     for (final Band band in bandsFound.list) {
       // Start by matching adjusted location to the location found
       band.artifacts.forEach((a) {
-        a.locationAdjusted = Offset(a.locationFound.dx, a.locationFound.dy);
+        a.locationAdjusted = IntOffset(a.locationFound.dx, a.locationFound.dy);
       });
 
       band.sortArtifactsLeftToRight();

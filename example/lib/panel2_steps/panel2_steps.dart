@@ -4,6 +4,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:textify/artifact.dart';
+import 'package:textify/int_rect.dart';
 import 'package:textify/textify.dart';
 import 'package:textify_dashboard/generate_samples/generate_image.dart';
 import 'package:textify_dashboard/panel1_source/panel1_content.dart';
@@ -26,7 +27,7 @@ class PanelSteps extends StatefulWidget {
   });
   final Textify textify;
   final ui.Image? imageSource;
-  final List<Rect> regions;
+  final List<IntRect> regions;
   final bool tryToExtractWideArtifacts;
   final Function(bool) onInnerSplitChanged;
   final int kernelSizeDilate;
@@ -44,7 +45,7 @@ class _PanelStepsState extends State<PanelSteps> {
   ui.Image? _imageBW;
   ui.Image? imageToDisplay;
   ui.Image? _imageDilated;
-  List<Rect> _regions = [];
+  List<IntRect> _regions = [];
   List<List<int>> _regionsHistograms = [];
   bool _showRegions = false;
   bool _showHistograms = false;
@@ -198,11 +199,11 @@ class _PanelStepsState extends State<PanelSteps> {
 
   List<List<int>> getHistogramOfRegions(
     final Artifact binaryImage,
-    List<Rect> regions,
+    List<IntRect> regions,
   ) {
     List<List<int>> regionsHistograms = [];
 
-    for (final Rect region in regions) {
+    for (final IntRect region in regions) {
       regionsHistograms.add(getHistogramOfRegion(binaryImage, region));
     }
     return regionsHistograms;
@@ -230,9 +231,12 @@ class _PanelStepsState extends State<PanelSteps> {
       ..strokeWidth = 2.0;
 
     for (int i = 0; i < _regions.length; i++) {
-      final ui.Rect region = _regions[i];
+      final IntRect region = _regions[i];
       if (_showRegions) {
-        canvas.drawRect(region, (i % 2) == 0 ? paintRed : paintGreen);
+        canvas.drawRect(
+          intRectToRectDouble(region),
+          (i % 2) == 0 ? paintRed : paintGreen,
+        );
       }
 
       // Paint the histogram in the rect space

@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:textify/artifact.dart';
 import 'package:textify/bands.dart';
+import 'package:textify/int_offset.dart';
 
 void main() {
   group('mergeBandsHorizontally', () {
@@ -30,7 +31,7 @@ void main() {
       // BAND 1 LEFT
       final Band band1 = Band();
       final Artifact artifact1 = Artifact();
-      artifact1.setBothLocation(Offset(10, 10));
+      artifact1.setBothLocation(IntOffset(10, 10));
       artifact1.setGrid([
         [true, false, true],
         [true, false, true],
@@ -40,7 +41,7 @@ void main() {
       // BAND 2 RIGHT
       final Band band2 = Band();
       final Artifact artifact2 = Artifact();
-      artifact2.setBothLocation(Offset(14, 10));
+      artifact2.setBothLocation(IntOffset(14, 10));
       artifact2.setGrid([
         [true, false, true],
         [true, false, true],
@@ -61,12 +62,12 @@ void main() {
     test('does not merge bands with large horizontal gap', () {
       final Band band1 = Band();
       final Artifact artifact1 = Artifact();
-      artifact1.setBothLocation(Offset(10, 10));
+      artifact1.setBothLocation(IntOffset(10, 10));
       band1.addArtifact(artifact1);
 
       final Band band2 = Band();
       final Artifact artifact2 = Artifact();
-      artifact2.setBothLocation(Offset(500, 10));
+      artifact2.setBothLocation(IntOffset(500, 10));
       band2.addArtifact(artifact2);
 
       final Bands bands = Bands([band1, band2]);
@@ -80,12 +81,12 @@ void main() {
     test('sorts bands by vertical position first', () {
       final band1 = Band();
       final artifact1 = Artifact();
-      artifact1.setBothLocation(Offset(10, 20));
+      artifact1.setBothLocation(IntOffset(10, 20));
       band1.addArtifact(artifact1);
 
       final band2 = Band();
       final artifact2 = Artifact();
-      artifact2.setBothLocation(Offset(5, 10));
+      artifact2.setBothLocation(IntOffset(5, 10));
       band2.addArtifact(artifact2);
 
       final bands = Bands([band1, band2]);
@@ -98,12 +99,12 @@ void main() {
     test('sorts bands horizontally when at same vertical position', () {
       final band1 = Band();
       final artifact1 = Artifact();
-      artifact1.setBothLocation(Offset(20, 10));
+      artifact1.setBothLocation(IntOffset(20, 10));
       band1.addArtifact(artifact1);
 
       final band2 = Band();
       final artifact2 = Artifact();
-      artifact2.setBothLocation(Offset(10, 10));
+      artifact2.setBothLocation(IntOffset(10, 10));
       band2.addArtifact(artifact2);
 
       final bands = Bands([band1, band2]);
@@ -116,12 +117,12 @@ void main() {
     test('maintains order for bands at exact same position', () {
       final band1 = Band();
       final artifact1 = Artifact();
-      artifact1.setBothLocation(Offset(10, 10));
+      artifact1.setBothLocation(IntOffset(10, 10));
       band1.addArtifact(artifact1);
 
       final band2 = Band();
       final artifact2 = Artifact();
-      artifact2.setBothLocation(Offset(10, 10));
+      artifact2.setBothLocation(IntOffset(10, 10));
       band2.addArtifact(artifact2);
 
       final bands = Bands([band1, band2]);

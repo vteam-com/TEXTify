@@ -4,6 +4,9 @@ import 'dart:math';
 import 'dart:typed_data';
 import 'dart:ui';
 
+import 'package:textify/int_offset.dart';
+import 'package:textify/int_rect.dart';
+
 /// Represents a 2D grid of boolean values, primarily used for image processing
 /// and pattern recognition tasks.
 ///
@@ -177,7 +180,7 @@ class Artifact {
   void mergeArtifact(final Artifact toMerge) {
     assert(this.rows == toMerge.rows);
     // Create a new rectangle that encompasses both artifacts
-    final Rect newRect = Rect.fromLTRB(
+    final IntRect newRect = IntRect.fromLTRB(
       min(
         this.rectFound.left,
         toMerge.rectFound.left,
@@ -305,25 +308,25 @@ class Artifact {
   List<List<bool>> get data => _data;
 
   /// the location of this matrix.
-  Offset locationFound = Offset.zero;
+  IntOffset locationFound = IntOffset();
 
   /// the rectangle location of this matrix.
-  Rect get rectFound => Rect.fromLTWH(
+  IntRect get rectFound => IntRect.fromLTWH(
         locationFound.dx,
         locationFound.dy,
-        cols.toDouble(),
-        rows.toDouble(),
+        cols,
+        rows,
       );
 
   /// the location moved to
-  Offset locationAdjusted = Offset.zero;
+  IntOffset locationAdjusted = IntOffset();
 
   /// the rectangle location of this matrix.
-  Rect get rectAdjusted => Rect.fromLTWH(
+  IntRect get rectAdjusted => IntRect.fromLTWH(
         locationAdjusted.dx,
         locationAdjusted.dy,
-        cols.toDouble(),
-        rows.toDouble(),
+        cols,
+        rows,
       );
 
   /// The number of enclosure found
@@ -339,7 +342,7 @@ class Artifact {
   int get area => cols * rows;
 
   /// rect setting helper
-  void setBothLocation(final Offset location) {
+  void setBothLocation(final IntOffset location) {
     locationFound = location;
     locationAdjusted = location;
   }
@@ -348,8 +351,8 @@ class Artifact {
   ///
   /// Returns the height-to-width ratio of the bounding box containing all true cells.
   double aspectRatioOfContent() {
-    final Size size = _getContentSize();
-    return size.height / size.width; // Aspect ratio
+    final IntRect rect = getContentRect();
+    return rect.height / rect.width; // Aspect ratio
   }
 
   /// Retrieves the value of a cell at the specified coordinates.
@@ -370,7 +373,7 @@ class Artifact {
 
   ///
   bool discardableContent() {
-    return (this.rectFound.size.width * this.rectFound.height) <= 2 ||
+    return (this.rectFound.width * this.rectFound.height) <= 2 ||
         isConsideredLine();
   }
 
@@ -518,10 +521,8 @@ class Artifact {
     int right = 0,
     int bottom = 0,
   }) {
-    this.locationFound =
-        this.locationFound.translate(left.toDouble(), top.toDouble());
-    this.locationAdjusted =
-        this.locationAdjusted.translate(left.toDouble(), top.toDouble());
+    this.locationFound = this.locationFound.translate(left, top);
+    this.locationAdjusted = this.locationAdjusted.translate(left, top);
 
     cropGridVertically(top: top, bottom: bottom);
     // cropGridHorizontally(left: left, right: right);
@@ -760,7 +761,7 @@ class Artifact {
   ///
   /// Parameters:
   /// - [matrix]: The source Matrix from which to extract the sub-grid.
-  /// - [rect]: A Rect object specifying the region to extract. The rectangle's
+  /// - [rect]: A IntRect object specifying the region to extract. The rectangle's
   ///   coordinates are relative to the top-left corner of the binaryImage.
   ///
   /// Returns:
@@ -773,7 +774,7 @@ class Artifact {
   ///   rect will be truncated.
   static Artifact extractSubGrid({
     required final Artifact matrix,
-    required final Rect rect,
+    required final IntRect rect,
   }) {
     final int startX = rect.left.toInt();
     final int startY = rect.top.toInt();
@@ -838,7 +839,7 @@ class Artifact {
       }
 
       // Adjust locationFound based on the original matrix
-      rowArtifact.locationFound = Offset(
+      rowArtifact.locationFound = IntOffset(
         input.locationFound.dx, // Keep the same X position
         input.locationFound.dy +
             startRow, // Adjust the Y position based on the split
@@ -850,27 +851,6 @@ class Artifact {
     return result;
   }
 
-  /// Calculates the size of the content area in the matrix.
-  ///
-  /// This method determines the dimensions of the smallest rectangle that
-  /// encompasses all true cells in the matrix. It uses the `getContentRect`
-  /// method to find the bounding rectangle and then returns its size.
-  ///
-  /// Returns:
-  /// A Size object representing the width and height of the content area.
-  ///
-  /// If the matrix is empty or contains no true cells, it returns a Size
-  /// with zero width and height.
-  ///
-  /// Note:
-  /// - The returned Size uses double values for width and height to be
-  ///   compatible with Flutter's Size class.
-  /// - This method is a convenient way to get the dimensions of the content
-  ///   without needing the full Rect information.
-  Size _getContentSize() {
-    return getContentRect().size;
-  }
-
   /// Calculates the bounding rectangle of the content in the matrix.
   ///
   /// This method finds the smallest rectangle that encompasses all true cells
@@ -878,17 +858,17 @@ class Artifact {
   /// contains actual content.
   ///
   /// Returns:
-  /// A Rect object representing the bounding rectangle of the content.
+  /// A IntRect object representing the bounding rectangle of the content.
   /// The rectangle is defined by its left, top, right, and bottom coordinates.
   ///
   /// If the matrix is empty or contains no true cells, it returns Rect.zero.
   ///
   /// Note:
-  /// - The returned Rect uses double values for coordinates to be compatible
-  ///   with Flutter's Rect class.
+  /// - The returned IntRect uses double values for coordinates to be compatible
+  ///   with Flutter's IntRect class.
   /// - The right and bottom coordinates are exclusive (i.e., they point to
   ///   the cell just after the last true cell in each direction).
-  Rect getContentRect() {
+  IntRect getContentRect() {
     int minX = cols;
     int maxX = -1;
     int minY = rows;
@@ -907,19 +887,19 @@ class Artifact {
 
     // If no content found, return Rect.zero
     if (maxX == -1 || maxY == -1) {
-      return Rect.zero;
+      return IntRect();
     } else {
-      return Rect.fromLTRB(
-        minX.toDouble(),
-        minY.toDouble(),
-        (maxX + 1).toDouble(),
-        (maxY + 1).toDouble(),
+      return IntRect.fromLTRB(
+        minX,
+        minY,
+        (maxX + 1),
+        (maxY + 1),
       );
     }
   }
 
   ///
-  Rect getContentRectAdjusted() {
+  IntRect getContentRectAdjusted() {
     return getContentRect().shift(this.rectAdjusted.topLeft);
   }
 
@@ -1123,15 +1103,15 @@ class Artifact {
   /// smaller (~30%) in height artifacts will be considered punctuation
   bool isPunctuation() {
     // Calculate the height of the content
-    final Size size = _getContentSize();
+    final IntRect rect = getContentRect();
 
     // If there's no content, it's not punctuation
-    if (size == Size.zero) {
+    if (rect.isEmpty) {
       return false;
     }
 
     // Check if the content height is less than 40% of the total height
-    return size.height < (rows * 0.40);
+    return rect.height < (rows * 0.40);
   }
 
   /// Ensure that x & y are in the boundary of the grid
@@ -1319,7 +1299,7 @@ class Artifact {
   }
 
   ///
-  static void sortRectangles(List<Rect> list, {double threshold = 5.0}) {
+  static void sortRectangles(List<IntRect> list, {double threshold = 5.0}) {
     list.sort((a, b) {
       // If the vertical difference is within the threshold, treat them as the same row
       if ((a.center.dy - b.center.dy).abs() <= threshold) {
@@ -1982,9 +1962,9 @@ List<Artifact> findMatrices({required Artifact dilatedMatrixImage}) {
 /// Returns:
 ///   A list of [Rect] objects representing the bounding boxes of the
 ///   identified regions.
-List<Rect> findRegions({required Artifact dilatedMatrixImage}) {
+List<IntRect> findRegions({required Artifact dilatedMatrixImage}) {
   // Clear existing regions
-  List<Rect> regions = [];
+  List<IntRect> regions = [];
 
   // Create a matrix to track visited pixels
   final Artifact visited =
@@ -2083,7 +2063,7 @@ Artifact matrixFromPoints(List<Point<int>> connectedPoints) {
   final int regionHeight = maxY - minY + 1;
 
   final Artifact artifact = Artifact(regionWidth, regionHeight, false);
-  artifact.locationFound = Offset(minX.toDouble(), minY.toDouble());
+  artifact.locationFound = IntOffset(minX, minY);
   artifact.locationAdjusted = artifact.locationFound;
 
   for (final Point<int> point in connectedPoints) {
@@ -2095,7 +2075,7 @@ Artifact matrixFromPoints(List<Point<int>> connectedPoints) {
 }
 
 ///
-Rect rectFromPoints(List<Point<int>> connectedPoints) {
+IntRect rectFromPoints(List<Point<int>> connectedPoints) {
   // Create a new matrix for the isolated region
   final int minX = connectedPoints.map((point) => point.x).reduce(min);
   final int minY = connectedPoints.map((point) => point.y).reduce(min);
@@ -2105,11 +2085,11 @@ Rect rectFromPoints(List<Point<int>> connectedPoints) {
   final int regionWidth = maxX - minX + 1;
   final int regionHeight = maxY - minY + 1;
 
-  final Rect region = Rect.fromLTWH(
-    minX.toDouble(),
-    minY.toDouble(),
-    regionWidth.toDouble(),
-    regionHeight.toDouble(),
+  final IntRect region = IntRect.fromLTWH(
+    minX,
+    minY,
+    regionWidth,
+    regionHeight,
   );
 
   return region;
@@ -2262,7 +2242,7 @@ Future<Image> createImageFromPixels(
 ///
 /// Returns:
 /// A list of integers representing the histogram of the specified region.
-List<int> getHistogramOfRegion(final Artifact binaryImage, Rect region) {
+List<int> getHistogramOfRegion(final Artifact binaryImage, IntRect region) {
   final List<int> histogram = [];
   int col = 0;
   for (int x = region.left.toInt(); x < region.right.toInt(); x++) {
@@ -2389,7 +2369,6 @@ List<int> keepIndexBelowValue(final List<int> histogram, final int maxValue) {
 ///
 void offsetMatrices(final List<Artifact> matrices, final int x, final int y) {
   matrices.forEach(
-    (matrix) => matrix.locationFound =
-        matrix.locationFound.translate(x.toDouble(), y.toDouble()),
+    (matrix) => matrix.locationFound = matrix.locationFound.translate(x, y),
   );
 }

@@ -4,6 +4,7 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:textify/artifact.dart';
+import 'package:textify/int_rect.dart';
 
 Future<ui.Image> generateImageDrawText({
   required final int imageWidth,
@@ -207,4 +208,13 @@ Future<ui.Image> imageFromMatrix(final Artifact matrix) async {
   final ui.FrameInfo frameInfo = await codec.getNextFrame();
 
   return frameInfo.image;
+}
+
+Rect intRectToRectDouble(final IntRect intRect) {
+  return Rect.fromLTWH(
+    intRect.left.toDouble(),
+    intRect.top.toDouble(),
+    intRect.width.toDouble(),
+    intRect.height.toDouble(),
+  );
 }

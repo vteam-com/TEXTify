@@ -2,6 +2,8 @@ import 'dart:math';
 
 import 'package:flutter/widgets.dart';
 import 'package:textify/artifact.dart';
+import 'package:textify/int_offset.dart';
+import 'package:textify/int_rect.dart';
 
 /// Represents a horizontal band (aka strip) in an image/document.
 ///
@@ -24,10 +26,10 @@ class Band {
   }
 
   /// Private fields to store calculated average of space between each artifacts
-  double _averageKerning = -1;
+  int _averageKerning = -1;
 
   /// Private fields to store calculated average of artifact width
-  double _averageWidth = -1;
+  int _averageWidth = -1;
 
   /// Gets the average kerning between adjacent artifacts in the band.
   ///
@@ -35,7 +37,7 @@ class Band {
   ///
   /// Returns:
   /// The average kerning as a double, or -1 if there are fewer than 2 artifacts.
-  double get averageKerning {
+  int get averageKerning {
     if ((_averageKerning == -1 || _averageWidth == -1)) {
       _updateStatistics();
     }
@@ -51,7 +53,7 @@ class Band {
   ///
   /// Returns:
   /// The average width as a double, or -1 if there are fewer than 2 artifacts.
-  double get averageWidth {
+  int get averageWidth {
     if ((_averageKerning == -1 || _averageWidth == -1)) {
       _updateStatistics();
     }
@@ -86,12 +88,12 @@ class Band {
       final artifact = artifacts[i];
       totalWidth += artifact.rectAdjusted.width;
 
-      final double kerning =
+      final int kerning =
           artifact.rectAdjusted.left - artifacts[i - 1].rectAdjusted.right;
       totalKerning += kerning;
     }
-    _averageWidth = totalWidth / count;
-    _averageKerning = totalKerning / count;
+    _averageWidth = (totalWidth / count).round();
+    _averageKerning = (totalKerning / count).round();
   }
 
   /// Adds the given artifact to the band.
@@ -196,11 +198,11 @@ class Band {
     int width,
     int height,
   ) {
-    Rect rectLeft = Rect.fromLTWH(
-      left.toDouble(),
-      top.toDouble(),
-      width.toDouble(),
-      height.toDouble(),
+    IntRect rectLeft = IntRect.fromLTWH(
+      left,
+      top,
+      width,
+      height,
     );
     final sub = Artifact.extractSubGrid(matrix: source, rect: rectLeft);
     return Artifact.fromMatrix(sub)..wasParOfSplit = true;
@@ -228,9 +230,9 @@ class Band {
       final Artifact leftArtifact = artifacts[i - 1];
       final Artifact rightArtifact = artifacts[i];
 
-      final double leftEdge = leftArtifact.rectFound.right;
-      final double rightEdge = rightArtifact.rectFound.left;
-      final double gap = rightEdge - leftEdge;
+      final int leftEdge = leftArtifact.rectFound.right;
+      final int rightEdge = rightArtifact.rectFound.left;
+      final int gap = rightEdge - leftEdge;
 
       if (gap >= spaceThreshold) {
         const int borderWidth = 2;
@@ -242,7 +244,7 @@ class Band {
             insertAtIndex: i,
             cols: spaceWidth,
             rows: rectangleOriginal.height.toInt(),
-            locationFoundAt: Offset(
+            locationFoundAt: IntOffset(
               leftArtifact.rectFound.right + 2,
               leftArtifact.rectFound.top,
             ),
@@ -273,7 +275,7 @@ class Band {
     required final int insertAtIndex,
     required final int cols,
     required final int rows,
-    required final Offset locationFoundAt,
+    required final IntOffset locationFoundAt,
   }) {
     final Artifact artifactSpace =
         Artifact.fromMatrix(Artifact(cols, rows, false));
@@ -288,14 +290,14 @@ class Band {
       return;
     }
 
-    Rect boundingBox = Rect.fromCenter(
+    IntRect boundingBox = IntRect.fromCenter(
       center: this.rectangleAdjusted.center,
       width: 0,
       height: 0,
     );
 
     for (final Artifact artifact in artifacts) {
-      Rect rectOfContent = artifact.getContentRectAdjusted();
+      IntRect rectOfContent = artifact.getContentRectAdjusted();
       boundingBox = boundingBox.expandToInclude(rectOfContent);
     }
 
@@ -325,11 +327,11 @@ class Band {
   /// This method modifies the positions of all artifacts in the band to create
   /// a left-aligned, properly spaced arrangement.
   void packArtifactLeftToRight() {
-    double left = this.rectangleOriginal.left;
-    double top = artifacts.first.locationFound.dy;
+    int left = this.rectangleOriginal.left;
+    int top = artifacts.first.locationFound.dy;
 
     for (final Artifact artifact in artifacts) {
-      artifact.locationAdjusted = Offset(left, top);
+      artifact.locationAdjusted = IntOffset(left, top);
 
       left += artifact.rectAdjusted.width;
       left += kerningWidth;
@@ -347,7 +349,7 @@ class Band {
   /// Note: If the object's dimensions or position can change, this cached
   /// value may become outdated. In such cases, consider adding a method
   /// to invalidate the cache when necessary.
-  Rect get rectangleOriginal {
+  IntRect get rectangleOriginal {
     return getBoundingBox(this.artifacts, useAdjustedRect: false);
   }
 
@@ -362,7 +364,7 @@ class Band {
   /// Note: If the object's dimensions or position can change, this cached
   /// value may become outdated. In such cases, consider adding a method
   /// to invalidate the cache when necessary.
-  Rect get rectangleAdjusted {
+  IntRect get rectangleAdjusted {
     return getBoundingBox(this.artifacts, useAdjustedRect: true);
   }
 
@@ -376,21 +378,21 @@ class Band {
   ///
   /// Returns:
   ///   A [Rect] representing the bounding box of the provided artifacts.
-  static Rect getBoundingBox(
+  static IntRect getBoundingBox(
     final List<Artifact> artifacts, {
     bool useAdjustedRect = true,
   }) {
     if (artifacts.isEmpty) {
-      return Rect.zero;
+      return IntRect();
     }
 
-    double minX = double.infinity;
-    double minY = double.infinity;
-    double maxX = double.negativeInfinity;
-    double maxY = double.negativeInfinity;
+    int minX = artifacts.first.rectFound.left;
+    int minY = artifacts.first.rectFound.top;
+    int maxX = artifacts.first.rectFound.right;
+    int maxY = artifacts.first.rectFound.bottom;
 
     for (final Artifact artifact in artifacts) {
-      final Rect rect =
+      final IntRect rect =
           useAdjustedRect ? artifact.rectAdjusted : artifact.rectFound;
       minX = min(minX, rect.left);
       minY = min(minY, rect.top);
@@ -398,7 +400,7 @@ class Band {
       maxY = max(maxY, rect.bottom);
     }
 
-    return Rect.fromLTRB(minX, minY, maxX, maxY);
+    return IntRect.fromLTRB(minX, minY, maxX, maxY);
   }
 
   /// Returns the count of space characters in the artifacts.
@@ -416,8 +418,8 @@ class Band {
 
   ///
   void paddVerticallyArtrifactToMatchTheBand() {
-    double bandTop = this.rectangleOriginal.top;
-    double bandBottom = this.rectangleOriginal.bottom;
+    int bandTop = this.rectangleOriginal.top;
+    int bandBottom = this.rectangleOriginal.bottom;
 
     for (final Artifact artifact in artifacts) {
       // Calculate how many rows to pad at the top
@@ -436,7 +438,7 @@ class Band {
         );
 
         // adjust the location found to be the same as the top of the band
-        artifact.locationFound = Offset(artifact.locationFound.dx, bandTop);
+        artifact.locationFound = IntOffset(artifact.locationFound.dx, bandTop);
       }
     }
   }
@@ -497,8 +499,8 @@ List<Artifact> mergeConnectedArtifacts({
 /// Returns:
 ///   true if the artifacts are considered connected, false otherwise.
 bool areArtifactsConnected(
-  final Rect rect1,
-  final Rect rect2,
+  final IntRect rect1,
+  final IntRect rect2,
   final double verticalThreshold,
   final double horizontalThreshold,
 ) {
@@ -521,7 +523,7 @@ bool areArtifactsConnected(
 ///
 Band rowToBand({
   required final Artifact regionMatrix,
-  required final Offset offset,
+  required final IntOffset offset,
 }) {
   //
   // Find the Matrices in the Region
@@ -530,7 +532,7 @@ Band rowToBand({
       findMatrices(dilatedMatrixImage: regionMatrix);
 
   //
-  // Offset their locations found
+  // IntOffset their locations found
   //
   offsetMatrices(
     matrixOfPossibleCharacters,

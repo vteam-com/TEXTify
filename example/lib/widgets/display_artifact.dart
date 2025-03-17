@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:textify/artifact.dart';
 import 'package:textify/band.dart';
+import 'package:textify/int_rect.dart';
 import 'package:textify/textify.dart';
+import 'package:textify_dashboard/generate_samples/generate_image.dart';
 import 'package:textify_dashboard/widgets/image_viewer.dart';
 import 'package:textify_dashboard/widgets/paint_grid.dart';
 
@@ -63,7 +65,7 @@ class PaintArtifacts extends CustomPainter {
   /// - [borderWidth]: The width of the border. Defaults to 2.0.
   void _drawRectangle(
     final Canvas canvas,
-    final Rect bandRect,
+    final IntRect bandRect,
     final Color backgroundColor,
     final Color borderColor, {
     final double borderWidth = 1.0,
@@ -72,7 +74,7 @@ class PaintArtifacts extends CustomPainter {
     final Paint fillPaint = Paint();
     fillPaint.color = backgroundColor;
     fillPaint.isAntiAlias = false;
-    canvas.drawRect(bandRect, fillPaint);
+    canvas.drawRect(intRectToRectDouble(bandRect), fillPaint);
 
     // Draw the border
     final Paint borderPaint = Paint();
@@ -80,13 +82,13 @@ class PaintArtifacts extends CustomPainter {
     borderPaint.style = PaintingStyle.stroke;
     borderPaint.strokeWidth = borderWidth;
     borderPaint.isAntiAlias = false;
-    canvas.drawRect(bandRect, borderPaint);
+    canvas.drawRect(intRectToRectDouble(bandRect), borderPaint);
   }
 
   void _drawText(
     Canvas canvas,
-    double x,
-    double y,
+    int x,
+    int y,
     String text, [
     double fontSize = 10,
     TextAlign textAlign = TextAlign.left,
@@ -107,7 +109,7 @@ class PaintArtifacts extends CustomPainter {
     textPainter.layout();
     textPainter.paint(
       canvas,
-      Offset(x, y),
+      Offset(x.toDouble(), y.toDouble()),
     );
   }
 
@@ -201,7 +203,7 @@ class PaintArtifacts extends CustomPainter {
   void _paintBand({
     required final Canvas canvas,
     required String title,
-    required Rect rect,
+    required IntRect rect,
     required final Color backgroundColor,
   }) {
     // main region in blue

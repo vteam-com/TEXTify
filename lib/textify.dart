@@ -5,6 +5,7 @@ import 'package:textify/artifact.dart';
 import 'package:textify/bands.dart';
 import 'package:textify/character_definitions.dart';
 import 'package:textify/correction.dart';
+import 'package:textify/int_rect.dart';
 import 'package:textify/score_match.dart';
 
 /// Textify is a class designed to extract text from clean digital images.
@@ -17,7 +18,7 @@ class Textify {
   final CharacterDefinitions characterDefinitions = CharacterDefinitions();
 
   /// identified regions on the image
-  List<Rect> regionsFromDilated = [];
+  List<IntRect> regionsFromDilated = [];
 
   /// List of text bands identified in the image.
   Bands bands = Bands();

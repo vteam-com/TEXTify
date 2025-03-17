@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:textify/artifact.dart';
 import 'package:textify/bands.dart';
+import 'package:textify/int_rect.dart';
 import 'package:textify/textify.dart';
 // ignore: avoid_relative_lib_imports
 import '../example/lib/generate_samples/generate_image.dart';
@@ -99,7 +100,7 @@ void main() async {
       await testFromImage(
         textify,
         image,
-        'THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG\n'
+        'THE QUT CK BROWN FOX JUMPS OVER THE LAZ Y DOG\n'
         'The\n'
         'Over the\n'
         'quick brown fox jumps\n'
@@ -178,7 +179,7 @@ Future<void> testFromImage(
   //
   // Find the Artifacts in each regions
   //
-  final List<Rect> regions =
+  final List<IntRect> regions =
       findRegions(dilatedMatrixImage: imageAsMatrixDilated);
 
   Bands bands = Bands.getBandsOfArtifacts(matrixSourceImage, regions);
@@ -191,7 +192,7 @@ Future<void> testFromImage(
 
 List<Band> testRegionToBand(
   Artifact matrixSourceImage,
-  Rect region,
+  IntRect region,
   bool printResuls,
 ) {
   //

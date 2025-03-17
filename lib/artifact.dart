@@ -224,7 +224,7 @@ class Artifact {
   /// A string representation ths artifact.
   @override
   String toString() {
-    return '"$characterMatched" left:${locationFound.dx} top:${locationFound.dy} CW:${rectFound.width} CH:${rectFound.height} isEmpty:$isEmpty E:$enclosures LL:$verticalLineLeft LR:$verticalLineRight';
+    return '"$characterMatched" left:${locationFound.x} top:${locationFound.y} CW:${rectFound.width} CH:${rectFound.height} isEmpty:$isEmpty E:$enclosures LL:$verticalLineLeft LR:$verticalLineRight';
   }
 
   /// Creates a new Matrix by taking the vertical projection of the source Matrix.
@@ -310,8 +310,8 @@ class Artifact {
 
   /// the rectangle location of this matrix.
   IntRect get rectFound => IntRect.fromLTWH(
-        locationFound.dx,
-        locationFound.dy,
+        locationFound.x,
+        locationFound.y,
         cols,
         rows,
       );
@@ -321,8 +321,8 @@ class Artifact {
 
   /// the rectangle location of this matrix.
   IntRect get rectAdjusted => IntRect.fromLTWH(
-        locationAdjusted.dx,
-        locationAdjusted.dy,
+        locationAdjusted.x,
+        locationAdjusted.y,
         cols,
         rows,
       );
@@ -838,8 +838,8 @@ class Artifact {
 
       // Adjust locationFound based on the original matrix
       rowArtifact.locationFound = IntOffset(
-        input.locationFound.dx, // Keep the same X position
-        input.locationFound.dy +
+        input.locationFound.x, // Keep the same X position
+        input.locationFound.y +
             startRow, // Adjust the Y position based on the split
       );
 
@@ -1300,11 +1300,11 @@ class Artifact {
   static void sortRectangles(List<IntRect> list, {double threshold = 5.0}) {
     list.sort((a, b) {
       // If the vertical difference is within the threshold, treat them as the same row
-      if ((a.center.dy - b.center.dy).abs() <= threshold) {
-        return a.center.dx
-            .compareTo(b.center.dx); // Sort by X-axis if on the same line
+      if ((a.center.y - b.center.y).abs() <= threshold) {
+        return a.center.x
+            .compareTo(b.center.x); // Sort by X-axis if on the same line
       }
-      return a.center.dy.compareTo(b.center.dy); // Otherwise, sort by Y-axis
+      return a.center.y.compareTo(b.center.y); // Otherwise, sort by Y-axis
     });
   }
 

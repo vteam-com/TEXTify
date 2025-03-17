@@ -63,8 +63,8 @@ class Bands {
         //
         // Step 1 - Calculate vertical center overlap
         //
-        int leftCenter = leftBand.rectangleAdjusted.center.dy;
-        int rightCenter = rightBand.rectangleAdjusted.center.dy;
+        int leftCenter = leftBand.rectangleAdjusted.center.y;
+        int rightCenter = rightBand.rectangleAdjusted.center.y;
         int centerDiff = (leftCenter - rightCenter).abs();
         int avgHeight = (leftBand.rectangleAdjusted.height +
                 rightBand.rectangleAdjusted.height) ~/
@@ -118,13 +118,12 @@ class Bands {
   ///
   void sortTopLeftToBottomRight() {
     list.sort(
-      (a, b) => (a.rectangleOriginal.center.dy
-                  .compareTo(b.rectangleOriginal.center.dy) !=
+      (a, b) => (a.rectangleOriginal.center.y
+                  .compareTo(b.rectangleOriginal.center.y) !=
               0)
-          ? a.rectangleOriginal.center.dy
-              .compareTo(b.rectangleOriginal.center.dy)
-          : a.rectangleOriginal.center.dx
-              .compareTo(b.rectangleOriginal.center.dx),
+          ? a.rectangleOriginal.center.y.compareTo(b.rectangleOriginal.center.y)
+          : a.rectangleOriginal.center.x
+              .compareTo(b.rectangleOriginal.center.x),
     );
   }
 
@@ -160,7 +159,7 @@ class Bands {
     for (final Band band in bandsFound.list) {
       // Start by matching adjusted location to the location found
       band.artifacts.forEach((a) {
-        a.locationAdjusted = IntOffset(a.locationFound.dx, a.locationFound.dy);
+        a.locationAdjusted = IntOffset(a.locationFound.x, a.locationFound.y);
       });
 
       band.sortArtifactsLeftToRight();
@@ -186,15 +185,14 @@ class Bands {
   }) {
     list.sort((a, b) {
       // If the vertical difference is within the threshold, treat them as the same row
-      if ((a.rectangleOriginal.center.dy - b.rectangleOriginal.center.dy)
-              .abs() <=
+      if ((a.rectangleOriginal.center.y - b.rectangleOriginal.center.y).abs() <=
           threshold) {
-        return a.rectangleOriginal.center.dx.compareTo(
-          b.rectangleOriginal.center.dx,
+        return a.rectangleOriginal.center.x.compareTo(
+          b.rectangleOriginal.center.x,
         ); // Sort by X-axis if on the same line
       }
-      return a.rectangleOriginal.center.dy.compareTo(
-        b.rectangleOriginal.center.dy,
+      return a.rectangleOriginal.center.y.compareTo(
+        b.rectangleOriginal.center.y,
       ); // Otherwise, sort by Y-axis
     });
   }

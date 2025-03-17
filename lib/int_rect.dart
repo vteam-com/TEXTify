@@ -54,8 +54,8 @@ class IntRect {
     required final int height,
   }) {
     return IntRect(
-      center.dx - width ~/ 2,
-      center.dy - height ~/ 2,
+      center.x - width ~/ 2,
+      center.y - height ~/ 2,
       width,
       height,
     );
@@ -135,7 +135,7 @@ class IntRect {
   /// [dy] The amount to shift in the y direction.
   /// Returns a new [IntRect] with shifted coordinates.
   IntRect shift(final IntOffset offset) {
-    return IntRect(left + offset.dx, top + offset.dy, width, height);
+    return IntRect(left + offset.x, top + offset.y, width, height);
   }
 
   ///

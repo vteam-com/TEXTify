@@ -143,8 +143,8 @@ class PaintArtifacts extends CustomPainter {
 
       _drawText(
         canvas,
-        artifact.rectAdjusted.topCenter.dx - 2,
-        artifact.rectAdjusted.topCenter.dy - 4,
+        artifact.rectAdjusted.topCenter.x - 2,
+        artifact.rectAdjusted.topCenter.y - 4,
         id.toString(),
         8,
         TextAlign.center,
@@ -152,8 +152,8 @@ class PaintArtifacts extends CustomPainter {
 
       _drawText(
         canvas,
-        artifact.rectAdjusted.bottomCenter.dx - 2,
-        artifact.rectAdjusted.bottomCenter.dy - 4,
+        artifact.rectAdjusted.bottomCenter.x - 2,
+        artifact.rectAdjusted.bottomCenter.y - 4,
         artifact.characterMatched,
         8,
         TextAlign.center,

@@ -37,7 +37,7 @@
           </tr>
           <tr>
             <td class="headerItem">Test Date:</td>
-            <td class="headerValue">2025-03-17 09:32:49</td>
+            <td class="headerValue">2025-03-17 09:40:15</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntryHi">-</td>
@@ -116,8 +116,8 @@
 <span id="L54"><span class="lineNum">      54</span>              :     required final int height,</span>
 <span id="L55"><span class="lineNum">      55</span>              :   }) {</span>
 <span id="L56"><span class="lineNum">      56</span> <span class="tlaGNC">           1 :     return IntRect(</span></span>
-<span id="L57"><span class="lineNum">      57</span> <span class="tlaGNC">           3 :       center.dx - width ~/ 2,</span></span>
-<span id="L58"><span class="lineNum">      58</span> <span class="tlaGNC">           3 :       center.dy - height ~/ 2,</span></span>
+<span id="L57"><span class="lineNum">      57</span> <span class="tlaGNC">           3 :       center.x - width ~/ 2,</span></span>
+<span id="L58"><span class="lineNum">      58</span> <span class="tlaGNC">           3 :       center.y - height ~/ 2,</span></span>
 <span id="L59"><span class="lineNum">      59</span>              :       width,</span>
 <span id="L60"><span class="lineNum">      60</span>              :       height,</span>
 <span id="L61"><span class="lineNum">      61</span>              :     );</span>
@@ -197,7 +197,7 @@
 <span id="L135"><span class="lineNum">     135</span>              :   /// [dy] The amount to shift in the y direction.</span>
 <span id="L136"><span class="lineNum">     136</span>              :   /// Returns a new [IntRect] with shifted coordinates.</span>
 <span id="L137"><span class="lineNum">     137</span> <span class="tlaGNC">           3 :   IntRect shift(final IntOffset offset) {</span></span>
-<span id="L138"><span class="lineNum">     138</span> <span class="tlaGNC">          27 :     return IntRect(left + offset.dx, top + offset.dy, width, height);</span></span>
+<span id="L138"><span class="lineNum">     138</span> <span class="tlaGNC">          27 :     return IntRect(left + offset.x, top + offset.y, width, height);</span></span>
 <span id="L139"><span class="lineNum">     139</span>              :   }</span>
 <span id="L140"><span class="lineNum">     140</span>              : </span>
 <span id="L141"><span class="lineNum">     141</span>              :   ///</span>

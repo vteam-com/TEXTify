@@ -6,44 +6,44 @@ void main() {
   group('IntOffset', () {
     test('constructor defaults to zero', () {
       final offset = IntOffset();
-      expect(offset.dx, equals(0));
-      expect(offset.dy, equals(0));
+      expect(offset.x, equals(0));
+      expect(offset.y, equals(0));
     });
 
     test('constructor with values', () {
       final offset = IntOffset(2, 3);
-      expect(offset.dx, equals(2));
-      expect(offset.dy, equals(3));
+      expect(offset.x, equals(2));
+      expect(offset.y, equals(3));
     });
 
     test('addition operator', () {
       final offset1 = IntOffset(1, 2);
       final offset2 = IntOffset(3, 4);
       final result = offset1 + offset2;
-      expect(result.dx, equals(4));
-      expect(result.dy, equals(6));
+      expect(result.x, equals(4));
+      expect(result.y, equals(6));
     });
 
     test('subtraction operator', () {
       final offset1 = IntOffset(5, 8);
       final offset2 = IntOffset(2, 3);
       final result = offset1 - offset2;
-      expect(result.dx, equals(3));
-      expect(result.dy, equals(5));
+      expect(result.x, equals(3));
+      expect(result.y, equals(5));
     });
 
     test('multiplication operator', () {
       final offset = IntOffset(2, 3);
       final result = offset * 3;
-      expect(result.dx, equals(6));
-      expect(result.dy, equals(9));
+      expect(result.x, equals(6));
+      expect(result.y, equals(9));
     });
 
     test('division operator', () {
       final offset = IntOffset(6, 9);
       final result = offset ~/ 3;
-      expect(result.dx, equals(2));
-      expect(result.dy, equals(3));
+      expect(result.x, equals(2));
+      expect(result.y, equals(3));
     });
 
     test('equality', () {
@@ -62,8 +62,8 @@ void main() {
     test('translate', () {
       final offset = IntOffset(1, 2);
       final result = offset.translate(3, 4);
-      expect(result.dx, equals(4));
-      expect(result.dy, equals(6));
+      expect(result.x, equals(4));
+      expect(result.y, equals(6));
     });
 
     test('hashcode', () {

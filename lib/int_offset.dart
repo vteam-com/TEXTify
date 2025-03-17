@@ -8,65 +8,63 @@ class IntOffset {
   ///
   /// If no arguments are provided, creates an offset at the origin (0,0).
   ///
-  /// * [dx] - The x-coordinate of the offset (defaults to 0)
-  /// * [dy] - The y-coordinate of the offset (defaults to 0)
-  const IntOffset([this.dx = 0, this.dy = 0]);
+  /// * [x] - The x-coordinate of the offset (defaults to 0)
+  /// * [y] - The y-coordinate of the offset (defaults to 0)
+  const IntOffset([this.x = 0, this.y = 0]);
 
   /// The x-coordinate of the offset.
-  final int dx;
+  final int x;
 
   /// The y-coordinate of the offset.
-  final int dy;
+  final int y;
 
   /// Adds two [IntOffset]s and returns their sum as a new [IntOffset].
   ///
   /// The resulting offset has coordinates that are the sum of the coordinates
   /// of the two operands.
-  IntOffset operator +(IntOffset other) =>
-      IntOffset(dx + other.dx, dy + other.dy);
+  IntOffset operator +(IntOffset other) => IntOffset(x + other.x, y + other.y);
 
   /// Subtracts one [IntOffset] from another and returns their difference.
   ///
   /// The resulting offset has coordinates that are the difference of the
   /// coordinates of the two operands.
-  IntOffset operator -(IntOffset other) =>
-      IntOffset(dx - other.dx, dy - other.dy);
+  IntOffset operator -(IntOffset other) => IntOffset(x - other.x, y - other.y);
 
   /// Multiplies the offset by a scalar value.
   ///
   /// Returns a new [IntOffset] with coordinates multiplied by the given scalar.
-  IntOffset operator *(int scalar) => IntOffset(dx * scalar, dy * scalar);
+  IntOffset operator *(int scalar) => IntOffset(x * scalar, y * scalar);
 
   /// Divides the offset by a scalar value using integer division.
   ///
   /// Returns a new [IntOffset] with coordinates divided by the given scalar
   /// using integer division.
-  IntOffset operator ~/(int scalar) => IntOffset(dx ~/ scalar, dy ~/ scalar);
+  IntOffset operator ~/(int scalar) => IntOffset(x ~/ scalar, y ~/ scalar);
 
   /// Checks if this offset is equal to another object.
   ///
   /// Returns true if the other object is an [IntOffset] with the same coordinates.
   @override
   bool operator ==(Object other) =>
-      other is IntOffset && dx == other.dx && dy == other.dy;
+      other is IntOffset && x == other.x && y == other.y;
 
   /// Generates a hash code for this offset.
   ///
   /// The hash code is based on both x and y coordinates.
   @override
-  int get hashCode => Object.hash(dx, dy);
+  int get hashCode => Object.hash(x, y);
 
   /// Returns a string representation of the offset.
   ///
   /// The format is 'x:{dx value} y:{dy value}'.
   @override
-  String toString() => 'x:$dx y:$dy';
+  String toString() => 'x:$x y:$y';
 
   /// Creates a new [IntOffset] translated by the given amounts.
   ///
-  /// * [dx] - The amount to translate in the x direction
+  /// * [x] - The amount to translate in the x direction
   /// * [dy] - The amount to translate in the y direction
   ///
   /// Returns a new offset with coordinates shifted by the given amounts.
-  IntOffset translate(int dx, int dy) => IntOffset(this.dx + dx, this.dy + dy);
+  IntOffset translate(int dx, int dy) => IntOffset(this.x + dx, this.y + dy);
 }

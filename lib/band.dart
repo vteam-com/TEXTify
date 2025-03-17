@@ -327,7 +327,7 @@ class Band {
   /// a left-aligned, properly spaced arrangement.
   void packArtifactLeftToRight() {
     int left = this.rectangleOriginal.left;
-    int top = artifacts.first.locationFound.dy;
+    int top = artifacts.first.locationFound.y;
 
     for (final Artifact artifact in artifacts) {
       artifact.locationAdjusted = IntOffset(left, top);
@@ -422,11 +422,11 @@ class Band {
 
     for (final Artifact artifact in artifacts) {
       // Calculate how many rows to pad at the top
-      int rowsToPadTop = (artifact.locationFound.dy - bandTop).toInt();
+      int rowsToPadTop = (artifact.locationFound.y - bandTop).toInt();
 
       // Calculate how many rows to pad at the bottom
       int rowsToPadBottom =
-          (bandBottom - (artifact.locationFound.dy + artifact.rows)).toInt();
+          (bandBottom - (artifact.locationFound.y + artifact.rows)).toInt();
 
       // If padding is needed, add empty matrix rows at the top and bottom
       if (rowsToPadTop > 0 || rowsToPadBottom > 0) {
@@ -437,7 +437,7 @@ class Band {
         );
 
         // adjust the location found to be the same as the top of the band
-        artifact.locationFound = IntOffset(artifact.locationFound.dx, bandTop);
+        artifact.locationFound = IntOffset(artifact.locationFound.x, bandTop);
       }
     }
   }
@@ -535,8 +535,8 @@ Band rowToBand({
   //
   offsetMatrices(
     matrixOfPossibleCharacters,
-    offset.dx.toInt(),
-    offset.dy.toInt(),
+    offset.x.toInt(),
+    offset.y.toInt(),
   );
 
   //

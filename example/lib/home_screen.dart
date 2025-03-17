@@ -31,8 +31,6 @@ class _HomeScreenState extends State<HomeScreen> {
   List<String> _stringsExpectedToBeFoundInTheImage = [];
   ViewAs viewAs = ViewAs.characters;
 
-  String _textFound = '';
-
   final TransformationController _transformationController =
       TransformationController();
 
@@ -40,9 +38,10 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
 
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      await _textify.init();
-      _convertImageToText();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _textify.init().then((_) {
+        _debouceStartConvertImageToText();
+      });
     });
     _settings.load();
   }
@@ -50,8 +49,6 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
-
-    final String textFoundSingleString = _textFound.replaceAll('\n', ' ');
 
     return Scaffold(
       backgroundColor: colorScheme.secondaryContainer,
@@ -101,7 +98,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           .where((str) => str.isNotEmpty)
                           .toList(); // remove empty entries
                       _fontName = fontName;
-                      _convertImageToText();
+                      _debouceStartConvertImageToText();
                     },
                   ),
                 ),
@@ -123,11 +120,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       setState(
                         () {
                           _textify.innerSplit = value;
-                          debouncer.run(
-                            () {
-                              _convertImageToText();
-                            },
-                          );
+                          _debouceStartConvertImageToText();
                         },
                       );
                     },
@@ -138,11 +131,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       setState(
                         () {
                           _textify.dilatingSize = max(0, sizeDilate);
-                          debouncer.run(
-                            () {
-                              _convertImageToText();
-                            },
-                          );
+                          _debouceStartConvertImageToText();
                         },
                       );
                     },
@@ -162,7 +151,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 //
                 buildExpansionPanel(
                   titleLeft: 'Results',
-                  titleCenter: getPercentageText(textFoundSingleString),
+                  titleCenter: getPercentageText(_textify.textFound),
                   titleRight: '',
                   isExpanded: _settings.isExpandedResults,
                   content: PanelStep4Results(
@@ -172,7 +161,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     settings: _settings,
                     onSettingsChanged: () {
                       setState(() {
-                        _convertImageToText();
+                        _debouceStartConvertImageToText();
                       });
                     },
                   ),
@@ -196,7 +185,7 @@ class _HomeScreenState extends State<HomeScreen> {
       percentage += ' ';
       percentage += compareStringPercentage(
         _stringsExpectedToBeFoundInTheImage.join(),
-        _textFound.replaceAll('\n', ''),
+        _textify.textFound.replaceAll('\n', ''),
       ).toStringAsFixed(0);
       percentage += '%';
     }
@@ -207,7 +196,7 @@ class _HomeScreenState extends State<HomeScreen> {
     if (mounted) {
       setState(() {
         _textify.applyDictionary = _settings.applyDictionary;
-        _textFound = '';
+        _textify.textFound = '';
       });
     }
   }
@@ -219,19 +208,22 @@ class _HomeScreenState extends State<HomeScreen> {
     return '${imageSource!.width} x ${imageSource!.height}';
   }
 
-  Future<void> _convertImageToText() async {
+  void _debouceStartConvertImageToText() {
     if (_imageSource == null) {
       _clearState();
       return;
     }
 
-    final String theTextFound =
-        await _textify.getTextFromImage(image: _imageSource!);
-
-    if (mounted) {
-      setState(() {
-        _textFound = theTextFound;
-      });
-    }
+    debouncer.run(
+      () {
+        _textify.getTextFromImage(image: _imageSource!).then((_) {
+          if (mounted) {
+            setState(() {
+              // update the ui
+            });
+          }
+        });
+      },
+    );
   }
 }

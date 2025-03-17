@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:ui' as ui;
 import 'package:flutter/widgets.dart';
-import 'package:textify/artifact.dart';
+
 import 'package:textify/bands.dart';
 import 'package:textify/character_definitions.dart';
 import 'package:textify/correction.dart';
@@ -17,59 +17,53 @@ class Textify {
   /// Stores definitions of characters for matching.
   final CharacterDefinitions characterDefinitions = CharacterDefinitions();
 
-  /// identified regions on the image
+  /// Identified regions on the image after dilation processing.
   List<IntRect> regionsFromDilated = [];
 
   /// List of text bands identified in the image.
+  /// Each band represents a horizontal line of text.
   Bands bands = Bands();
 
-  /// The extracted text from the image.
+  /// The extracted text from the image after processing.
   String textFound = '';
 
-  /// Represents the start time of a process or operation.
+  /// Timestamp when the text extraction process begins.
   DateTime processBegin = DateTime.now();
 
-  /// Represents the end time of a process or operation.
+  /// Timestamp when the text extraction process ends.
   DateTime processEnd = DateTime.now();
 
-  /// Calculates the duration, in milliseconds, between the start and end times
-  /// of a process or operation.
+  /// Duration in milliseconds between process start and end.
   ///
-  /// The duration is calculated by subtracting the number of milliseconds since
-  /// the Unix epoch for the start time (`processBegin`) from the number of
-  /// milliseconds since the Unix epoch for the end time (`processedEnd`).
-  ///
-  /// Returns:
-  ///   An integer representing the duration, in milliseconds, between the start
-  ///   and end times of the process or operation.
+  /// Calculates the time taken for text extraction by finding the difference
+  /// between processEnd and processBegin timestamps.
   int get duration =>
       processEnd.millisecondsSinceEpoch - processBegin.millisecondsSinceEpoch;
 
-  /// Ignore horizontal and vertical lines
+  /// Whether to exclude long horizontal and vertical lines from text recognition.
+  /// When true, lines that span a significant portion of the image are ignored.
   bool excludeLongLines = true;
 
-  /// The size of the dilation operation used in the text recognition process.
+  /// Size of the dilation kernel used in preprocessing.
   ///
-  /// This value determines the size of the dilation kernel used to expand the
-  /// detected text artifacts. A larger value can help merge nearby characters
-  /// into a single artifact, but may also merge unrelated artifacts. The
-  /// optimal value depends on the quality and resolution of the input images.
+  /// Controls how much nearby pixels are merged together. Larger values help
+  /// connect broken characters but may merge unrelated elements.
   int dilatingSize = 22;
 
-  /// WHen letters are touching
+  /// Whether to attempt splitting touching characters.
+  /// When true, the system tries to separate characters that are connected.
   bool innerSplit = false;
 
-  /// Whether to apply dictionary-based corrections during text recognition.
+  /// Whether to apply dictionary-based text correction.
   ///
-  /// When set to true, the recognition process will attempt to correct potential
-  /// misidentified characters by comparing them against a dictionary of known words.
-  /// This can improve accuracy but may increase processing time.
+  /// When enabled, recognized text is compared against a dictionary
+  /// to improve accuracy by correcting likely misrecognitions.
   bool applyDictionary = false;
 
-  /// Initializes the Textify instance by loading character definitions.
+  /// Initializes Textify by loading character definitions from assets.
   ///
-  /// [pathToAssetsDefinition] is the path to the JSON file containing character definitions.
-  /// Returns a [Future<bool>] indicating whether the initialization was successful.
+  /// [pathToAssetsDefinition] specifies the JSON file containing character matrices.
+  /// Returns the initialized Textify instance.
   Future<Textify> init({
     final String pathToAssetsDefinition =
         'packages/textify/assets/matrices.json',
@@ -78,66 +72,29 @@ class Textify {
     return this;
   }
 
-  /// Clears all stored data, resetting the Textify instance.
+  /// Resets the Textify instance to its initial state.
+  /// Clears all bands and extracted text.
   void clear() {
     bands.clear();
     textFound = '';
   }
 
-  /// The width of the character template used for recognition.
-  ///
-  /// This getter returns the standard width of the template used to define
-  /// characters in the recognition process. It's derived from the
-  /// [CharacterDefinition] class.
-  ///
-  /// Returns:
-  ///   An [int] representing the width of the character template in pixels.
+  /// Width of the character template used for recognition.
+  /// Standardized width for comparing characters.
   int get templateWidth => CharacterDefinition.templateWidth;
 
-  /// The height of the character template used for recognition.
-  ///
-  /// This getter returns the standard height of the template used to define
-  /// characters in the recognition process. It's derived from the
-  /// [CharacterDefinition] class.
-  ///
-  /// Returns:
-  ///   An [int] representing the height of the character template in pixels.
+  /// Height of the character template used for recognition.
+  /// Standardized height for comparing characters.
   int get templateHeight => CharacterDefinition.templateHeight;
 
-  /// The number of items in the list.
-  ///
-  /// This getter returns the current count of items in the list. It's a
-  /// convenient way to access the length property of the underlying list.
-  ///
-  /// Returns:
-  ///   An [int] representing the number of items in the list.
+  /// Total number of artifacts (potential characters) identified.
   int get count => bands.totalArtifacts;
 
-  /// Extracts text from an image.
+  /// Extracts text from a Flutter Image object.
   ///
-  /// This method converts the input image to black and white, transforms it into a matrix,
-  /// and then uses the [getTextFromMatrix] method to perform the actual text recognition.
-  ///
-  /// Parameters:
-  /// - [image]: A [ui.Image] object representing the image from which to extract text.
-  ///   This parameter is required.
-  /// - [supportedCharacters]: An optional string containing the set of characters
-  ///   to be recognized. If provided, the text extraction will be limited to these
-  ///   characters. Default is an empty string, which means all supported characters
-  ///   will be considered.
-  ///
-  /// Returns:
-  /// A [Future<String>] that resolves to the extracted text from the image.
-  ///
-  /// Throws:
-  /// May throw exceptions related to image processing or text extraction failures.
-  ///
-  /// Usage:
-  /// ```dart
-  /// final ui.Image myImage = // ... obtain image
-  /// final String extractedText = await getTextFromImage(image: myImage);
-  /// print(extractedText);
-  /// ```
+  /// [image] is the source image to process.
+  /// [supportedCharacters] optionally limits recognition to specific characters.
+  /// Returns the extracted text as a string.
   Future<String> getTextFromImage({
     required final ui.Image image,
     final String supportedCharacters = '',
@@ -153,10 +110,10 @@ class Textify {
     );
   }
 
-  /// Extracts text from a binary image.
+  /// Extracts text from a binary matrix representation.
   ///
-  /// [imageAsMatrix] is the binary representation of the image.
-  /// [supportedCharacters] is an optional string of characters to limit the recognition to.
+  /// [imageAsMatrix] is the binary image data.
+  /// [supportedCharacters] optionally limits recognition to specific characters.
   /// Returns the extracted text as a string.
   Future<String> getTextFromMatrix({
     required final Artifact imageAsMatrix,
@@ -167,10 +124,9 @@ class Textify {
       'No character definitions loaded, did you forget to call Init()',
     );
 
-    /// Start
     processBegin = DateTime.now();
 
-    identifyArtifactsAndBandsInBinaryImage(imageAsMatrix);
+    extractBandsAndArtifacts(imageAsMatrix);
 
     String result = await getTextFromArtifacts(
       listOfBands: this.bands.list,
@@ -178,36 +134,19 @@ class Textify {
     );
 
     processEnd = DateTime.now();
-    // End
 
     return result;
   }
 
-  /// Processes a binary image to find, merge, and categorize artifacts.
+  /// Processes image to identify text regions and organize into bands.
   ///
-  /// This method takes a binary image represented as a [Artifact] and performs
-  /// a series of operations to identify and process artifacts within the image.
-  ///
-  /// The process involves three main steps:
-  /// 1. Finding individual artifacts in the image.
-  /// 2. Merging disconnected parts of artifacts that likely belong together.
-  /// 3. Creating bands based on the positions of the merged artifacts.
-  ///
-  /// Parameters:
-  ///   [matrixSourceImage] - A [Artifact] representing the binary image to be processed.
-  ///
-  /// The method does not return a value, but updates internal state to reflect
-  /// the found artifacts and bands.
-  ///
-  /// Note: This method assumes that the input [Artifact] is a valid binary image.
-  /// Behavior may be undefined for non-binary input.
-  void identifyArtifactsAndBandsInBinaryImage(
+  /// [matrixSourceImage] is the binary image to process.
+  /// Updates internal state with found regions and text bands.
+  void extractBandsAndArtifacts(
     final Artifact matrixSourceImage,
   ) {
-    // Clear existing artifacts
     clear();
 
-    // Create a dilated copy of the binary image to merge nearby pixels
     int kernelSize =
         computeKernelSize(matrixSourceImage.cols, matrixSourceImage.rows, 0.02);
     final Artifact dilatedImage = dilateMatrix(
@@ -215,12 +154,8 @@ class Textify {
       kernelSize: kernelSize,
     );
 
-    //
-    // Regions
-    //
     this.regionsFromDilated = findRegions(dilatedMatrixImage: dilatedImage);
 
-    // Explore each regions/rectangles
     this.bands = Bands.getBandsOfArtifacts(
       matrixSourceImage,
       this.regionsFromDilated,
@@ -228,26 +163,11 @@ class Textify {
     );
   }
 
-  /// Determines the most likely character represented by an artifact.
+  /// Identifies the most likely character for a normalized artifact.
   ///
-  /// This method analyzes the given artifact and attempts to match it against
-  /// a set of supported characters, returning the best match.
-  ///
-  /// Parameters:
-  ///   [artifact]: The Artifact object to be analyzed. This typically represents
-  ///               a segment of an image that potentially contains a character.
-  ///   [supportedCharacters]: An optional string containing all the characters
-  ///                          that should be considered in the matching process.
-  ///                          If empty, all possible characters are considered.
-  ///
-  /// Returns:
-  ///   A String containing the best matching character. If no match is found
-  ///   or if the scores list is empty, an empty string is returned.
-  ///
-  /// Note:
-  ///   This method relies on the `getMatchingScores` function to perform the
-  ///   actual character matching and scoring. The implementation of
-  ///   `getMatchingScores` is crucial for the accuracy of this method.
+  /// [artifact] is the normalized character image.
+  /// [supportedCharacters] optionally limits recognition to specific characters.
+  /// Returns the best matching character or empty string if no match.
   String _getCharacterFromArtifactNormalizedMatrix(
     final Artifact artifact, [
     final String supportedCharacters = '',
@@ -258,33 +178,17 @@ class Textify {
     return scores.isNotEmpty ? scores.first.character : '';
   }
 
-  /// Calculates the distance scores between an input matrix and a set of character templates.
+  /// Calculates similarity scores between a matrix and character templates.
   ///
-  /// This method iterates through each character template, calculates the Hamming distance
-  /// percentage between the input matrix and each matrix in the template, and creates a
-  /// [ScoreMatch] object for each comparison. The [ScoreMatch] objects are then sorted in
-  /// descending order by their score.
-  ///
-  /// If there is a tie between the top two [ScoreMatch] objects, a tie-breaker is implemented
-  /// by calculating the average Hamming distance percentage for all matrices in each template
-  /// and swapping the top two [ScoreMatch] objects if the second template has a higher average.
-  ///
-  /// Parameters:
-  ///   [templates]: A list of [CharacterDefinition] objects representing the character templates
-  ///                to compare against.
-  ///   [inputMatrix]: The input matrix to compare against the character templates.
-  ///
-  /// Returns:
-  ///   A list of [ScoreMatch] objects representing the distance scores between the input matrix
-  ///   and the character templates, sorted in descending order by score.
+  /// [templates] are the character definitions to compare against.
+  /// [inputMatrix] is the normalized character image.
+  /// Returns sorted list of match scores, best matches first.
   static List<ScoreMatch> _getDistanceScores(
     List<CharacterDefinition> templates,
     Artifact inputMatrix,
   ) {
     final List<ScoreMatch> scores = [];
-    // Iterate through each template in the map
     for (final CharacterDefinition template in templates) {
-      // Calculate the similarity score and create a ScoreMatch object
       for (int i = 0; i < template.matrices.length; i++) {
         final Artifact artifact = template.matrices[i];
         final ScoreMatch scoreMatch = ScoreMatch(
@@ -295,17 +199,13 @@ class Textify {
             artifact,
           ),
         );
-
-        // Add the ScoreMatch to the scores list
         scores.add(scoreMatch);
       }
     }
 
-    // Sort the scores list in descending order of score 1.0 to 0.0
     scores.sort((a, b) => b.score.compareTo(a.score));
 
     if (scores.length >= 2) {
-      // Implement tie breaker
       if (scores[0].score == scores[1].score) {
         final CharacterDefinition template1 = templates.firstWhere(
           (t) => t.character == scores[0].character,
@@ -323,7 +223,7 @@ class Textify {
             matrix,
           );
         }
-        totalScore1 /= template1.matrices.length; // averaging
+        totalScore1 /= template1.matrices.length;
 
         for (final matrix in template2.matrices) {
           totalScore2 += Artifact.hammingDistancePercentage(
@@ -331,11 +231,9 @@ class Textify {
             matrix,
           );
         }
-
-        totalScore2 /= template2.matrices.length; // averaging
+        totalScore2 /= template2.matrices.length;
 
         if (totalScore2 > totalScore1) {
-          // Swap the first two elements if the second template has a higher total score
           final temp = scores[0];
           scores[0] = scores[1];
           scores[1] = temp;
@@ -346,25 +244,11 @@ class Textify {
     return scores;
   }
 
-  /// Processes the list of artifacts to extract and format the text content.
+  /// Converts identified artifacts into text.
   ///
-  /// This method performs a series of operations to convert visual artifacts
-  /// (likely representing characters or words in an image) into a coherent
-  /// string of text, while attempting to preserve the original layout.
-  ///
-  /// The process involves several phases:
-  /// 1. Grouping artifacts into text rows
-  /// 2. Merging overlapping artifacts
-  /// 3. Adjusting artifacts to match the height of their respective rows
-  /// 4. Sorting artifacts in reading order (left to right, top to bottom)
-  /// 5. Extracting text from each artifact and combining into a single string
-  ///
-  /// The method also handles formatting by adding spaces between different
-  /// rows to maintain the structure of the original text.
-  ///
-  /// Returns:
-  ///   A String containing the extracted text, with attempts made to preserve
-  ///   the original layout through the use of spaces between rows.
+  /// [listOfBands] contains grouped artifacts representing lines of text.
+  /// [supportedCharacters] optionally limits recognition to specific characters.
+  /// Returns extracted text with preserved line breaks.
   Future<String> getTextFromArtifacts({
     required final List<Band> listOfBands,
     final String supportedCharacters = '',
@@ -393,16 +277,14 @@ class Textify {
       this.textFound = applyDictionaryCorrection(this.textFound);
     }
 
-    return textFound.trim(); // Trim to remove leading space
+    return textFound.trim();
   }
 
-  /// Finds matching character scores for a given artifact.
+  /// Calculates character match scores for a normalized artifact.
   ///
-  /// [artifact] is the artifact to find matches for.
-  /// [supportedCharacters] is an optional string of characters to limit the search to.
-  ///
-  /// Returns:
-  ///   A list of [ScoreMatch] objects sorted by descending score.
+  /// [artifact] is the normalized character image.
+  /// [supportedCharacters] optionally limits matching to specific characters.
+  /// Returns sorted list of match scores, best matches first.
   List<ScoreMatch> getMatchingScoresOfNormalizedMatrix(
     final Artifact artifact, [
     final String supportedCharacters = '',
@@ -424,30 +306,20 @@ class Textify {
       }
 
       int matchingChecks = 0;
-      // Enclosures
       if (numberOfEnclosure == template.enclosures) {
         matchingChecks++;
       }
-
-      // Punctuation
       if (punctuation == template.isPunctuation) {
         matchingChecks++;
       }
-
-      // Left Line
       if (hasVerticalLineOnTheLeftSide == template.lineLeft) {
         matchingChecks++;
       }
-
-      // Right Line
       if (hasVerticalLineOnTheRightSide == template.lineRight) {
         matchingChecks++;
       }
 
-      // Calculate match percentage
       final double matchPercentage = matchingChecks / totalChecks;
-
-      // Include templates that meet or exceed the percentage needed
       return matchPercentage >= percentageNeeded;
     }).toList();
 
@@ -458,27 +330,17 @@ class Textify {
     final Artifact resizedArtifact =
         artifact.createNormalizeMatrix(templateWidth, templateHeight);
 
-    // Calculate the final scores
     final List<ScoreMatch> scores =
         _getDistanceScores(qualifiedTemplates, resizedArtifact);
 
-    // Sort scores in descending order (higher score is better)
     scores.sort((a, b) => b.score.compareTo(a.score));
     return scores;
   }
 
-  /// Loads an image from the specified asset path.
+  /// Loads an image from the asset bundle.
   ///
-  /// This function asynchronously loads an image from the specified asset path and
-  /// returns a [Future] that completes with the loaded [ui.Image] instance.
-  ///
-  /// The function uses [AssetImage] to resolve the image and listens to the
-  /// [ImageStream] to get the loaded image.
-  ///
-  /// Example usage:
-  ///
-  /// final image = await loadImage('assets/my_image.png');
-  ///
+  /// [assetPath] is the path to the image asset.
+  /// Returns the loaded image as a ```Future<ui.Image>.```
   static Future<ui.Image> loadImageFromAssets(String assetPath) async {
     final assetImage = AssetImage(assetPath);
     final completer = Completer<ui.Image>();

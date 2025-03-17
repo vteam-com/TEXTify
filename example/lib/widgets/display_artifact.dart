@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:textify/artifact.dart';
 import 'package:textify/band.dart';
 import 'package:textify/int_rect.dart';
 import 'package:textify/textify.dart';

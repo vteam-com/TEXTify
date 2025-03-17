@@ -1,14 +1,18 @@
 import 'dart:math';
-import 'package:textify/artifact.dart';
 import 'package:textify/band.dart';
 import 'package:textify/int_rect.dart';
 
 /// Exports
 export 'package:textify/band.dart';
 
+/// Manages a collection of text bands identified in an image, providing methods for processing, merging, sorting, and extracting text from these bands.
 ///
+/// This class handles the organization of text artifacts into horizontal bands,
+/// with capabilities to merge, remove empty bands, sort, and extract text content.
+/// It supports operations like identifying artifacts, adjusting their locations,
+/// and preparing text bands for further analysis.
 class Bands {
-  ///
+  /// Creates a new Bands instance with an optional initial list of bands.
   Bands([List<Band> bands = const <Band>[]]) {
     list.addAll(bands);
   }
@@ -16,13 +20,16 @@ class Bands {
   /// List of text bands identified in the image.
   final List<Band> list = [];
 
-  ///
+  /// Clears all bands from the collection.
   void clear() => list.clear();
 
-  ///
+  /// Returns the number of bands in the collection.
   int get length => list.length;
 
+  /// Returns the total number of artifacts across all bands, including newline characters.
   ///
+  /// Each band contributes its artifacts count plus one for the newline character,
+  /// except for the last band where the newline is not counted.
   int get totalArtifacts {
     int countCharacters = 0;
 
@@ -35,7 +42,7 @@ class Bands {
     return countCharacters;
   }
 
-  ///
+  /// Adds a new band to the collection.
   void add(final Band band) {
     list.add(band);
   }
@@ -99,7 +106,10 @@ class Bands {
     }
   }
 
-  /// Removes bands that have no artifacts from the given list
+  /// Removes bands that have no artifacts from the collection.
+  ///
+  /// First removes empty artifacts from each band, then removes bands
+  /// that have no remaining artifacts.
   void removeEmptyBands() {
     list.removeWhere((band) {
       band.removeEmptyArtifacts();
@@ -107,7 +117,9 @@ class Bands {
     });
   }
 
+  /// Sorts bands from top to bottom and left to right based on their original positions.
   ///
+  /// Uses the center points of the original rectangles for comparison.
   void sortTopLeftToBottomRight() {
     list.sort(
       (a, b) => (a.rectangleOriginal.center.y
@@ -119,7 +131,21 @@ class Bands {
     );
   }
 
+  /// Processes and transforms a collection of artifacts from source image regions into organized bands.
   ///
+  /// Takes a source image matrix, a list of rectangular regions, and an inner split flag to:
+  /// - Extract artifacts from each region
+  /// - Remove empty bands
+  /// - Adjust artifact locations
+  /// - Sort and merge artifacts and bands
+  /// - Optionally identify suspicious artifacts
+  /// - Pack artifacts within bands
+  ///
+  /// Returns a processed [Bands] collection ready for further analysis.
+  ///
+  /// [matrixSourceImage] The source image matrix to extract artifacts from.
+  /// [regions] List of rectangular regions to process.
+  /// [innerSplit] Flag to enable additional artifact splitting analysis.
   static Bands getBandsOfArtifacts(
     Artifact matrixSourceImage,
     List<IntRect> regions,
@@ -174,7 +200,10 @@ class Bands {
     return bandsFound;
   }
 
+  /// Sorts a list of bands vertically then horizontally with a threshold for vertical alignment.
   ///
+  /// [list] The list of bands to sort.
+  /// [threshold] The vertical threshold (in pixels) within which bands are considered to be on the same line.
   static void sortVerticallyThenHorizontally(
     List<Band> list, {
     double threshold = 5.0,
@@ -193,7 +222,9 @@ class Bands {
     });
   }
 
+  /// Returns the concatenated text content of all bands in the collection.
   ///
+  /// Each band's text is separated by a newline character.
   String getText() {
     String text = '';
     list.forEach(

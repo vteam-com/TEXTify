@@ -280,7 +280,7 @@ class CharacterGenerationBodyState extends State<CharacterGenerationBody> {
     final Artifact imageAsMatrix = await Artifact.fromImage(imageOptimized);
 
     // Find artifacts from the binary image
-    textify.identifyArtifactsAndBandsInBinaryImage(imageAsMatrix);
+    textify.extractBandsAndArtifacts(imageAsMatrix);
 
     // If there is only one band (expected for a single character)
     if (textify.bands.length == 1) {

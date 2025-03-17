@@ -2,10 +2,10 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:textify/artifact.dart';
 import 'package:textify/bands.dart';
 import 'package:textify/int_rect.dart';
 import 'package:textify/textify.dart';
+
 // ignore: avoid_relative_lib_imports
 import '../example/lib/generate_samples/generate_image.dart';
 

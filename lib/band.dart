@@ -4,6 +4,8 @@ import 'package:flutter/widgets.dart';
 import 'package:textify/artifact.dart';
 import 'package:textify/int_rect.dart';
 
+export 'package:textify/artifact.dart';
+
 /// Represents a horizontal band (aka strip) in an image/document.
 ///
 /// A Band contains multiple [Artifact] objects and provides methods for
@@ -59,12 +61,19 @@ class Band {
     return _averageWidth;
   }
 
+  /// Removes all empty artifacts from the band's artifact list.
   ///
+  /// An empty artifact is determined by the [Artifact.isEmpty] property.
+  /// This method modifies the artifacts list in-place, filtering out any artifacts
+  /// that are considered empty.
   void removeEmptyArtifacts() {
     artifacts.removeWhere((artifact) => artifact.isEmpty);
   }
 
+  /// Resets the cached statistics for kerning and width.
   ///
+  /// This method sets the average kerning and average width to their default
+  /// uninitialized state, forcing recalculation when next accessed.
   void clearStats() {
     _averageKerning = -1;
     _averageWidth = -1;
@@ -165,7 +174,13 @@ class Band {
     }
   }
 
+  /// Normalizes a histogram by extracting the middle index of consecutive sequences.
   ///
+  /// Converts a list of potentially scattered indices into a more compact
+  /// representation by selecting the middle index of each consecutive sequence.
+  ///
+  /// Returns a list of normalized indices representing the middle points
+  /// of consecutive index groups in the original histogram.
   List<int> normalizeHistogram(List<int> histogram) {
     List<int> normalized = [];
     List<int> sequence = [];

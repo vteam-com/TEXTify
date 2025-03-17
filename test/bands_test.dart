@@ -1,5 +1,4 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:textify/artifact.dart';
 import 'package:textify/bands.dart';
 import 'package:textify/int_offset.dart';
 

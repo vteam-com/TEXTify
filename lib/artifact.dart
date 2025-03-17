@@ -508,7 +508,15 @@ class Artifact {
     // cropGridHorizontally(left: left, right: right);
   }
 
+  /// Crops the matrix horizontally by removing a specified number of columns from the left and right.
   ///
+  /// This method modifies the matrix in-place by removing columns from the left and right.
+  /// If the matrix is empty or its first row is empty, no action is taken. The number of columns
+  /// to remove is clamped to prevent out-of-range errors.
+  ///
+  /// Parameters:
+  /// - `left`: Number of columns to remove from the left of the matrix. Defaults to 0.
+  /// - `right`: Number of columns to remove from the right of the matrix. Defaults to 0.
   void cropGridHorizontally({int left = 0, int right = 0}) {
     if (_matrix.isEmpty || _matrix.first.isEmpty) {
       return;
@@ -524,7 +532,15 @@ class Artifact {
     }
   }
 
-  /// Crop top and bottom
+  /// Crops the matrix vertically by removing a specified number of rows from the top and bottom.
+  ///
+  /// This method modifies the matrix in-place by removing rows from the top and bottom.
+  /// If the matrix is empty, no action is taken. The number of rows to remove is clamped
+  /// to prevent out-of-range errors.
+  ///
+  /// Parameters:
+  /// - `top`: Number of rows to remove from the top of the matrix. Defaults to 0.
+  /// - `bottom`: Number of rows to remove from the bottom of the matrix. Defaults to 0.
   void cropGridVertically({int top = 0, int bottom = 0}) {
     if (_matrix.isEmpty) {
       return;
@@ -939,6 +955,12 @@ class Artifact {
   }
 
   ///
+  /// Calculates the content rectangle adjusted by the top-left position of the current rectangle.
+  ///
+  /// Returns:
+  /// An IntRect representing the content rectangle shifted to account for the current rectangle's position.
+  ///
+  /// This method is useful for obtaining the content rectangle relative to the adjusted rectangle's coordinate system.
   IntRect getContentRectAdjusted() {
     return getContentRect().shift(this.rectAdjusted.topLeft);
   }

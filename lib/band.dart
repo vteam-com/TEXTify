@@ -234,13 +234,13 @@ class Band {
 
       if (gap >= spaceThreshold) {
         const int borderWidth = 2;
-        final double spaceWidth = gap - (borderWidth * 2);
+        final int spaceWidth = (gap - (borderWidth * 2)).toInt();
         if (spaceWidth > 1) {
           // this space is big enough
           insertArtifactForSpace(
             artifacts: artifacts,
             insertAtIndex: i,
-            cols: spaceWidth.toInt(),
+            cols: spaceWidth,
             rows: rectangleOriginal.height.toInt(),
             locationFoundAt: Offset(
               leftArtifact.rectFound.right + 2,
@@ -299,14 +299,15 @@ class Band {
       boundingBox = boundingBox.expandToInclude(rectOfContent);
     }
 
-    double trimTop = boundingBox.top - this.rectangleAdjusted.top;
+    int trimTop = (boundingBox.top - this.rectangleAdjusted.top).toInt();
 
-    double trimBottom = this.rectangleAdjusted.bottom - boundingBox.bottom;
+    int trimBottom =
+        (this.rectangleAdjusted.bottom - boundingBox.bottom).toInt();
 
     // now that we have the outer most bounding rect of the content
     // we trim the artifacts
     for (final Artifact artifact in artifacts) {
-      artifact.cropBy(top: trimTop.toInt(), bottom: trimBottom.toInt());
+      artifact.cropBy(top: trimTop, bottom: trimBottom);
     }
   }
 

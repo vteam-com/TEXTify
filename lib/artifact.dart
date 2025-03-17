@@ -111,13 +111,13 @@ class Artifact {
   /// [rows] The number of rows in the matrix.
   /// [value] The initial value for all cells (default is false).
   Artifact([
-    final num cols = 0,
-    final num rows = 0,
+    final int cols = 0,
+    final int rows = 0,
     final bool value = false,
   ]) {
     _data = List.generate(
-      rows.toInt(),
-      (_) => List.filled(cols.toInt(), false),
+      rows,
+      (_) => List.filled(cols, false),
     );
   }
 
@@ -197,21 +197,22 @@ class Artifact {
     );
 
     // Merge the grids
-    final Artifact newGrid = Artifact(newRect.width, newRect.height);
+    final Artifact newGrid =
+        Artifact(newRect.width.toInt(), newRect.height.toInt());
 
     // Copy both grids onto the new grid with correct offset
     Artifact.copyGrid(
       this,
       newGrid,
       (this.rectFound.left - newRect.left).toInt(),
-      0, //(this.rectAdjusted.top - newRect.top).toInt(),
+      0,
     );
 
     Artifact.copyGrid(
       toMerge,
       newGrid,
       (toMerge.rectFound.left - newRect.left).toInt(),
-      0, //(toMerge.rectAdjusted.top - newRect.top).toInt(),
+      0,
     );
 
     // Update this matrix with the new grid data
@@ -1948,7 +1949,7 @@ List<Artifact> findMatrices({required Artifact dilatedMatrixImage}) {
       // If pixel is on and not visited, flood fill from this point
       if (!visited.cellGet(x, y) && dilatedMatrixImage.cellGet(x, y)) {
         // Get connected points using flood fill
-        final List<Point> connectedPoints = floodFill(
+        final List<Point<int>> connectedPoints = floodFill(
           dilatedMatrixImage,
           visited,
           x,
@@ -1995,7 +1996,7 @@ List<Rect> findRegions({required Artifact dilatedMatrixImage}) {
       // If pixel is on and not visited, flood fill from this point
       if (!visited.cellGet(x, y) && dilatedMatrixImage.cellGet(x, y)) {
         // Get connected points using flood fill
-        final List<Point> connectedPoints = floodFill(
+        final List<Point<int>> connectedPoints = floodFill(
           dilatedMatrixImage,
           visited,
           x,
@@ -2033,7 +2034,7 @@ List<Rect> findRegions({required Artifact dilatedMatrixImage}) {
 ///
 /// Throws:
 ///   An assertion error if the areas of [binaryPixels] and [visited] are not equal.
-List<Point> floodFill(
+List<Point<int>> floodFill(
   final Artifact binaryPixels,
   final Artifact visited,
   final int startX,
@@ -2041,13 +2042,13 @@ List<Point> floodFill(
 ) {
   assert(binaryPixels.area == visited.area);
 
-  final List<Point> stack = [Point(startX, startY)];
-  final List<Point> connectedPoints = [];
+  final List<Point<int>> stack = [Point(startX, startY)];
+  final List<Point<int>> connectedPoints = [];
 
   while (stack.isNotEmpty) {
-    final Point point = stack.removeLast();
-    final int x = point.x.toInt();
-    final int y = point.y.toInt();
+    final Point<int> point = stack.removeLast();
+    final int x = point.x;
+    final int y = point.y;
 
     if (x < 0 || x >= binaryPixels.cols || y < 0 || y >= binaryPixels.rows) {
       continue;
@@ -2071,12 +2072,12 @@ List<Point> floodFill(
 }
 
 ///
-Artifact matrixFromPoints(List<Point<num>> connectedPoints) {
+Artifact matrixFromPoints(List<Point<int>> connectedPoints) {
   // Create a new matrix for the isolated region
-  final int minX = connectedPoints.map((point) => point.x).reduce(min).toInt();
-  final int minY = connectedPoints.map((point) => point.y).reduce(min).toInt();
-  final int maxX = connectedPoints.map((point) => point.x).reduce(max).toInt();
-  final int maxY = connectedPoints.map((point) => point.y).reduce(max).toInt();
+  final int minX = connectedPoints.map((point) => point.x).reduce(min);
+  final int minY = connectedPoints.map((point) => point.y).reduce(min);
+  final int maxX = connectedPoints.map((point) => point.x).reduce(max);
+  final int maxY = connectedPoints.map((point) => point.y).reduce(max);
 
   final int regionWidth = maxX - minX + 1;
   final int regionHeight = maxY - minY + 1;
@@ -2085,21 +2086,21 @@ Artifact matrixFromPoints(List<Point<num>> connectedPoints) {
   artifact.locationFound = Offset(minX.toDouble(), minY.toDouble());
   artifact.locationAdjusted = artifact.locationFound;
 
-  for (final Point point in connectedPoints) {
-    final int localX = (point.x - minX).toInt();
-    final int localY = (point.y - minY).toInt();
+  for (final Point<int> point in connectedPoints) {
+    final int localX = (point.x - minX);
+    final int localY = (point.y - minY);
     artifact.cellSet(localX, localY, true);
   }
   return artifact;
 }
 
 ///
-Rect rectFromPoints(List<Point<num>> connectedPoints) {
+Rect rectFromPoints(List<Point<int>> connectedPoints) {
   // Create a new matrix for the isolated region
-  final int minX = connectedPoints.map((point) => point.x).reduce(min).toInt();
-  final int minY = connectedPoints.map((point) => point.y).reduce(min).toInt();
-  final int maxX = connectedPoints.map((point) => point.x).reduce(max).toInt();
-  final int maxY = connectedPoints.map((point) => point.y).reduce(max).toInt();
+  final int minX = connectedPoints.map((point) => point.x).reduce(min);
+  final int minY = connectedPoints.map((point) => point.y).reduce(min);
+  final int maxX = connectedPoints.map((point) => point.x).reduce(max);
+  final int maxY = connectedPoints.map((point) => point.y).reduce(max);
 
   final int regionWidth = maxX - minX + 1;
   final int regionHeight = maxY - minY + 1;

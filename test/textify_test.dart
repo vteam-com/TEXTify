@@ -161,15 +161,15 @@ void main() async {
     // the result are not perfect 90% accuracy, but its trending in the right direction
     expect(
       text,
-      'FIND GOLD CAUSE MATOSINHOS\n'
+      'FIND GOLD CAUSE MA\'I\'0SINH0S\n'
       'C0NTINENTE AIM DR, MATOSINHOS\n'
       'www.AMAZ0N. * IS ]AK28IB , LUXEMB0URG\n'
       'REMAPKABLE , BALL\n'
-      'PING0 D0CE MATOSINHOS MATOSINHOS\n'
+      'PING0 D0CE MA\'I\'0SINH0 , MA\'I\'0SINH0S\n'
       'C0NTINENTE AIM DR, MATOSINHOS\n'
-      'PAB PORT DATA , MATOSINHOS\n'
-      'CASE DAS UTILIDADES , GUIMARAES\n'
-      'EUR0L0JA MATOSINHOS , MATOSINHOS\n'
+      'PAB PORT MA\'I\'0 , MATOSINHOS\n'
+      'CASE DAS UTILIDADES , GUHARAES\n'
+      'EUR0L0B MA\'I\'0SINH0S , MA\'I\'0SINH0S\n'
       'CARES SAB0RES B0LI]A0, PORTO\n'
       'TUCA CHA E CAFE, PORTO',
     );

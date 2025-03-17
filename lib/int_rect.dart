@@ -45,7 +45,7 @@ class IntRect {
 
   /// Creates a new [IntRect] from center point, width, and height values.
   ///
-  /// [center] The IntOffet of the center point.
+  /// [center] The IntOffset of the center point.
   /// [width] The width of the rectangle.
   /// [height] The height of the rectangle.
   factory IntRect.fromCenter({
@@ -127,6 +127,21 @@ class IntRect {
         other.right <= left ||
         other.top >= bottom ||
         other.bottom <= top);
+  }
+
+  ///
+  bool intersectHorizontal(final IntRect other) {
+    return !(other.top >= bottom || other.bottom <= top);
+  }
+
+  ///
+  bool intersectVertical(final IntRect other) {
+    if (other.left >= this.right || other.right <= this.left) {
+      // off sides
+      return false;
+    } else {
+      return true;
+    }
   }
 
   /// Creates a new rectangle shifted by the specified amounts.

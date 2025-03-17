@@ -165,47 +165,33 @@ class Artifact {
   ///
   /// Note: This method modifies the current artifact in-place.
   void mergeArtifact(final Artifact toMerge) {
-    assert(this.rows == toMerge.rows);
     // Create a new rectangle that encompasses both artifacts
     final IntRect newRect = IntRect.fromLTRB(
-      min(
-        this.rectFound.left,
-        toMerge.rectFound.left,
-      ),
-      min(
-        this.rectFound.top,
-        toMerge.rectFound.top,
-      ),
-      max(
-        this.rectFound.right,
-        toMerge.rectFound.right,
-      ),
-      max(
-        this.rectFound.bottom,
-        toMerge.rectFound.bottom,
-      ),
+      min(this.rectFound.left, toMerge.rectFound.left),
+      min(this.rectFound.top, toMerge.rectFound.top),
+      max(this.rectFound.right, toMerge.rectFound.right),
+      max(this.rectFound.bottom, toMerge.rectFound.bottom),
     );
 
-    // Merge the grids
-    final Artifact newGrid =
-        Artifact(newRect.width.toInt(), newRect.height.toInt());
+    // Create a new grid that can fit both artifacts
+    final Artifact newGrid = Artifact(newRect.width, newRect.height);
 
-    // Copy both grids onto the new grid with correct offset
+    // Copy both grids onto the new grid with correct offsets
     Artifact.copyGrid(
       this,
       newGrid,
-      (this.rectFound.left - newRect.left).toInt(),
-      0,
+      (this.rectFound.left - newRect.left),
+      (this.rectFound.top - newRect.top),
     );
 
     Artifact.copyGrid(
       toMerge,
       newGrid,
-      (toMerge.rectFound.left - newRect.left).toInt(),
-      0,
+      (toMerge.rectFound.left - newRect.left),
+      (toMerge.rectFound.top - newRect.top),
     );
 
-    // Update this matrix with the new grid data
+    // Update this artifact with the merged data
     this.setGrid(newGrid.matrix);
   }
 

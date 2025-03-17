@@ -174,6 +174,48 @@ class Band {
     }
   }
 
+  ///
+  void mergeConnectedArtifactsInPlace() {
+    this.artifacts = mergeConnectedArtifacts(
+      artifacts: this.artifacts,
+    );
+  }
+
+  /// Merges connected artifacts based on specified thresholds.
+  ///
+  /// This method iterates through the list of artifacts and merges those that are
+  /// considered connected based on vertical and horizontal thresholds.
+  ///
+  /// Parameters:
+  ///   [verticalThreshold]: The maximum vertical distance between artifacts to be considered connected.
+  ///   [horizontalThreshold]: The maximum horizontal distance between artifacts to be considered connected.
+  ///
+  /// Returns:
+  ///   A list of [Artifact] objects after merging connected artifacts.
+  static List<Artifact> mergeConnectedArtifacts({
+    required final List<Artifact> artifacts,
+  }) {
+    final List<Artifact> mergedArtifacts = [];
+
+    for (int i = 0; i < artifacts.length; i++) {
+      final Artifact current = artifacts[i];
+
+      for (int j = i + 1; j < artifacts.length; j++) {
+        final Artifact next = artifacts[j];
+
+        if (areArtifactsOnTheSameColumn(current.rectFound, next.rectFound)) {
+          current.mergeArtifact(next);
+          artifacts.removeAt(j);
+          j--; // Adjust index since we removed an artifact
+        }
+      }
+
+      mergedArtifacts.add(current);
+    }
+
+    return mergedArtifacts;
+  }
+
   /// Normalizes a histogram by extracting the middle index of consecutive sequences.
   ///
   /// Converts a list of potentially scattered indices into a more compact
@@ -527,48 +569,6 @@ class Band {
   }
 }
 
-/// Merges connected artifacts based on specified thresholds.
-///
-/// This method iterates through the list of artifacts and merges those that are
-/// considered connected based on vertical and horizontal thresholds.
-///
-/// Parameters:
-///   [verticalThreshold]: The maximum vertical distance between artifacts to be considered connected.
-///   [horizontalThreshold]: The maximum horizontal distance between artifacts to be considered connected.
-///
-/// Returns:
-///   A list of [Artifact] objects after merging connected artifacts.
-List<Artifact> mergeConnectedArtifacts({
-  required final List<Artifact> artifacts,
-  required final double verticalThreshold,
-  required final double horizontalThreshold,
-}) {
-  final List<Artifact> mergedArtifacts = [];
-
-  for (int i = 0; i < artifacts.length; i++) {
-    final Artifact current = artifacts[i];
-
-    for (int j = i + 1; j < artifacts.length; j++) {
-      final Artifact next = artifacts[j];
-
-      if (areArtifactsConnected(
-        current.rectAdjusted,
-        next.rectAdjusted,
-        verticalThreshold,
-        horizontalThreshold,
-      )) {
-        current.mergeArtifact(next);
-        artifacts.removeAt(j);
-        j--; // Adjust index since we removed an artifact
-      }
-    }
-
-    mergedArtifacts.add(current);
-  }
-
-  return mergedArtifacts;
-}
-
 /// Determines if two artifacts are connected based on their rectangles and thresholds.
 ///
 /// This method checks both horizontal and vertical proximity of the rectangles.
@@ -581,26 +581,15 @@ List<Artifact> mergeConnectedArtifacts({
 ///
 /// Returns:
 ///   true if the artifacts are considered connected, false otherwise.
-bool areArtifactsConnected(
+bool areArtifactsOnTheSameColumn(
   final IntRect rect1,
   final IntRect rect2,
-  final double verticalThreshold,
-  final double horizontalThreshold,
 ) {
-  // Calculate the center X of each rectangle
-  final double centerX1 = (rect1.left + rect1.right) / 2;
-  final double centerX2 = (rect2.left + rect2.right) / 2;
+  if (rect1.intersectVertical(rect2)) {
+    return true;
+  }
 
-  // Check horizontal connection using the center X values
-  final bool horizontallyConnected =
-      (centerX1 - centerX2).abs() <= horizontalThreshold;
-
-  // Check vertical connection as before
-  final bool verticallyConnected =
-      (rect1.bottom + verticalThreshold >= rect2.top &&
-          rect1.top - verticalThreshold <= rect2.bottom);
-
-  return horizontallyConnected && verticallyConnected;
+  return false;
 }
 
 ///
@@ -611,14 +600,15 @@ Band rowToBand({
   //
   // Find the Matrices in the Region
   //
-  final List<Artifact> matrixOfPossibleCharacters =
-      findMatrices(dilatedMatrixImage: regionMatrix);
+  List<Artifact> artifactsFound = findMatrices(
+    dilatedMatrixImage: regionMatrix,
+  );
 
   //
   // IntOffset their locations found
   //
   offsetMatrices(
-    matrixOfPossibleCharacters,
+    artifactsFound,
     offset.x.toInt(),
     offset.y.toInt(),
   );
@@ -627,21 +617,18 @@ Band rowToBand({
   // Band
   //
   final Band newBand = Band();
-  for (final matrixFound in matrixOfPossibleCharacters) {
-    Artifact artifact = Artifact.fromMatrix(matrixFound);
 
+  for (final Artifact artifact in artifactsFound) {
     if (artifact.discardableContent() == false) {
       newBand.addArtifact(artifact);
     }
   }
 
+  // All artifact will have the same grid height
   newBand.padVerticallyArtifactToMatchTheBand();
 
-  newBand.artifacts = mergeConnectedArtifacts(
-    artifacts: newBand.artifacts,
-    verticalThreshold: 20,
-    horizontalThreshold: 4,
-  );
+  // Clean up inner Matrix overlap for example the letter X may have one of the lines not touching the others like so  `/,
+  newBand.mergeConnectedArtifactsInPlace();
 
   newBand.clearStats();
 

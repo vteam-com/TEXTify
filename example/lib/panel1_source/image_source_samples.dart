@@ -45,7 +45,7 @@ class _ImageSourceSamplesState extends State<ImageSourceSamples> {
     ImageData(
       'back-on-white-the_example_text.png',
       // cspell:disable-next-line
-      'THEEXAMPLETEXT',
+      'THE EXAMPLE TEXT',
     ),
     ImageData(
       'classy.png',

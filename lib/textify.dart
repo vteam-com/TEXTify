@@ -57,7 +57,7 @@ class Textify {
   /// Whether to apply dictionary-based text correction.
   ///
   /// When enabled, recognized text is compared against a dictionary
-  /// to improve accuracy by correcting likely misrecognitions.
+  /// to improve accuracy by correcting likely mis-recognitions.
   bool applyDictionary = false;
 
   /// Initializes Textify by loading character definitions from assets.

@@ -154,22 +154,23 @@ void main() async {
       'assets/test/bank_statement_test.png',
     );
     instance.innerSplit = true;
+    instance.applyDictionary = true;
     final String text = await instance.getTextFromImage(image: uiImage);
 
     // the result are not perfect 90% accuracy, but its trending in the right direction
     expect(
       text,
-      'FIN0 G0LF CLUB, MAT0SINH0S\n'
+      'FIND GOLD CAUSE MATOSINHOS\n'
       'C0NTINENTEB0MDR,MAT0SINH0S\n'
       'www.AMAZ0N.*LS]AK28IB, LUXEMB0URG\n'
       'REMAPKABLE,0SL0\n'
       'PING0D0CEMAT0SINH0,MAT0SINH0S\n'
       'C0NTINENTEB0MDR,MAT0SINH0S\n'
       'PABP0RTMAT0,MAT0SINH0S\n'
-      'CASADAS UTILIDADES, Guimaraes\n'
+      'CANADAS UTILIDADES, GUIMARAES\n'
       'EUR0L0JAMAT0SINH0S,MAT0SINH0S\n'
-      'C0RES SAB0RESB0LI]A0, P0RT0\n'
-      'Tuca Cha E Cafe, P0RT0',
+      'CARES SAB0RESB0LI]A0, PORTO\n'
+      'TUCA CHA E CAFE, PORTO',
     );
     // errors here        ^       ^          ^
   });

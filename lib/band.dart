@@ -133,12 +133,12 @@ class Band {
       final List<int> peaksAndValleys =
           artifactToSplit.getHistogramHorizontal();
 
-      final int valleySeperatorValueToSplitOn =
+      final int valleySeparatorValueToSplitOn =
           calculateThreshold(peaksAndValleys);
 
-      // Find the valley where two charactes are touching
+      // Find the valley where two characters are touching
       List<int> columnSeparators =
-          keepIndexBelowValue(peaksAndValleys, valleySeperatorValueToSplitOn);
+          keepIndexBelowValue(peaksAndValleys, valleySeparatorValueToSplitOn);
 
       columnSeparators = normalizeHistogram(columnSeparators);
       if (columnSeparators.isNotEmpty) {

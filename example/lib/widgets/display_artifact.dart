@@ -186,8 +186,8 @@ class PaintArtifacts extends CustomPainter {
       if (artifact.needsInspection) {
         color = Colors.red;
       }
-      if (artifact.wasParOfSplit) {
-        color = Colors.pink;
+      if (artifact.wasPartOfSplit) {
+        color = Colors.lightGreenAccent;
       }
 
       paintMatrix(

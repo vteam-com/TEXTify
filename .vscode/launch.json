@@ -5,7 +5,7 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Dashboard",
+            "name": "Dashboard (debug)",
             "cwd": "example",
             "program": "lib/main_dashboard.dart",
             "request": "launch",

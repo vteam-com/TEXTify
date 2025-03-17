@@ -128,6 +128,66 @@ class Band {
         listToInspect.add(artifact);
       }
     }
+
+    for (final artifactToSplit in listToInspect) {
+      final List<int> peaksAndValleys =
+          artifactToSplit.getHistogramHorizontal();
+
+      final int valleySeperatorValueToSplitOn =
+          calculateThreshold(peaksAndValleys);
+
+      // Find the valley where two charactes are touching
+      List<int> columnSeparators =
+          keepIndexBelowValue(peaksAndValleys, valleySeperatorValueToSplitOn);
+
+      columnSeparators = normalizeHistogram(columnSeparators);
+      if (columnSeparators.isNotEmpty) {
+        // Ensure the first and last rows are included as split points.
+        if (columnSeparators.first != 0) {
+          columnSeparators.insert(0, 0);
+        }
+        if (columnSeparators.last != artifactToSplit.cols) {
+          columnSeparators.add(artifactToSplit.cols);
+        }
+
+        final List<Artifact> artifactsFromColumns =
+            Artifact.splitAsColumns(artifactToSplit, columnSeparators);
+
+        this.replaceOneArtifactWithMore(artifactToSplit, artifactsFromColumns);
+      }
+    }
+  }
+
+  ///
+  List<int> normalizeHistogram(List<int> histogram) {
+    List<int> normalized = [];
+    List<int> sequence = [];
+
+    for (int i = 0; i < histogram.length; i++) {
+      if (sequence.isEmpty) {
+        sequence.add(histogram[i]);
+      } else {
+        // Check if the current value is consecutive to the last value
+        if (histogram[i] == sequence.last + 1) {
+          sequence.add(histogram[i]);
+        } else {
+          // If the sequence ends, find the middle point and add it
+          int middle = sequence[(sequence.length - 1) ~/ 2];
+          normalized.add(middle);
+
+          // Reset sequence for the next consecutive sequence
+          sequence = [histogram[i]];
+        }
+      }
+    }
+
+    // Don't forget to add the last sequence
+    if (sequence.isNotEmpty) {
+      int middle = sequence[(sequence.length - 1) ~/ 2];
+      normalized.add(middle);
+    }
+
+    return normalized;
   }
 
   ///
@@ -204,7 +264,7 @@ class Band {
       height,
     );
     final sub = Artifact.extractSubGrid(matrix: source, rect: rectLeft);
-    return Artifact.fromMatrix(sub)..wasParOfSplit = true;
+    return Artifact.fromMatrix(sub)..wasPartOfSplit = true;
   }
 
   /// Identifies and inserts space artifacts between existing artifacts in the band.

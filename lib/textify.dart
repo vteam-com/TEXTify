@@ -225,6 +225,12 @@ class Textify {
       matrixSourceImage,
       this.regionsFromDilated,
     );
+
+    if (this.innerSplit) {
+      for (final Band band in this.bands.list) {
+        band.identifySuspiciousLargeArtifacts();
+      }
+    }
   }
 
   /// Determines the most likely character represented by an artifact.

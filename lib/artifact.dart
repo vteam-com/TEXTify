@@ -140,7 +140,7 @@ class Artifact {
   bool needsInspection = false;
 
   ///
-  bool wasParOfSplit = false;
+  bool wasPartOfSplit = false;
 
   /// Converts the artifact to a text representation.
   ///
@@ -844,6 +844,66 @@ class Artifact {
       );
 
       result.add(rowArtifact);
+    }
+
+    return result;
+  }
+
+  /// Splits the given matrix into multiple row matrices based on the provided row offsets.
+  ///
+  /// Each row offset in [offsets] marks the start of a new split.
+  /// The function returns a list of [Artifact] objects, where each matrix represents
+  /// a horizontal slice of the original [artifactToSplit] matrix while maintaining its relative position.
+  ///
+  /// Example:
+  /// ```dart
+  /// Matrix input = Matrix(5, 5);
+  /// List<int> rowOffsets = [0, 2, 4]; // Splits at row indices 0, 2, and 4
+  /// List<Matrix> rowMatrices = Matrix.splitAsRows(input, rowOffsets);
+  /// ```
+  ///
+  /// - [artifactToSplit]: The original matrix to split.
+  /// - [offsets]: A list of row indices where splits should occur.
+  /// - Returns: A list of matrices representing the split rows while preserving `locationFound`.
+  static List<Artifact> splitAsColumns(
+    final Artifact artifactToSplit,
+    List<int> offsets,
+  ) {
+    List<Artifact> result = [];
+
+    for (int i = 0; i < offsets.length - 1; i++) {
+      int columnStart = offsets[i];
+      int columnEnd =
+          (i < offsets.length - 1) ? offsets[i + 1] : artifactToSplit.cols;
+
+      // Create a new matrix with the same width but only the selected row range
+      Artifact artifact =
+          Artifact(columnEnd - columnStart, artifactToSplit.rows);
+
+      // Copy the relevant columns from input to rowMatrix
+      for (int x = columnStart; x < columnEnd; x++) {
+        for (int y = 0; y < artifactToSplit.rows; y++) {
+          artifact.cellSet(x - columnStart, y, artifactToSplit.cellGet(x, y));
+        }
+      }
+
+      // Set locationFound based on the original matrix
+      artifact.locationFound = IntOffset(
+        // Adjust the X position based on the split
+        artifactToSplit.locationFound.x + columnStart,
+        // Keep the same X position
+        artifactToSplit.locationFound.y,
+      );
+
+      // Set locationAdjusted
+      artifact.locationAdjusted = IntOffset(
+        // Adjust the X position based on the split
+        artifactToSplit.locationAdjusted.x + columnStart,
+        // Keep the same X position
+        artifactToSplit.locationAdjusted.y,
+      );
+      artifact.wasPartOfSplit = true;
+      result.add(artifact);
     }
 
     return result;

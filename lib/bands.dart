@@ -168,7 +168,7 @@ class Bands {
     bandsFound.mergeBandsHorizontally();
 
     // Pack each Bands
-    sortVeticalyThenHorizontally(bandsFound.list);
+    sortVerticallyThenHorizontally(bandsFound.list);
 
     for (final Band band in bandsFound.list) {
       band.padVerticallyArtifactToMatchTheBand();
@@ -179,7 +179,7 @@ class Bands {
   }
 
   ///
-  static void sortVeticalyThenHorizontally(
+  static void sortVerticallyThenHorizontally(
     List<Band> list, {
     double threshold = 5.0,
   }) {

@@ -32,7 +32,7 @@ class Artifact {
   /// ```
   factory Artifact.fromMatrix(final Artifact value) {
     final Artifact artifact = Artifact();
-    artifact.setGrid(value.matrix);
+    artifact.setGrid(value._matrix);
     artifact.locationFound = value.locationFound;
     artifact.locationAdjusted = value.locationAdjusted;
     return artifact;
@@ -131,6 +131,11 @@ class Artifact {
   ///
   bool wasPartOfSplit = false;
 
+  /// Empty the content
+  void clear() {
+    this._matrix = [];
+  }
+
   /// Converts the artifact to a text representation.
   ///
   /// Parameters:
@@ -192,7 +197,7 @@ class Artifact {
     );
 
     // Update this artifact with the merged data
-    this.setGrid(newGrid.matrix);
+    this.setGrid(newGrid._matrix);
   }
 
   /// Returns:
@@ -285,11 +290,6 @@ class Artifact {
   /// Each outer list represents a row, and each inner list represents a column.
   /// _data[row][column] gives the boolean value at that position.
   List<List<bool>> _matrix = [];
-
-  /// Returns the matrix data as a 2D list of boolean values.
-  /// The outer list represents rows and the inner lists represent columns.
-  /// Each boolean value indicates whether a cell is active (true) or inactive (false).
-  List<List<bool>> get matrix => _matrix;
 
   /// the location of this matrix.
   IntOffset locationFound = IntOffset();
@@ -524,7 +524,7 @@ class Artifact {
   /// - `left`: Number of columns to remove from the left of the matrix. Defaults to 0.
   /// - `right`: Number of columns to remove from the right of the matrix. Defaults to 0.
   void cropGridHorizontally({int left = 0, int right = 0}) {
-    if (_matrix.isEmpty) {
+    if (rows == 0) {
       return;
     }
 
@@ -548,7 +548,7 @@ class Artifact {
   /// - `top`: Number of rows to remove from the top of the matrix. Defaults to 0.
   /// - `bottom`: Number of rows to remove from the bottom of the matrix. Defaults to 0.
   void cropGridVertically({int top = 0, int bottom = 0}) {
-    if (_matrix.isEmpty) {
+    if (rows == 0) {
       return;
     }
 
@@ -1211,14 +1211,9 @@ class Artifact {
   ///   [grid] (```List<List<bool>>```): The 2D list of boolean values representing the grid.
   void setGrid(final List<List<bool>> grid) {
     if (grid.isEmpty) {
-      _matrix = [];
+      this.clear();
       return;
     }
-    // Ensure all rows have the same length
-    assert(
-      _matrix.every((row) => row.length == cols),
-      'All rows in the grid must have the same length',
-    );
 
     final int rows = grid.length;
 

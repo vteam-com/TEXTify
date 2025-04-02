@@ -223,7 +223,7 @@ class Artifact {
     // Step 3: Fill the matrix from the bottom up based on the projection counts
     for (int x = 0; x < width; x++) {
       for (int y = 0; y < histogram[x]; y++) {
-        result._matrix[this.rows - 1 - y][x] = true; // Fill from bottom up
+        result.cellSet(x, this.rows - 1 - y, true);
       }
     }
 
@@ -236,7 +236,6 @@ class Artifact {
   /// in each column of the matrix. The result is a list where each
   /// index corresponds to a column, and the value at that index
   /// represents the count of `true` values in that column.
-  ///
   List<int> getHistogramHorizontal() {
     final List<int> histogram = List.filled(this.cols, 0);
     for (int x = 0; x < this.cols; x++) {
@@ -383,7 +382,9 @@ class Artifact {
     for (int y = 0; y < source.rows; y++) {
       for (int x = 0; x < source.cols; x++) {
         if (y + offsetY < target.rows && x + offsetX < target.cols) {
-          target._matrix[y + offsetY][x + offsetX] |= source._matrix[y][x];
+          if (source.cellGet(x, y)) {
+            target.cellSet(x + offsetX, y + offsetY, true);
+          }
         }
       }
     }
@@ -395,7 +396,6 @@ class Artifact {
   /// in each row of the matrix. The result is a list where each
   /// index corresponds to a row, and the value at that index
   /// represents the count of `true` values in that row.
-  ///
   List<int> getHistogramVertical() {
     final List<int> histogram = List.filled(this.rows, 0);
     for (int y = 0; y < this.rows; y++) {
@@ -421,7 +421,7 @@ class Artifact {
   ///
   /// Note: This method does not modify the original matrix but returns a new one.
   Artifact trim() {
-    if (isEmpty || isEmpty) {
+    if (isEmpty) {
       return Artifact();
     }
     // Find the boundaries of the content
@@ -431,20 +431,40 @@ class Artifact {
     int rightCol = cols - 1;
 
     // Find top row with content
-    while (topRow < rows && !_matrix[topRow].contains(true)) {
+    while (topRow < rows) {
+      bool hasContent = false;
+      for (int x = 0; x < cols; x++) {
+        if (cellGet(x, topRow)) {
+          hasContent = true;
+          break;
+        }
+      }
+      if (hasContent) {
+        break;
+      }
       topRow++;
     }
 
     // Find bottom row with content
-    while (bottomRow > topRow && !_matrix[bottomRow].contains(true)) {
+    while (bottomRow > topRow) {
+      bool hasContent = false;
+      for (int x = 0; x < cols; x++) {
+        if (cellGet(x, bottomRow)) {
+          hasContent = true;
+          break;
+        }
+      }
+      if (hasContent) {
+        break;
+      }
       bottomRow--;
     }
 
     // Find left column with content
     outer:
     while (leftCol < cols) {
-      for (int i = topRow; i <= bottomRow; i++) {
-        if (_matrix[i][leftCol]) {
+      for (int y = topRow; y <= bottomRow; y++) {
+        if (cellGet(leftCol, y)) {
           break outer;
         }
       }
@@ -454,8 +474,8 @@ class Artifact {
     // Find right column with content
     outer:
     while (rightCol > leftCol) {
-      for (int i = topRow; i <= bottomRow; i++) {
-        if (_matrix[i][rightCol]) {
+      for (int y = topRow; y <= bottomRow; y++) {
+        if (cellGet(rightCol, y)) {
           break outer;
         }
       }
@@ -463,12 +483,14 @@ class Artifact {
     }
 
     // Crop the grid
-    return Artifact.fromBoolMatrix(
-      List.generate(
-        bottomRow - topRow + 1,
-        (i) => _matrix[i + topRow].sublist(leftCol, rightCol + 1),
-      ),
-    );
+    final Artifact result =
+        Artifact(rightCol - leftCol + 1, bottomRow - topRow + 1);
+    for (int y = topRow; y <= bottomRow; y++) {
+      for (int x = leftCol; x <= rightCol; x++) {
+        result.cellSet(x - leftCol, y - topRow, cellGet(x, y));
+      }
+    }
+    return result;
   }
 
   /// Creates a new Matrix by cropping the current Matrix to the specified boundaries.
@@ -489,9 +511,7 @@ class Artifact {
   }) {
     this.locationFound = this.locationFound.translate(left, top);
     this.locationAdjusted = this.locationAdjusted.translate(left, top);
-
     cropGridVertically(top: top, bottom: bottom);
-    // cropGridHorizontally(left: left, right: right);
   }
 
   /// Crops the matrix horizontally by removing a specified number of columns from the left and right.
@@ -504,17 +524,17 @@ class Artifact {
   /// - `left`: Number of columns to remove from the left of the matrix. Defaults to 0.
   /// - `right`: Number of columns to remove from the right of the matrix. Defaults to 0.
   void cropGridHorizontally({int left = 0, int right = 0}) {
-    if (_matrix.isEmpty || _matrix.first.isEmpty) {
+    if (_matrix.isEmpty) {
       return;
     }
 
     // Clamp values to avoid out-of-range errors
-    left = left.clamp(0, _matrix.first.length);
-    right = right.clamp(0, _matrix.first.length - left);
+    left = left.clamp(0, cols);
+    right = right.clamp(0, cols - left);
 
     // Replace each row with a new cropped sublist
-    for (int i = 0; i < _matrix.length; i++) {
-      _matrix[i] = _matrix[i].sublist(left, _matrix[i].length - right);
+    for (int y = 0; y < rows; y++) {
+      _matrix[y] = _matrix[y].sublist(left, cols - right);
     }
   }
 
@@ -533,14 +553,14 @@ class Artifact {
     }
 
     // Clamp values to avoid out-of-range errors
-    top = top.clamp(0, _matrix.length);
-    bottom = bottom.clamp(0, _matrix.length - top);
+    top = top.clamp(0, rows);
+    bottom = bottom.clamp(0, rows - top);
 
     // Remove top rows
     _matrix.removeRange(0, top);
 
     // Remove bottom rows
-    _matrix.removeRange(_matrix.length - bottom, _matrix.length);
+    _matrix.removeRange(rows - bottom, rows);
   }
 
   /// Creates a new Matrix with the specified desired width and height, by resizing the current Matrix.
@@ -608,7 +628,7 @@ class Artifact {
           // UpScaling: Use nearest-neighbor interpolation
           final int srcXInt = srcX.floor();
           final int srcYInt = srcY.floor();
-          resizedGrid._matrix[y][x] = _matrix[srcYInt][srcXInt];
+          resizedGrid.cellSet(x, y, cellGet(srcXInt, srcYInt));
         } else {
           // DownScaling: Check for any black pixel in the sub-grid
           final int startX = srcX.floor();
@@ -620,7 +640,7 @@ class Artifact {
 
           for (int sy = startY; sy < endY && sy < rows; sy++) {
             for (int sx = startX; sx < endX && sx < cols; sx++) {
-              if (_matrix[sy][sx]) {
+              if (cellGet(sx, sy)) {
                 hasBlackPixel = true;
                 break;
               }
@@ -629,9 +649,8 @@ class Artifact {
               break;
             }
           }
-
           // Set the resized grid value based on the presence of any black pixel
-          resizedGrid._matrix[y][x] = hasBlackPixel;
+          resizedGrid.cellSet(x, y, hasBlackPixel);
         }
       }
     }
@@ -697,17 +716,12 @@ class Artifact {
     }
 
     // Create a new grid with increased dimensions
-    final Artifact newGrid = Artifact.fromBoolMatrix(
-      List.generate(
-        rows + 2,
-        (r) => List.generate(cols + 2, (c) => false),
-      ),
-    );
+    final Artifact newGrid = Artifact(cols + 2, rows + 2);
 
     // Copy the original grid into the center of the new grid
-    for (int r = 0; r < rows; r++) {
-      for (int c = 0; c < cols; c++) {
-        newGrid._matrix[r + 1][c + 1] = _matrix[r][c];
+    for (int y = 0; y < rows; y++) {
+      for (int x = 0; x < cols; x++) {
+        newGrid.cellSet(x + 1, y + 1, cellGet(x, y));
       }
     }
 
@@ -918,7 +932,7 @@ class Artifact {
 
     for (int y = 0; y < rows; y++) {
       for (int x = 0; x < cols; x++) {
-        if (_matrix[y][x]) {
+        if (cellGet(x, y)) {
           minX = min(minX, x);
           maxX = max(maxX, x);
           minY = min(minY, y);
@@ -992,8 +1006,8 @@ class Artifact {
       String overlappedRow = '';
 
       for (int col = 0; col < width; col++) {
-        final bool cell1 = grid1._matrix[row][col];
-        final bool cell2 = grid2._matrix[row][col];
+        final bool cell1 = grid1.cellGet(col, row);
+        final bool cell2 = grid2.cellGet(col, row);
 
         if (cell1 && cell2) {
           overlappedRow += '=';
@@ -1100,9 +1114,9 @@ class Artifact {
 
     for (int y = 0; y < inputGrid.rows; y++) {
       for (int x = 0; x < inputGrid.cols; x++) {
-        if (inputGrid._matrix[y][x] || templateGrid._matrix[y][x]) {
+        if (inputGrid.cellGet(x, y) || templateGrid.cellGet(x, y)) {
           totalPixels++;
-          if (inputGrid._matrix[y][x] == templateGrid._matrix[y][x]) {
+          if (inputGrid.cellGet(x, y) == templateGrid.cellGet(x, y)) {
             matchingPixels++;
           }
         }
@@ -1136,10 +1150,7 @@ class Artifact {
   /// between line-like structures and other shapes is important.
   bool isConsideredLine() {
     final double ar = aspectRatioOfContent();
-    if (ar < 0.09 || ar > 50) {
-      return true;
-    }
-    return false;
+    return ar < 0.09 || ar > 50;
   }
 
   /// The grid contains one or more True values
@@ -1177,7 +1188,7 @@ class Artifact {
     // Compare each cell
     for (int y = 0; y < a.rows; y++) {
       for (int x = 0; x < a.cols; x++) {
-        if (a._matrix[y][x] != b._matrix[y][x]) {
+        if (a.cellGet(x, y) != b.cellGet(x, y)) {
           return false;
         }
       }
@@ -1199,7 +1210,7 @@ class Artifact {
   /// Parameters:
   ///   [grid] (```List<List<bool>>```): The 2D list of boolean values representing the grid.
   void setGrid(final List<List<bool>> grid) {
-    if (grid.isEmpty || grid[0].isEmpty) {
+    if (grid.isEmpty) {
       _matrix = [];
       return;
     }
@@ -1321,7 +1332,7 @@ class Artifact {
 
     for (int y = 0; y < rows; y++) {
       for (int x = 0; x < cols; x++) {
-        if (!grid._matrix[y][x] && !visited._matrix[y][x]) {
+        if (!grid.cellGet(x, y) && !visited.cellGet(x, y)) {
           int regionSize = _exploreRegion(grid, visited, x, y);
           if (regionSize >= minRegionSize &&
               _isEnclosedRegion(grid, x, y, regionSize)) {
@@ -1384,7 +1395,7 @@ class Artifact {
     int cols = grid.cols;
     Queue<List<int>> queue = Queue();
     queue.add([startX, startY]);
-    visited._matrix[startY][startX] = true;
+    visited.cellSet(startX, startY, true);
     int regionSize = 0;
 
     // Directions for exploring adjacent cells (up, down, left, right)
@@ -1409,10 +1420,10 @@ class Artifact {
             newX < cols &&
             newY >= 0 &&
             newY < rows &&
-            !grid._matrix[newY][newX] &&
-            !visited._matrix[newY][newX]) {
+            !grid.cellGet(newX, newY) &&
+            !visited.cellGet(newX, newY)) {
           queue.add([newX, newY]);
-          visited._matrix[newY][newX] = true;
+          visited.cellSet(newX, newY, true);
         }
       }
     }
@@ -1475,7 +1486,7 @@ class Artifact {
 
         final String key = '$newX,$newY';
         // If the cell is explorable and not visited, add it to the queue
-        if (!grid._matrix[newY][newX] && !visited.contains(key)) {
+        if (!grid.cellGet(newX, newY) && !visited.contains(key)) {
           queue.add([newX, newY]);
           visited.add(key);
         }
@@ -1524,7 +1535,7 @@ class Artifact {
     for (int x = 0; x < matrix.cols; x++) {
       for (int y = 0; y < matrix.rows; y++) {
         // If the current cell is filled and not visited
-        if (matrix._matrix[y][x] && !visited._matrix[y][x]) {
+        if (matrix.cellGet(x, y) && !visited.cellGet(x, y)) {
           // Check if a valid vertical line exists starting from this cell
           if (_isValidVerticalLineLeft(
             minVerticalLine,
@@ -1572,7 +1583,7 @@ class Artifact {
     for (int x = matrix.cols - 1; x >= 0; x--) {
       for (int y = 0; y < matrix.rows; y++) {
         // If the current cell is filled and not visited
-        if (matrix._matrix[y][x] && !visited._matrix[y][x]) {
+        if (matrix.cellGet(x, y) && !visited.cellGet(x, y)) {
           // Check if a valid vertical line exists starting from this cell
           if (_isValidVerticalLineRight(
             minVerticalLine,
@@ -1619,8 +1630,8 @@ class Artifact {
     int lineLength = 0;
 
     // Ensure no filled pixels on the immediate left side at any point
-    while (y < rows && matrix._matrix[y][x]) {
-      visited._matrix[y][x] = true;
+    while (y < rows && matrix.cellGet(x, y)) {
+      visited.cellSet(x, y, true);
       lineLength++;
 
       // If there's a filled pixel to the left of any point in the line, it's invalid
@@ -1664,8 +1675,8 @@ class Artifact {
     int lineLength = 0;
 
     // Traverse downwards from the starting point
-    while (y < rows && matrix._matrix[y][x]) {
-      visited._matrix[y][x] = true;
+    while (y < rows && matrix.cellGet(x, y)) {
+      visited.cellSet(x, y, true);
       lineLength++;
 
       // Check if there's a filled pixel to the left of the current point
@@ -1710,12 +1721,6 @@ class Artifact {
     if (m.cellGet(x - 1, y) == false) {
       return true;
     }
-    // if (m.cellGet(x - 2, y) == false) {
-    //   return true;
-    // }
-    // if (m.cellGet(x - 3, y) == false) {
-    //   return true;
-    // }
     return false;
   }
 
@@ -1744,12 +1749,6 @@ class Artifact {
     if (m.cellGet(x + 1, y) == false) {
       return true;
     }
-    // if (m.cellGet(x - 2, y) == false) {
-    //   return true;
-    // }
-    // if (m.cellGet(x - 3, y) == false) {
-    //   return true;
-    // }
     return false;
   }
 }

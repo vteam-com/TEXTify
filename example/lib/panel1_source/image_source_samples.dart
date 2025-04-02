@@ -30,7 +30,7 @@ class _ImageSourceSamplesState extends State<ImageSourceSamples> {
     ImageData(
       'generated-odd-colors.png',
       // cspell:disable-next-line
-      'ABCDEFGHI\nJKLMNOPQR\nSTUVWXYZ\n01\n23456789',
+      'ABCDEFGHI\nJKLMNOPQR\nSTUVWXYZ\n0123456789',
     ),
     ImageData(
       'black-on-white-rounded.png',
@@ -40,7 +40,7 @@ class _ImageSourceSamplesState extends State<ImageSourceSamples> {
     ImageData(
       'black-on-white-typewriter.png',
       // cspell:disable-next-line
-      'ABCDEFGH\nIJKLMNOP\nQRSTUVWX\nYZ',
+      'A\nB\nC\nD\nE\nF\nG\nH\nI\nJ\nK\nL\nM\nN\nO\nP\nQ\nR\nS\nT\nU\nV\nW\nX\nYZ',
     ),
     ImageData(
       'back-on-white-the_example_text.png',

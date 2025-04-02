@@ -115,7 +115,14 @@ class PaintArtifacts extends CustomPainter {
   String _getBandTitle(final Band band) {
     int id = textify.bands.list.indexOf(band) + 1;
 
-    return 'B[$id] A[${band.artifacts.length}] Avg(W:${band.averageWidth.toStringAsFixed(1)},G:${band.averageKerning.toStringAsFixed(1)}) S[${band.spacesCount}]';
+    String title =
+        '#$id[${band.artifacts.length}] Avg(W:${band.averageWidth.toStringAsFixed(0)}, H:${band.rectangleAdjusted.height} G:${band.averageKerning.toStringAsFixed(0)})';
+
+    if (band.spacesCount > 0) {
+      title += ' S[${band.spacesCount}]';
+    }
+
+    return title;
   }
 
   void _paintArtifactsInRow({

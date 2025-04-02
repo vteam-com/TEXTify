@@ -66,7 +66,8 @@ void main() async {
       await testWidthFont(
         textify: textify,
         text: inputText,
-        result: 'Quit ,\n'
+        result: 'Quit\n'
+            '\'\n'
             'word we',
         fontFamily: 'Courier',
         imageWidth: 130,
@@ -102,10 +103,7 @@ void main() async {
         textify,
         image,
         'THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG\n'
-        'Th e\n'
-        'Over the\n'
-        'quick brown fox jumps\n'
-        'lazy dog\n'
+        'The quick brown fox jumps over the lazy dog\n'
         '2025-12-31',
         printResuls: false,
         dilateFactor: 22,

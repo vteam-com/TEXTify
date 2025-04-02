@@ -1,4 +1,3 @@
-import 'dart:math';
 import 'package:textify/band.dart';
 import 'package:textify/int_rect.dart';
 
@@ -47,6 +46,55 @@ class Bands {
     list.add(band);
   }
 
+  ///
+  bool areBandAlmostOnTheSameHorizontalRow(Band a, Band b) {
+    // They have to at least overlap
+    if (a.rectangleAdjusted.intersectVertically(b.rectangleAdjusted)) {
+      //
+      // the two bands are relative on the same horizontal row
+      //
+      //
+      // Step 2 - How much vertically, should we consider it aligned?
+      //
+      int verticalDistance =
+          (a.rectangleAdjusted.center.y - b.rectangleAdjusted.center.y).abs();
+
+      int avgHeightOfBothBands =
+          (a.rectangleAdjusted.height + b.rectangleAdjusted.height) ~/ 2;
+
+      // The bands needs an vertical overlapping of least 50% of the average height
+      if (verticalDistance < avgHeightOfBothBands * 0.4) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /// Return groups of band that are relatively on the same aligned row
+  List<List<Band>> getBandsOnTheSameRelativeRow() {
+    List<List<Band>> rows = [];
+    if (list.isEmpty) {
+      return rows;
+    }
+
+    List<Band> currentRow = [list[0]];
+
+    for (int i = 1; i < list.length; i++) {
+      Band currentBand = list[i];
+      Band lastBandInRow = currentRow.last;
+
+      if (areBandAlmostOnTheSameHorizontalRow(lastBandInRow, currentBand)) {
+        currentRow.add(currentBand);
+      } else {
+        rows.add(List.from(currentRow));
+        currentRow = [currentBand];
+      }
+    }
+
+    rows.add(currentRow);
+    return rows;
+  }
+
   /// Groups artifacts into horizontal bands based on their vertical positions.
   ///
   /// This method organizes artifacts into bands, which are horizontal groupings
@@ -58,52 +106,62 @@ class Bands {
   /// The method uses a vertical tolerance to determine if an artifact belongs
   /// to an existing band.
   void mergeBandsHorizontally() {
-    bool mergedAny = true;
-    while (mergedAny) {
-      mergedAny = false;
+    final List<List<Band>> rowOfBands = getBandsOnTheSameRelativeRow();
 
-      for (int i = 0; i < list.length - 1; i++) {
-        Band leftBand = list[i];
-        Band rightBand = list[i + 1];
+    for (final bands in rowOfBands) {
+      // ensure that we are looking from left to right
+      bands.sort(
+        (a, b) => a.rectangleAdjusted.left.compareTo(b.rectangleAdjusted.left),
+      );
 
-        //
-        // Step 1 - Calculate vertical center overlap
-        //
-        int leftCenter = leftBand.rectangleAdjusted.center.y;
-        int rightCenter = rightBand.rectangleAdjusted.center.y;
-        int centerDiff = (leftCenter - rightCenter).abs();
-        int avgHeight = (leftBand.rectangleAdjusted.height +
-                rightBand.rectangleAdjusted.height) ~/
-            2;
-
-        // Check if bands are horizontally adjacent and vertically aligned
-        if (centerDiff < avgHeight * 1.5) {
-          //
-          // Step 2 - Calculate horizontal distance between bands
-          //
-          int horizontalDistance = rightBand.rectangleAdjusted.left -
-              leftBand.rectangleAdjusted.right;
-
-          // Centers are within 30% of average height
-          if (horizontalDistance > 0) {
-            final maxAvgWidth =
-                max(leftBand.averageWidth, rightBand.averageWidth);
-            // Bands don't overlap
-            if (horizontalDistance <= (maxAvgWidth * 3)) {
-              // Merge right band artifacts into left band
-              for (var artifact in rightBand.artifacts) {
-                leftBand.addArtifact(artifact);
-              }
-
-              // Remove the right band
-              list.removeAt(i + 1);
-              mergedAny = true;
-              break;
-            }
-          }
-        }
+      while (tryMergeBands(bands)) {
+        continue;
       }
     }
+  }
+
+  /// Attempts to merge adjacent bands that are close enough horizontally.
+  ///
+  /// Iterates through the list of bands and tries to merge each band with its
+  /// immediate neighbor if they meet the horizontal proximity criteria.
+  ///
+  /// Returns `true` if a merge was successful, `false` otherwise.
+  bool tryMergeBands(List<Band> bandOnPossibleRow) {
+    for (int i = 0; i < bandOnPossibleRow.length - 1; i++) {
+      Band bandWest = bandOnPossibleRow[i];
+      Band bandEast = bandOnPossibleRow[i + 1];
+
+      if (shouldMergeBands(bandWest, bandEast)) {
+        bandWest.addArtifacts(bandEast.artifacts);
+        list.remove(bandEast);
+        bandOnPossibleRow.remove(bandEast);
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /// Determines whether two bands should be merged based on their horizontal proximity.
+  ///
+  /// Calculates the horizontal distance between bands and compares it against
+  /// an estimated space width derived from the average band height. Bands are
+  /// considered mergeable if they are close enough horizontally.
+  ///
+  /// [bandWest] The band positioned to the left or west.
+  /// [bandEast] The band positioned to the right or east.
+  ///
+  /// Returns `true` if the bands should be merged, `false` otherwise.
+  bool shouldMergeBands(Band bandWest, Band bandEast) {
+    final int horizontalDistance =
+        bandEast.rectangleAdjusted.left - bandWest.rectangleAdjusted.right;
+
+    final int avgHeightOfBothBands = (bandEast.rectangleAdjusted.height +
+            bandWest.rectangleAdjusted.height) ~/
+        2;
+
+    final estimatedSpaceWidth = avgHeightOfBothBands * 1.2;
+
+    return horizontalDistance > 0 && horizontalDistance <= estimatedSpaceWidth;
   }
 
   /// Removes bands that have no artifacts from the collection.

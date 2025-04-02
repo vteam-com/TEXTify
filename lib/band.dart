@@ -121,6 +121,15 @@ class Band {
     clearStats();
   }
 
+  /// Adds all the given artifacts to the band.
+  ///
+  /// This method adds the provided [artifacts] to the existing list of artifacts in the band.
+  /// It also resets the cached rectangle, as the addition or removal of an artifact
+  /// can affect the overall layout and dimensions of the band.
+  void addArtifacts(final List<Artifact> artifacts) {
+    this.artifacts.addAll(artifacts);
+  }
+
   /// Sorts the artifacts in this band from left to right.
   ///
   /// This method orders the artifacts based on their left edge position,

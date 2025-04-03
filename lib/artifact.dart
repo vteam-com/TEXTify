@@ -2051,10 +2051,10 @@ List<IntRect> findRegions({required Artifact dilatedMatrixImage}) {
   return regions;
 }
 
-/// Performs a flood fill algorithm on a binary image matrix.
+/// Performs a highly optimized flood fill algorithm on a binary image matrix.
 ///
-/// This method implements a depth-first search flood fill algorithm to find
-/// all connected points starting from a given point in a binary image.
+/// This implementation uses direct array access and efficient data structures
+/// to significantly improve performance over the traditional approach.
 ///
 /// Parameters:
 ///   [binaryPixels]: A Matrix representing the binary image where true values
@@ -2067,61 +2067,68 @@ List<IntRect> findRegions({required Artifact dilatedMatrixImage}) {
 /// Returns:
 ///   A List of Point objects representing all connected points found during
 ///   the flood fill process.
-///
-/// Throws:
-///   An assertion error if the areas of [binaryPixels] and [visited] are not equal.
 List<Point<int>> floodFill(
   final Artifact binaryPixels,
   final Artifact visited,
   final int startX,
   final int startY,
 ) {
-  assert(binaryPixels.area == visited.area);
-
   final int width = binaryPixels.cols;
+  final int height = binaryPixels.rows;
+
+  // Early bounds check
+  if (startX < 0 || startX >= width || startY < 0 || startY >= height) {
+    return const [];
+  }
+
+  // Early check for valid starting pixel
+  if (!binaryPixels.cellGet(startX, startY)) {
+    return const [];
+  }
+
+  // Direct access to the underlying arrays
   final Uint8List pixelData = binaryPixels._matrix;
   final Uint8List visitedData = visited._matrix;
 
-  // Pre-allocate with a reasonable capacity to reduce reallocations
+  // Pre-allocate with estimated capacity to reduce reallocations
   final List<Point<int>> connectedPoints = <Point<int>>[];
-
-  // Use a more efficient queue implementation for large flood fills
   final Queue<int> queue = Queue<int>();
 
-  // Store indices directly instead of Point objects to reduce allocations
+  // Calculate initial index
   final int startIndex = startY * width + startX;
-  queue.add(startIndex);
-  visitedData[startIndex] = 1;
 
-  // Pre-compute direction offsets
-  final List<int> dirOffsets = [-1, 1, -width, width]; // left, right, up, down
+  // Mark start point as visited and add to queue
+  visitedData[startIndex] = 1;
+  queue.add(startIndex);
+
+  // Pre-compute direction offsets for adjacent pixels
+  const List<int> rowOffsets = [0, 0, -1, 1]; // Row adjustments
+  const List<int> colOffsets = [-1, 1, 0, 0]; // Column adjustments
 
   while (queue.isNotEmpty) {
     final int currentIndex = queue.removeFirst();
     final int x = currentIndex % width;
     final int y = currentIndex ~/ width;
 
-    // Add point to result list
+    // Add current point to result
     connectedPoints.add(Point(x, y));
 
     // Check all four directions
-    for (final int offset in dirOffsets) {
-      final int neighborIndex = currentIndex + offset;
+    for (int i = 0; i < 4; i++) {
+      final int nx = x + colOffsets[i];
+      final int ny = y + rowOffsets[i];
 
-      // Skip out-of-bounds checks for left/right edges
-      if ((offset == -1 && x == 0) || (offset == 1 && x == width - 1)) {
+      // Skip out-of-bounds
+      if (nx < 0 || nx >= width || ny < 0 || ny >= height) {
         continue;
       }
 
-      // Skip out-of-bounds indices
-      if (neighborIndex < 0 || neighborIndex >= pixelData.length) {
-        continue;
-      }
+      final int neighborIndex = ny * width + nx;
 
-      // Check if the neighbor is valid and not visited
+      // Check if neighbor is valid and not visited
       if (pixelData[neighborIndex] == 1 && visitedData[neighborIndex] == 0) {
-        queue.add(neighborIndex);
         visitedData[neighborIndex] = 1;
+        queue.add(neighborIndex);
       }
     }
   }

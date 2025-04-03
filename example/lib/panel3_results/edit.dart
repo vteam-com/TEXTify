@@ -105,10 +105,10 @@ class _EditScreenState extends State<EditScreen> {
 
     final ScoreMatch scoreOfExpectedCharacter = scoreMatches.firstWhere(
       (scoreMatch) => scoreMatch.character == widget.characterExpected,
-      orElse: () => ScoreMatch.empty(),
+      orElse: () => ScoreMatch(),
     );
 
-    if (scoreOfExpectedCharacter.isEmpty) {
+    if (scoreOfExpectedCharacter.score == 0) {
       // not found
     } else {
       if (scoreMatches.first != scoreOfExpectedCharacter) {

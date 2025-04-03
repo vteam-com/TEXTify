@@ -9,6 +9,7 @@ void main() {
       final bands = Bands([band]);
       bands.mergeBandsHorizontally();
       expect(bands.length, 1);
+      expect(band.toString(), '[0] Avg(W:0, H:0 G:-1)');
     });
 
     test('merges multiple empty bands in sequence', () {
@@ -29,9 +30,9 @@ void main() {
     test('merges adjacent bands with vertical alignment', () {
       // BAND 1 LEFT
       final Band band1 = Band();
-      final Artifact artifact1 = Artifact();
+      final Artifact artifact1 = Artifact(20, 20);
       artifact1.setBothLocation(IntOffset(10, 10));
-      artifact1.setGrid([
+      artifact1.setGridFromBools([
         [true, false, true],
         [true, false, true],
       ]);
@@ -39,9 +40,9 @@ void main() {
 
       // BAND 2 RIGHT
       final Band band2 = Band();
-      final Artifact artifact2 = Artifact();
+      final Artifact artifact2 = Artifact(20, 20);
       artifact2.setBothLocation(IntOffset(14, 10));
-      artifact2.setGrid([
+      artifact2.setGridFromBools([
         [true, false, true],
         [true, false, true],
       ]);
@@ -56,16 +57,18 @@ void main() {
         bands.list.first.artifacts.length,
         2,
       );
+      expect(band1.toString(), '[2] Avg(W:2, H:2 G:1)');
+      expect(band2.toString(), '[1] Avg(W:3, H:2 G:-1)');
     });
 
     test('does not merge bands with large horizontal gap', () {
       final Band band1 = Band();
-      final Artifact artifact1 = Artifact();
+      final Artifact artifact1 = Artifact(20, 20);
       artifact1.setBothLocation(IntOffset(10, 10));
       band1.addArtifact(artifact1);
 
       final Band band2 = Band();
-      final Artifact artifact2 = Artifact();
+      final Artifact artifact2 = Artifact(20, 20);
       artifact2.setBothLocation(IntOffset(500, 10));
       band2.addArtifact(artifact2);
 
@@ -79,12 +82,12 @@ void main() {
   group('sorting of band', () {
     test('sorts bands by vertical position first', () {
       final band1 = Band();
-      final artifact1 = Artifact();
+      final artifact1 = Artifact(20, 20);
       artifact1.setBothLocation(IntOffset(10, 20));
       band1.addArtifact(artifact1);
 
       final band2 = Band();
-      final artifact2 = Artifact();
+      final artifact2 = Artifact(20, 20);
       artifact2.setBothLocation(IntOffset(5, 10));
       band2.addArtifact(artifact2);
 
@@ -97,12 +100,12 @@ void main() {
 
     test('sorts bands horizontally when at same vertical position', () {
       final band1 = Band();
-      final artifact1 = Artifact();
+      final artifact1 = Artifact(20, 20);
       artifact1.setBothLocation(IntOffset(20, 10));
       band1.addArtifact(artifact1);
 
       final band2 = Band();
-      final artifact2 = Artifact();
+      final artifact2 = Artifact(20, 20);
       artifact2.setBothLocation(IntOffset(10, 10));
       band2.addArtifact(artifact2);
 
@@ -115,12 +118,12 @@ void main() {
 
     test('maintains order for bands at exact same position', () {
       final band1 = Band();
-      final artifact1 = Artifact();
+      final artifact1 = Artifact(20, 20);
       artifact1.setBothLocation(IntOffset(10, 10));
       band1.addArtifact(artifact1);
 
       final band2 = Band();
-      final artifact2 = Artifact();
+      final artifact2 = Artifact(20, 20);
       artifact2.setBothLocation(IntOffset(10, 10));
       band2.addArtifact(artifact2);
 

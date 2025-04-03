@@ -11,7 +11,7 @@ export 'package:textify/character_definition.dart';
 /// in different fonts or styles.
 class CharacterDefinitions {
   /// The list of character definitions.
-  List<CharacterDefinition> _definitions = const [];
+  List<CharacterDefinition> _definitions = [];
 
   /// Returns the number of character definitions.
   int get count => _definitions.length;
@@ -87,7 +87,7 @@ class CharacterDefinitions {
     if (definition == null ||
         matricesIndex < 0 ||
         matricesIndex >= definition.matrices.length) {
-      return Artifact();
+      return Artifact(0, 0);
     }
     return definition.matrices[matricesIndex];
   }

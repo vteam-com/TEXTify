@@ -146,7 +146,8 @@ void main() async {
       text,
       'ABCDEFGHl\n'
       'JKLMN0PQR\n'
-      'STUVWxYZ 0123456789',
+      'STUVWxYZ\n'
+      '0123456789',
     );
   });
 

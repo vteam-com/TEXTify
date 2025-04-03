@@ -61,6 +61,9 @@ class IntRect {
     );
   }
 
+  /// Creates a new [IntRect] with zero position and dimensions.
+  static final IntRect zero = IntRect(0, 0, 0, 0);
+
   /// The x-coordinate of the left edge of the rectangle.
   final int left;
 
@@ -123,14 +126,14 @@ class IntRect {
   /// [other] The other rectangle to check for intersection.
   /// Returns true if the rectangles intersect, false otherwise.
   bool intersects(final IntRect other) {
-    if (intersectHorizontal(other) && intersectVertical(other)) {
+    if (intersectVertically(other) && intersectHorizontal(other)) {
       return true;
     }
     return false;
   }
 
   ///
-  bool intersectHorizontal(final IntRect other) {
+  bool intersectVertically(final IntRect other) {
     if (other.top > bottom || other.bottom < top) {
       return false;
     }
@@ -138,7 +141,7 @@ class IntRect {
   }
 
   ///
-  bool intersectVertical(final IntRect other) {
+  bool intersectHorizontal(final IntRect other) {
     if (other.left >= this.right || other.right <= this.left) {
       // off sides
       return false;

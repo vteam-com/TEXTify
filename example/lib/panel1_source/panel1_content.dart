@@ -74,7 +74,7 @@ ExpansionPanel buildExpansionPanel({
     body: Container(
       color: const Color.fromARGB(255, 0, 24, 36),
       padding: const EdgeInsets.all(8.0),
-      child: content,
+      child: isExpanded ? content : SizedBox(),
     ),
   );
 }

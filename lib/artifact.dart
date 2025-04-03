@@ -11,6 +11,11 @@ import 'package:textify/int_rect.dart';
 /// This class provides various ways to create, manipulate, and analyze boolean matrices,
 /// including methods for resizing, comparing, and extracting information from the grid.
 class Artifact {
+  /// Main constructor
+  Artifact(this.cols, int rows) {
+    _matrix = Uint8List(rows * cols);
+  }
+
   /// Creates a new [Artifact] instance from an existing [Artifact].
   ///
   /// This factory method creates a new [Artifact] instance based on the provided [value] matrix.
@@ -31,8 +36,8 @@ class Artifact {
   /// Matrix copy = Matrix.fromMatrix(original);
   /// ```
   factory Artifact.fromMatrix(final Artifact value) {
-    final Artifact artifact = Artifact();
-    artifact.setGrid(value.matrix);
+    final Artifact artifact = Artifact(0, 0);
+    artifact.setGrid(value._matrix, value.cols);
     artifact.locationFound = value.locationFound;
     artifact.locationAdjusted = value.locationAdjusted;
     return artifact;
@@ -42,13 +47,16 @@ class Artifact {
   ///
   /// [template] A list of strings where '#' represents true and any other character represents false.
   factory Artifact.fromAsciiDefinition(final List<String> template) {
-    final Artifact artifact = Artifact();
     final int rows = template.length;
     final int cols = template[0].length;
-    artifact._matrix = List.generate(
-      rows,
-      (y) => List.generate(cols, (x) => template[y][x] == '#'),
-    );
+
+    final Artifact artifact = Artifact(cols, rows);
+
+    for (int y = 0; y < rows; y++) {
+      for (int x = 0; x < cols; x++) {
+        artifact.cellSet(x, y, template[y][x] == '#');
+      }
+    }
     return artifact;
   }
 
@@ -56,25 +64,8 @@ class Artifact {
   ///
   /// [input] A 2D list of boolean values.
   factory Artifact.fromBoolMatrix(final List<List<bool>> input) {
-    final Artifact artifact = Artifact();
-    artifact.setGrid(input);
-    return artifact;
-  }
-
-  /// Creates a Matrix from a flat list of boolean values.
-  ///
-  /// [inputList] A flat list of boolean values.
-  /// [width] The width of the resulting matrix.
-  factory Artifact.fromFlatListOfBool(
-    final List<bool> inputList,
-    final int width,
-  ) {
-    final Artifact artifact = Artifact();
-    final rows = inputList.length ~/ width;
-
-    for (int y = 0; y < rows; y++) {
-      artifact._matrix.add(inputList.sublist(y * width, (y + 1) * width));
-    }
+    final Artifact artifact = Artifact(0, 0);
+    artifact.setGridFromBools(input);
     return artifact;
   }
 
@@ -82,11 +73,17 @@ class Artifact {
   ///
   /// [json] A map containing 'rows', 'cols', and 'data' keys.
   factory Artifact.fromJson(final Map<String, dynamic> json) {
-    final Artifact artifact = Artifact();
+    // determine the mandatory cols/width of the matrix
+    final int cols = (json['cols'] as int?) ??
+        (json['data'] as List<dynamic>)[0].toString().length;
+
+    final Artifact artifact = Artifact(cols, 0);
     artifact.font = json['font'];
-    artifact._matrix = (json['data'] as List<dynamic>).map((final dynamic row) {
-      return row.toString().split('').map((cell) => cell == '#').toList();
-    }).toList();
+    artifact._matrix = Uint8List.fromList(
+      (json['data'] as List<dynamic>).expand((final dynamic row) {
+        return row.toString().split('').map((cell) => cell == '#' ? 1 : 0);
+      }).toList(),
+    );
     return artifact;
   }
 
@@ -106,20 +103,25 @@ class Artifact {
     );
   }
 
-  /// Creates a new Matrix with the specified dimensions, filled with the given value.
+  /// Creates a Matrix from a flat list of boolean values.
   ///
-  /// [cols] The number of columns in the matrix.
-  /// [rows] The number of rows in the matrix.
-  /// [value] The initial value for all cells (default is false).
-  Artifact([
-    final int cols = 0,
-    final int rows = 0,
-    final bool value = false,
-  ]) {
-    _matrix = List.generate(
-      rows,
-      (_) => List.filled(cols, false),
-    );
+  /// [inputList] A flat list of boolean values.
+  /// [width] The width of the resulting matrix.
+  factory Artifact.fromFlatListOfBool(
+    final List<bool> inputList,
+    final int width,
+  ) {
+    final rows = inputList.length ~/ width;
+
+    final Artifact artifact = Artifact(width, rows);
+
+    for (int y = 0; y < rows; y++) {
+      final List<bool> values = inputList.sublist(y * width, (y + 1) * width);
+      for (int x = 0; x < values.length; x++) {
+        artifact.cellSet(x, y, values[x]);
+      }
+    }
+    return artifact;
   }
 
   /// The character that this artifact matches.
@@ -130,6 +132,12 @@ class Artifact {
 
   ///
   bool wasPartOfSplit = false;
+
+  /// Empty the content
+  void clear() {
+    this.cols = 0;
+    this._matrix = Uint8List(0);
+  }
 
   /// Converts the artifact to a text representation.
   ///
@@ -192,7 +200,7 @@ class Artifact {
     );
 
     // Update this artifact with the merged data
-    this.setGrid(newGrid.matrix);
+    this.setGrid(newGrid._matrix, newGrid.cols);
   }
 
   /// Returns:
@@ -218,12 +226,12 @@ class Artifact {
     List<int> histogram = getHistogramHorizontal();
 
     // Step 2: Create an empty matrix for the projection
-    Artifact result = Artifact(this.cols, this.rows, false);
+    Artifact result = Artifact(this.cols, this.rows);
 
     // Step 3: Fill the matrix from the bottom up based on the projection counts
     for (int x = 0; x < width; x++) {
       for (int y = 0; y < histogram[x]; y++) {
-        result._matrix[this.rows - 1 - y][x] = true; // Fill from bottom up
+        result.cellSet(x, this.rows - 1 - y, true);
       }
     }
 
@@ -236,7 +244,6 @@ class Artifact {
   /// in each column of the matrix. The result is a list where each
   /// index corresponds to a column, and the value at that index
   /// represents the count of `true` values in that column.
-  ///
   List<int> getHistogramHorizontal() {
     final List<int> histogram = List.filled(this.cols, 0);
     for (int x = 0; x < this.cols; x++) {
@@ -259,7 +266,7 @@ class Artifact {
   /// [image] The Image object to be converted. This should be a valid,
   /// non-null image object.
   ///
-  /// Returns a [Future<Matrix>] representing the image data. The returned Matrix
+  /// Returns a [Future<Artifact>] representing the image data. The returned Matrix
   /// will have the same width as the input image, and its height will be
   /// determined by the length of the Uint8List and the width.
   ///
@@ -277,20 +284,15 @@ class Artifact {
   String font = '';
 
   /// The number of columns in the matrix.
-  int get cols => _matrix.isEmpty ? 0 : _matrix[0].length;
+  int cols = 0;
 
   /// The number of rows in the matrix.
-  int get rows => _matrix.length;
+  int get rows => _matrix.isEmpty ? 0 : _matrix.length ~/ this.cols;
 
   /// The 2D list representing the boolean grid.
   /// Each outer list represents a row, and each inner list represents a column.
   /// _data[row][column] gives the boolean value at that position.
-  List<List<bool>> _matrix = [];
-
-  /// Returns the matrix data as a 2D list of boolean values.
-  /// The outer list represents rows and the inner lists represent columns.
-  /// Each boolean value indicates whether a cell is active (true) or inactive (false).
-  List<List<bool>> get matrix => _matrix;
+  Uint8List _matrix = Uint8List(0);
 
   /// the location of this matrix.
   IntOffset locationFound = IntOffset();
@@ -345,7 +347,7 @@ class Artifact {
   /// Returns false if the coordinates are out of bounds.
   bool cellGet(final int x, final int y) {
     assert(_isValidXY(x, y) == true);
-    return _matrix[y][x];
+    return _matrix[y * cols + x] == 1;
   }
 
   /// Sets the value of a cell at the specified coordinates.
@@ -353,7 +355,7 @@ class Artifact {
   /// Does nothing if the coordinates are out of bounds.
   void cellSet(final int x, final int y, bool value) {
     assert(_isValidXY(x, y) == true);
-    _matrix[y][x] = value;
+    _matrix[y * cols + x] = value ? 1 : 0;
   }
 
   ///
@@ -383,7 +385,9 @@ class Artifact {
     for (int y = 0; y < source.rows; y++) {
       for (int x = 0; x < source.cols; x++) {
         if (y + offsetY < target.rows && x + offsetX < target.cols) {
-          target._matrix[y + offsetY][x + offsetX] |= source._matrix[y][x];
+          if (source.cellGet(x, y)) {
+            target.cellSet(x + offsetX, y + offsetY, true);
+          }
         }
       }
     }
@@ -395,7 +399,6 @@ class Artifact {
   /// in each row of the matrix. The result is a list where each
   /// index corresponds to a row, and the value at that index
   /// represents the count of `true` values in that row.
-  ///
   List<int> getHistogramVertical() {
     final List<int> histogram = List.filled(this.rows, 0);
     for (int y = 0; y < this.rows; y++) {
@@ -421,8 +424,8 @@ class Artifact {
   ///
   /// Note: This method does not modify the original matrix but returns a new one.
   Artifact trim() {
-    if (isEmpty || isEmpty) {
-      return Artifact();
+    if (isEmpty) {
+      return Artifact(0, 0);
     }
     // Find the boundaries of the content
     int topRow = 0;
@@ -431,20 +434,40 @@ class Artifact {
     int rightCol = cols - 1;
 
     // Find top row with content
-    while (topRow < rows && !_matrix[topRow].contains(true)) {
+    while (topRow < rows) {
+      bool hasContent = false;
+      for (int x = 0; x < cols; x++) {
+        if (cellGet(x, topRow)) {
+          hasContent = true;
+          break;
+        }
+      }
+      if (hasContent) {
+        break;
+      }
       topRow++;
     }
 
     // Find bottom row with content
-    while (bottomRow > topRow && !_matrix[bottomRow].contains(true)) {
+    while (bottomRow > topRow) {
+      bool hasContent = false;
+      for (int x = 0; x < cols; x++) {
+        if (cellGet(x, bottomRow)) {
+          hasContent = true;
+          break;
+        }
+      }
+      if (hasContent) {
+        break;
+      }
       bottomRow--;
     }
 
     // Find left column with content
     outer:
     while (leftCol < cols) {
-      for (int i = topRow; i <= bottomRow; i++) {
-        if (_matrix[i][leftCol]) {
+      for (int y = topRow; y <= bottomRow; y++) {
+        if (cellGet(leftCol, y)) {
           break outer;
         }
       }
@@ -454,8 +477,8 @@ class Artifact {
     // Find right column with content
     outer:
     while (rightCol > leftCol) {
-      for (int i = topRow; i <= bottomRow; i++) {
-        if (_matrix[i][rightCol]) {
+      for (int y = topRow; y <= bottomRow; y++) {
+        if (cellGet(rightCol, y)) {
           break outer;
         }
       }
@@ -463,12 +486,16 @@ class Artifact {
     }
 
     // Crop the grid
-    return Artifact.fromBoolMatrix(
-      List.generate(
-        bottomRow - topRow + 1,
-        (i) => _matrix[i + topRow].sublist(leftCol, rightCol + 1),
-      ),
+    final Artifact result = Artifact(
+      rightCol - leftCol + 1,
+      bottomRow - topRow + 1,
     );
+    for (int y = topRow; y <= bottomRow; y++) {
+      for (int x = leftCol; x <= rightCol; x++) {
+        result.cellSet(x - leftCol, y - topRow, cellGet(x, y));
+      }
+    }
+    return result;
   }
 
   /// Creates a new Matrix by cropping the current Matrix to the specified boundaries.
@@ -489,33 +516,7 @@ class Artifact {
   }) {
     this.locationFound = this.locationFound.translate(left, top);
     this.locationAdjusted = this.locationAdjusted.translate(left, top);
-
     cropGridVertically(top: top, bottom: bottom);
-    // cropGridHorizontally(left: left, right: right);
-  }
-
-  /// Crops the matrix horizontally by removing a specified number of columns from the left and right.
-  ///
-  /// This method modifies the matrix in-place by removing columns from the left and right.
-  /// If the matrix is empty or its first row is empty, no action is taken. The number of columns
-  /// to remove is clamped to prevent out-of-range errors.
-  ///
-  /// Parameters:
-  /// - `left`: Number of columns to remove from the left of the matrix. Defaults to 0.
-  /// - `right`: Number of columns to remove from the right of the matrix. Defaults to 0.
-  void cropGridHorizontally({int left = 0, int right = 0}) {
-    if (_matrix.isEmpty || _matrix.first.isEmpty) {
-      return;
-    }
-
-    // Clamp values to avoid out-of-range errors
-    left = left.clamp(0, _matrix.first.length);
-    right = right.clamp(0, _matrix.first.length - left);
-
-    // Replace each row with a new cropped sublist
-    for (int i = 0; i < _matrix.length; i++) {
-      _matrix[i] = _matrix[i].sublist(left, _matrix[i].length - right);
-    }
   }
 
   /// Crops the matrix vertically by removing a specified number of rows from the top and bottom.
@@ -528,19 +529,19 @@ class Artifact {
   /// - `top`: Number of rows to remove from the top of the matrix. Defaults to 0.
   /// - `bottom`: Number of rows to remove from the bottom of the matrix. Defaults to 0.
   void cropGridVertically({int top = 0, int bottom = 0}) {
-    if (_matrix.isEmpty) {
+    if (rows == 0) {
       return;
     }
 
     // Clamp values to avoid out-of-range errors
-    top = top.clamp(0, _matrix.length);
-    bottom = bottom.clamp(0, _matrix.length - top);
+    top = top.clamp(0, rows);
+    bottom = bottom.clamp(0, rows - top);
 
     // Remove top rows
     _matrix.removeRange(0, top);
 
     // Remove bottom rows
-    _matrix.removeRange(_matrix.length - bottom, _matrix.length);
+    _matrix.removeRange(rows - bottom, rows);
   }
 
   /// Creates a new Matrix with the specified desired width and height, by resizing the current Matrix.
@@ -608,7 +609,7 @@ class Artifact {
           // UpScaling: Use nearest-neighbor interpolation
           final int srcXInt = srcX.floor();
           final int srcYInt = srcY.floor();
-          resizedGrid._matrix[y][x] = _matrix[srcYInt][srcXInt];
+          resizedGrid.cellSet(x, y, cellGet(srcXInt, srcYInt));
         } else {
           // DownScaling: Check for any black pixel in the sub-grid
           final int startX = srcX.floor();
@@ -620,7 +621,7 @@ class Artifact {
 
           for (int sy = startY; sy < endY && sy < rows; sy++) {
             for (int sx = startX; sx < endX && sx < cols; sx++) {
-              if (_matrix[sy][sx]) {
+              if (cellGet(sx, sy)) {
                 hasBlackPixel = true;
                 break;
               }
@@ -629,9 +630,8 @@ class Artifact {
               break;
             }
           }
-
           // Set the resized grid value based on the presence of any black pixel
-          resizedGrid._matrix[y][x] = hasBlackPixel;
+          resizedGrid.cellSet(x, y, hasBlackPixel);
         }
       }
     }
@@ -656,15 +656,19 @@ class Artifact {
     required final int paddingTop,
     required final int paddingBottom,
   }) {
-    final blankLine = List.filled(cols, false);
+    final int newRows = this.rows + paddingTop + paddingBottom;
+    final Uint8List newMatrix = Uint8List(newRows * this.cols);
 
-    for (int add = 0; add < paddingTop; add++) {
-      this._matrix.insert(0, blankLine);
+    // Copy old matrix into the new padded matrix
+    for (int y = 0; y < this.rows; y++) {
+      for (int x = 0; x < this.cols; x++) {
+        newMatrix[(y + paddingTop) * this.cols + x] =
+            this._matrix[y * this.cols + x];
+      }
     }
 
-    for (int add = 0; add < paddingBottom; add++) {
-      this._matrix.add(blankLine);
-    }
+    // Replace old matrix
+    this._matrix = newMatrix;
   }
 
   /// Creates a new Matrix with a false border wrapping around the original matrix.
@@ -697,17 +701,12 @@ class Artifact {
     }
 
     // Create a new grid with increased dimensions
-    final Artifact newGrid = Artifact.fromBoolMatrix(
-      List.generate(
-        rows + 2,
-        (r) => List.generate(cols + 2, (c) => false),
-      ),
-    );
+    final Artifact newGrid = Artifact(cols + 2, rows + 2);
 
     // Copy the original grid into the center of the new grid
-    for (int r = 0; r < rows; r++) {
-      for (int c = 0; c < cols; c++) {
-        newGrid._matrix[r + 1][c + 1] = _matrix[r][c];
+    for (int y = 0; y < rows; y++) {
+      for (int x = 0; x < cols; x++) {
+        newGrid.cellSet(x + 1, y + 1, cellGet(x, y));
       }
     }
 
@@ -763,8 +762,7 @@ class Artifact {
     final int subImageWidth = rect.width.toInt();
     final int subImageHeight = rect.height.toInt();
 
-    final Artifact subImagePixels =
-        Artifact(subImageWidth, subImageHeight, false);
+    final Artifact subImagePixels = Artifact(subImageWidth, subImageHeight);
 
     for (int x = 0; x < subImageWidth; x++) {
       for (int y = 0; y < subImageHeight; y++) {
@@ -918,7 +916,7 @@ class Artifact {
 
     for (int y = 0; y < rows; y++) {
       for (int x = 0; x < cols; x++) {
-        if (_matrix[y][x]) {
+        if (cellGet(x, y)) {
           minX = min(minX, x);
           maxX = max(maxX, x);
           minY = min(minY, y);
@@ -949,67 +947,6 @@ class Artifact {
   /// This method is useful for obtaining the content rectangle relative to the adjusted rectangle's coordinate system.
   IntRect getContentRectAdjusted() {
     return getContentRect().shift(this.rectAdjusted.topLeft);
-  }
-
-  /// Creates a string representation of two overlaid matrices.
-  ///
-  /// This static method compares two matrices cell by cell and generates a new
-  /// representation where each cell is represented by a character based on the
-  /// values in both input matrices.
-  ///
-  /// Parameters:
-  /// - [grid1]: The first Matrix to be overlaid.
-  /// - [grid2]: The second Matrix to be overlaid.
-  ///
-  /// Returns:
-  /// A ```List<String>``` where each string represents a row in the overlaid result.
-  /// The characters in the resulting strings represent:
-  ///   '=' : Both matrices have true in this cell
-  ///   '*' : Only grid1 has true in this cell
-  ///   '#' : Only grid2 has true in this cell
-  ///   '.' : Both matrices have false in this cell
-  ///
-  /// Throws:
-  /// An Exception if the input matrices have different dimensions.
-  ///
-  /// Note:
-  /// This method is useful for visualizing the differences and similarities
-  /// between two matrices, which can be helpful in debugging or analysis tasks.
-  static List<String> getStringListOfOverlappedGrids(
-    final Artifact grid1,
-    final Artifact grid2,
-  ) {
-    final int height = grid1.rows;
-    final int width = grid1.cols;
-
-    if (height != grid2.rows || width != grid2.cols) {
-      throw Exception('Grids must have the same dimensions');
-    }
-
-    final List<String> overlappedGrid = [];
-
-    for (int row = 0; row < height; row++) {
-      String overlappedRow = '';
-
-      for (int col = 0; col < width; col++) {
-        final bool cell1 = grid1._matrix[row][col];
-        final bool cell2 = grid2._matrix[row][col];
-
-        if (cell1 && cell2) {
-          overlappedRow += '=';
-        } else if (cell1) {
-          overlappedRow += '*';
-        } else if (cell2) {
-          overlappedRow += '#';
-        } else {
-          overlappedRow += '.';
-        }
-      }
-
-      overlappedGrid.add(overlappedRow);
-    }
-
-    return overlappedGrid;
   }
 
   /// Converts the matrix to a string representation.
@@ -1095,14 +1032,21 @@ class Artifact {
     final Artifact inputGrid,
     final Artifact templateGrid,
   ) {
+    if (inputGrid.cols != templateGrid.cols) {
+      return 0;
+    }
+    if (inputGrid.rows != templateGrid.rows) {
+      return 0;
+    }
+
     int matchingPixels = 0;
     int totalPixels = 0;
 
     for (int y = 0; y < inputGrid.rows; y++) {
       for (int x = 0; x < inputGrid.cols; x++) {
-        if (inputGrid._matrix[y][x] || templateGrid._matrix[y][x]) {
+        if (inputGrid.cellGet(x, y) || templateGrid.cellGet(x, y)) {
           totalPixels++;
-          if (inputGrid._matrix[y][x] == templateGrid._matrix[y][x]) {
+          if (inputGrid.cellGet(x, y) == templateGrid.cellGet(x, y)) {
             matchingPixels++;
           }
         }
@@ -1136,10 +1080,7 @@ class Artifact {
   /// between line-like structures and other shapes is important.
   bool isConsideredLine() {
     final double ar = aspectRatioOfContent();
-    if (ar < 0.09 || ar > 50) {
-      return true;
-    }
-    return false;
+    return ar < 0.09 || ar > 50;
   }
 
   /// The grid contains one or more True values
@@ -1167,26 +1108,6 @@ class Artifact {
     return (x >= 0 && x < cols) && (y >= 0 && y < rows);
   }
 
-  /// Custom comparison method for matrices
-  static bool matrixEquals(Artifact a, Artifact b) {
-    // Check if dimensions are the same
-    if (a.rows != b.rows || a.cols != b.cols) {
-      return false;
-    }
-
-    // Compare each cell
-    for (int y = 0; y < a.rows; y++) {
-      for (int x = 0; x < a.cols; x++) {
-        if (a._matrix[y][x] != b._matrix[y][x]) {
-          return false;
-        }
-      }
-    }
-
-    // If we've made it this far, the matrices are equal
-    return true;
-  }
-
   /// Sets the grid of the Matrix object.
   ///
   /// This method takes a 2D list of boolean values representing the grid of the Matrix.
@@ -1197,26 +1118,35 @@ class Artifact {
   /// are set to 0, and the `_data` field is set to an empty list.
   ///
   /// Parameters:
-  ///   [grid] (```List<List<bool>>```): The 2D list of boolean values representing the grid.
-  void setGrid(final List<List<bool>> grid) {
-    if (grid.isEmpty || grid[0].isEmpty) {
-      _matrix = [];
+  ///   [grid] (```Uint8List```): The 2D list of boolean values representing the grid.
+  void setGrid(final Uint8List grid, final int cols) {
+    if (grid.isEmpty) {
+      this.clear();
       return;
     }
-    // Ensure all rows have the same length
-    assert(
-      _matrix.every((row) => row.length == cols),
-      'All rows in the grid must have the same length',
-    );
-
-    final int rows = grid.length;
+    this.cols = cols;
 
     // Create a deep copy of the grid
-    // _data = grid;
-    _matrix = List.generate(
-      rows,
-      (i) => List<bool>.from(grid[i]),
-    );
+    _matrix = Uint8List.fromList(grid);
+  }
+
+  ///
+  void setGridFromBools(final List<List<bool>> input) {
+    if (input.isEmpty || input[0].isEmpty) {
+      this.clear();
+      return;
+    }
+    cols = input[0].length;
+
+    // Create a new Uint8List to store the flattened grid data
+    _matrix = Uint8List(input.length * cols);
+
+    // Copy the input data into the flattened array
+    for (int y = 0; y < rows; y++) {
+      for (int x = 0; x < cols; x++) {
+        this.cellSet(x, y, input[y][x]);
+      }
+    }
   }
 
   /// Converts the Matrix object to a JSON-serializable Map.
@@ -1245,7 +1175,9 @@ class Artifact {
       'rows': rows,
       'cols': cols,
       'data': _matrix.map((row) {
-        return row.map((cell) => cell ? '#' : '.').join();
+        return List.generate(rows, (y) {
+          return List.generate(cols, (x) => cellGet(x, y) ? '#' : '.').join();
+        });
       }).toList(),
     };
   }
@@ -1321,7 +1253,7 @@ class Artifact {
 
     for (int y = 0; y < rows; y++) {
       for (int x = 0; x < cols; x++) {
-        if (!grid._matrix[y][x] && !visited._matrix[y][x]) {
+        if (!grid.cellGet(x, y) && !visited.cellGet(x, y)) {
           int regionSize = _exploreRegion(grid, visited, x, y);
           if (regionSize >= minRegionSize &&
               _isEnclosedRegion(grid, x, y, regionSize)) {
@@ -1384,7 +1316,7 @@ class Artifact {
     int cols = grid.cols;
     Queue<List<int>> queue = Queue();
     queue.add([startX, startY]);
-    visited._matrix[startY][startX] = true;
+    visited.cellSet(startX, startY, true);
     int regionSize = 0;
 
     // Directions for exploring adjacent cells (up, down, left, right)
@@ -1409,10 +1341,10 @@ class Artifact {
             newX < cols &&
             newY >= 0 &&
             newY < rows &&
-            !grid._matrix[newY][newX] &&
-            !visited._matrix[newY][newX]) {
+            !grid.cellGet(newX, newY) &&
+            !visited.cellGet(newX, newY)) {
           queue.add([newX, newY]);
-          visited._matrix[newY][newX] = true;
+          visited.cellSet(newX, newY, true);
         }
       }
     }
@@ -1475,7 +1407,7 @@ class Artifact {
 
         final String key = '$newX,$newY';
         // If the cell is explorable and not visited, add it to the queue
-        if (!grid._matrix[newY][newX] && !visited.contains(key)) {
+        if (!grid.cellGet(newX, newY) && !visited.contains(key)) {
           queue.add([newX, newY]);
           visited.add(key);
         }
@@ -1524,7 +1456,7 @@ class Artifact {
     for (int x = 0; x < matrix.cols; x++) {
       for (int y = 0; y < matrix.rows; y++) {
         // If the current cell is filled and not visited
-        if (matrix._matrix[y][x] && !visited._matrix[y][x]) {
+        if (matrix.cellGet(x, y) && !visited.cellGet(x, y)) {
           // Check if a valid vertical line exists starting from this cell
           if (_isValidVerticalLineLeft(
             minVerticalLine,
@@ -1572,7 +1504,7 @@ class Artifact {
     for (int x = matrix.cols - 1; x >= 0; x--) {
       for (int y = 0; y < matrix.rows; y++) {
         // If the current cell is filled and not visited
-        if (matrix._matrix[y][x] && !visited._matrix[y][x]) {
+        if (matrix.cellGet(x, y) && !visited.cellGet(x, y)) {
           // Check if a valid vertical line exists starting from this cell
           if (_isValidVerticalLineRight(
             minVerticalLine,
@@ -1619,8 +1551,8 @@ class Artifact {
     int lineLength = 0;
 
     // Ensure no filled pixels on the immediate left side at any point
-    while (y < rows && matrix._matrix[y][x]) {
-      visited._matrix[y][x] = true;
+    while (y < rows && matrix.cellGet(x, y)) {
+      visited.cellSet(x, y, true);
       lineLength++;
 
       // If there's a filled pixel to the left of any point in the line, it's invalid
@@ -1664,8 +1596,8 @@ class Artifact {
     int lineLength = 0;
 
     // Traverse downwards from the starting point
-    while (y < rows && matrix._matrix[y][x]) {
-      visited._matrix[y][x] = true;
+    while (y < rows && matrix.cellGet(x, y)) {
+      visited.cellSet(x, y, true);
       lineLength++;
 
       // Check if there's a filled pixel to the left of the current point
@@ -1710,12 +1642,6 @@ class Artifact {
     if (m.cellGet(x - 1, y) == false) {
       return true;
     }
-    // if (m.cellGet(x - 2, y) == false) {
-    //   return true;
-    // }
-    // if (m.cellGet(x - 3, y) == false) {
-    //   return true;
-    // }
     return false;
   }
 
@@ -1744,12 +1670,6 @@ class Artifact {
     if (m.cellGet(x + 1, y) == false) {
       return true;
     }
-    // if (m.cellGet(x - 2, y) == false) {
-    //   return true;
-    // }
-    // if (m.cellGet(x - 3, y) == false) {
-    //   return true;
-    // }
     return false;
   }
 }
@@ -1866,89 +1786,6 @@ Future<Uint8List> imageToUint8List(final Image? image) async {
   return data?.buffer.asUint8List() ?? Uint8List(0);
 }
 
-/// Performs an erosion operation on the input image.
-///
-/// This function takes a [Image] and performs an erosion operation on it.
-/// The erosion operation shrinks the black pixels (letters) against the white background.
-///
-/// Parameters:
-/// - [inputImage]: The source image to be eroded (black and white).
-/// - [kernelSize]: The size of the erosion kernel (must be an odd number).
-///
-/// Returns:
-/// A [Future] that resolves to a [Image] containing the eroded image.
-Future<Image> erode(
-  final Image inputImage, {
-  final int kernelSize = 3,
-}) async {
-  final int width = inputImage.width;
-  final int height = inputImage.height;
-
-  // Get the pixel data from the input image
-  final ByteData? byteData =
-      await inputImage.toByteData(format: ImageByteFormat.rawRgba);
-  if (byteData == null) {
-    throw Exception('Failed to get image data');
-  }
-  final Uint8List inputPixels = byteData.buffer.asUint8List();
-
-  // Create a new Uint8List for the output image
-  final Uint8List outputPixels = Uint8List(width * height * 4);
-
-  // Calculate the radius of the kernel
-  final int radius = kernelSize ~/ 2;
-
-  for (int y = 0; y < height; y++) {
-    for (int x = 0; x < width; x++) {
-      // Initialize the maximum value to black (0)
-      int maxValue = 0;
-
-      // Check the kernel area
-      for (int ky = -radius; ky <= radius; ky++) {
-        for (int kx = -radius; kx <= radius; kx++) {
-          // Calculate the index of the neighbor pixel
-          int neighborX = x + kx;
-          int neighborY = y + ky;
-
-          // Ensure we stay within bounds
-          if (neighborX >= 0 &&
-              neighborX < width &&
-              neighborY >= 0 &&
-              neighborY < height) {
-            // Get the pixel value (assuming binary image, check the red channel)
-            int pixelIndex = (neighborY * width + neighborX) * 4; // RGBA
-            int r =
-                inputPixels[pixelIndex]; // Assuming grayscale, use red channel
-
-            // Update the maximum value
-            maxValue = max(maxValue, r);
-          }
-        }
-      }
-
-      // Set the eroded pixel value in the output image
-      int outputIndex = (y * width + x) * 4;
-      outputPixels[outputIndex] = maxValue; // R
-      outputPixels[outputIndex + 1] = maxValue; // G
-      outputPixels[outputIndex + 2] = maxValue; // B
-      outputPixels[outputIndex + 3] = 255; // A (fully opaque)
-    }
-  }
-
-  // Create a new Image from the output pixels
-  final ImmutableBuffer buffer =
-      await ImmutableBuffer.fromUint8List(outputPixels);
-  final ImageDescriptor descriptor = ImageDescriptor.raw(
-    buffer,
-    width: width,
-    height: height,
-    pixelFormat: PixelFormat.rgba8888,
-  );
-  final Codec codec = await descriptor.instantiateCodec();
-  final FrameInfo frameInfo = await codec.getNextFrame();
-  return frameInfo.image;
-}
-
 /// Finds the regions in a binary image matrix.
 ///
 /// This method performs a flood fill algorithm to identify connected regions
@@ -1969,7 +1806,7 @@ List<Artifact> findMatrices({required Artifact dilatedMatrixImage}) {
 
   // Create a matrix to track visited pixels
   final Artifact visited =
-      Artifact(dilatedMatrixImage.cols, dilatedMatrixImage.rows, false);
+      Artifact(dilatedMatrixImage.cols, dilatedMatrixImage.rows);
 
   // Scan through each pixel
   for (int y = 0; y < dilatedMatrixImage.rows; y++) {
@@ -1996,45 +1833,48 @@ List<Artifact> findMatrices({required Artifact dilatedMatrixImage}) {
   return regions;
 }
 
-/// Finds the regions in a binary image matrix.
-///
-/// This method performs a flood fill algorithm to identify connected regions
-/// in a binary image matrix. It creates a dilated copy of the binary image
-/// to merge nearby pixels, and then scans through each pixel to find
-/// connected regions. The method returns a list of [Rect] objects
-/// representing the bounding boxes of the identified regions.
+/// Finds the regions in a binary image matrix and returns them as IntRect objects.
+/// This optimized version calculates rectangles directly during flood fill without
+/// storing all individual points.
 ///
 /// Parameters:
-///   [binaryImages]: The binary image matrix to analyze.
+///   [dilatedMatrixImage]: The binary image matrix to analyze.
 ///
 /// Returns:
-///   A list of [Rect] objects representing the bounding boxes of the
-///   identified regions.
+///   A list of IntRect objects representing the bounding boxes of the identified regions.
 List<IntRect> findRegions({required Artifact dilatedMatrixImage}) {
   // Clear existing regions
   List<IntRect> regions = [];
 
   // Create a matrix to track visited pixels
-  final Artifact visited =
-      Artifact(dilatedMatrixImage.cols, dilatedMatrixImage.rows, false);
+  final Artifact visited = Artifact(
+    dilatedMatrixImage.cols,
+    dilatedMatrixImage.rows,
+  );
 
-  // Scan through each pixel
-  for (int y = 0; y < dilatedMatrixImage.rows; y++) {
-    for (int x = 0; x < dilatedMatrixImage.cols; x++) {
-      // If pixel is on and not visited, flood fill from this point
-      if (!visited.cellGet(x, y) && dilatedMatrixImage.cellGet(x, y)) {
-        // Get connected points using flood fill
-        final List<Point<int>> connectedPoints = floodFill(
+  final int width = dilatedMatrixImage.cols;
+  final int height = dilatedMatrixImage.rows;
+  final Uint8List imageData = dilatedMatrixImage._matrix;
+  final Uint8List visitedData = visited._matrix;
+
+  // Scan through each pixel - use direct array access
+  for (int y = 0; y < height; y++) {
+    final int rowOffset = y * width;
+    for (int x = 0; x < width; x++) {
+      final int index = rowOffset + x;
+      // Check if pixel is on and not visited using direct array access
+      if (visitedData[index] == 0 && imageData[index] == 1) {
+        // Find region bounds directly without storing all points
+        final IntRect rect = floodFillToRect(
           dilatedMatrixImage,
           visited,
           x,
           y,
         );
 
-        if (connectedPoints.isEmpty) {
-          continue;
+        if (rect.width > 0 && rect.height > 0) {
+          regions.add(rect);
         }
-        regions.add(rectFromPoints(connectedPoints));
       }
     }
   }
@@ -2043,10 +1883,10 @@ List<IntRect> findRegions({required Artifact dilatedMatrixImage}) {
   return regions;
 }
 
-/// Performs a flood fill algorithm on a binary image matrix.
+/// Performs a highly optimized flood fill algorithm on a binary image matrix.
 ///
-/// This method implements a depth-first search flood fill algorithm to find
-/// all connected points starting from a given point in a binary image.
+/// This implementation uses direct array access and efficient data structures
+/// to significantly improve performance over the traditional approach.
 ///
 /// Parameters:
 ///   [binaryPixels]: A Matrix representing the binary image where true values
@@ -2059,44 +1899,169 @@ List<IntRect> findRegions({required Artifact dilatedMatrixImage}) {
 /// Returns:
 ///   A List of Point objects representing all connected points found during
 ///   the flood fill process.
-///
-/// Throws:
-///   An assertion error if the areas of [binaryPixels] and [visited] are not equal.
 List<Point<int>> floodFill(
   final Artifact binaryPixels,
   final Artifact visited,
   final int startX,
   final int startY,
 ) {
-  assert(binaryPixels.area == visited.area);
+  final int width = binaryPixels.cols;
+  final int height = binaryPixels.rows;
 
-  final List<Point<int>> stack = [Point(startX, startY)];
-  final List<Point<int>> connectedPoints = [];
-
-  while (stack.isNotEmpty) {
-    final Point<int> point = stack.removeLast();
-    final int x = point.x;
-    final int y = point.y;
-
-    if (x < 0 || x >= binaryPixels.cols || y < 0 || y >= binaryPixels.rows) {
-      continue;
-    }
-
-    if (!binaryPixels.cellGet(x, y) || visited.cellGet(x, y)) {
-      // no pixel at this location
-      continue;
-    }
-
-    visited.cellSet(x, y, true);
-    connectedPoints.add(point);
-
-    // Push neighboring pixels onto the stack
-    stack.add(Point(x - 1, y)); // Left
-    stack.add(Point(x + 1, y)); // Right
-    stack.add(Point(x, y - 1)); // Top
-    stack.add(Point(x, y + 1)); // Bottom
+  // Early bounds check
+  if (startX < 0 || startX >= width || startY < 0 || startY >= height) {
+    return const [];
   }
+
+  // Early check for valid starting pixel
+  if (!binaryPixels.cellGet(startX, startY)) {
+    return const [];
+  }
+
+  // Direct access to the underlying arrays
+  final Uint8List pixelData = binaryPixels._matrix;
+  final Uint8List visitedData = visited._matrix;
+
+  // Pre-allocate with estimated capacity to reduce reallocations
+  final List<Point<int>> connectedPoints = <Point<int>>[];
+  final Queue<int> queue = Queue<int>();
+
+  // Calculate initial index
+  final int startIndex = startY * width + startX;
+
+  // Mark start point as visited and add to queue
+  visitedData[startIndex] = 1;
+  queue.add(startIndex);
+
+  // Direction offsets for adjacent pixels
+  const List<int> rowOffsets = [0, 0, -1, 1]; // Row adjustments
+  const List<int> colOffsets = [-1, 1, 0, 0]; // Column adjustments
+
+  while (queue.isNotEmpty) {
+    final int currentIndex = queue.removeFirst();
+    final int x = currentIndex % width;
+    final int y = currentIndex ~/ width;
+
+    // Add current point to result
+    connectedPoints.add(Point(x, y));
+
+    // Check all four directions
+    for (int i = 0; i < 4; i++) {
+      final int nx = x + colOffsets[i];
+      final int ny = y + rowOffsets[i];
+
+      // Skip out-of-bounds
+      if (nx < 0 || nx >= width || ny < 0 || ny >= height) {
+        continue;
+      }
+
+      final int neighborIndex = ny * width + nx;
+
+      // Check if neighbor is valid and not visited
+      if (pixelData[neighborIndex] == 1 && visitedData[neighborIndex] == 0) {
+        visitedData[neighborIndex] = 1;
+        queue.add(neighborIndex);
+      }
+    }
+  }
+
   return connectedPoints;
+}
+
+/// Performs a flood fill algorithm and directly calculates the bounding rectangle
+/// without storing all individual points.
+///
+/// Parameters:
+///   [binaryPixels]: A Matrix representing the binary image.
+///   [visited]: A Matrix to keep track of visited pixels.
+///   [startX]: The starting X coordinate for the flood fill.
+///   [startY]: The starting Y coordinate for the flood fill.
+///
+/// Returns:
+///   An IntRect representing the bounding rectangle of the connected region.
+IntRect floodFillToRect(
+  final Artifact binaryPixels,
+  final Artifact visited,
+  final int startX,
+  final int startY,
+) {
+  final int width = binaryPixels.cols;
+  final int height = binaryPixels.rows;
+
+  // Early bounds check
+  if (startX < 0 || startX >= width || startY < 0 || startY >= height) {
+    return IntRect.zero;
+  }
+
+  // Early check for valid starting pixel
+  if (!binaryPixels.cellGet(startX, startY)) {
+    return IntRect.zero;
+  }
+
+  // Direct access to the underlying arrays
+  final Uint8List pixelData = binaryPixels._matrix;
+  final Uint8List visitedData = visited._matrix;
+
+  // Initialize bounds to starting point
+  int minX = startX;
+  int minY = startY;
+  int maxX = startX;
+  int maxY = startY;
+
+  final Queue<int> queue = Queue<int>();
+
+  // Calculate initial index
+  final int startIndex = startY * width + startX;
+
+  // Mark start point as visited and add to queue
+  visitedData[startIndex] = 1;
+  queue.add(startIndex);
+
+  // Direction offsets for adjacent pixels
+  const List<int> rowOffsets = [0, 0, -1, 1]; // Row adjustments
+  const List<int> colOffsets = [-1, 1, 0, 0]; // Column adjustments
+
+  while (queue.isNotEmpty) {
+    final int currentIndex = queue.removeFirst();
+    final int x = currentIndex % width;
+    final int y = currentIndex ~/ width;
+
+    // Update bounds
+    minX = min(minX, x);
+    minY = min(minY, y);
+    maxX = max(maxX, x);
+    maxY = max(maxY, y);
+
+    // Check all four directions
+    for (int i = 0; i < 4; i++) {
+      final int nx = x + colOffsets[i];
+      final int ny = y + rowOffsets[i];
+
+      // Skip out-of-bounds
+      if (nx < 0 || nx >= width || ny < 0 || ny >= height) {
+        continue;
+      }
+
+      final int neighborIndex = ny * width + nx;
+
+      // Check if neighbor is valid and not visited
+      if (pixelData[neighborIndex] == 1 && visitedData[neighborIndex] == 0) {
+        visitedData[neighborIndex] = 1;
+        queue.add(neighborIndex);
+      }
+    }
+  }
+
+  // Calculate width and height
+  final int regionWidth = maxX - minX + 1;
+  final int regionHeight = maxY - minY + 1;
+
+  return IntRect.fromLTWH(
+    minX,
+    minY,
+    regionWidth,
+    regionHeight,
+  );
 }
 
 ///
@@ -2110,7 +2075,7 @@ Artifact matrixFromPoints(List<Point<int>> connectedPoints) {
   final int regionWidth = maxX - minX + 1;
   final int regionHeight = maxY - minY + 1;
 
-  final Artifact artifact = Artifact(regionWidth, regionHeight, false);
+  final Artifact artifact = Artifact(regionWidth, regionHeight);
   artifact.locationFound = IntOffset(minX, minY);
   artifact.locationAdjusted = artifact.locationFound;
 
@@ -2121,45 +2086,6 @@ Artifact matrixFromPoints(List<Point<int>> connectedPoints) {
   }
   return artifact;
 }
-
-///
-IntRect rectFromPoints(List<Point<int>> connectedPoints) {
-  // Create a new matrix for the isolated region
-  final int minX = connectedPoints.map((point) => point.x).reduce(min);
-  final int minY = connectedPoints.map((point) => point.y).reduce(min);
-  final int maxX = connectedPoints.map((point) => point.x).reduce(max);
-  final int maxY = connectedPoints.map((point) => point.y).reduce(max);
-
-  final int regionWidth = maxX - minX + 1;
-  final int regionHeight = maxY - minY + 1;
-
-  final IntRect region = IntRect.fromLTWH(
-    minX,
-    minY,
-    regionWidth,
-    regionHeight,
-  );
-
-  return region;
-}
-
-// (int minX, int minY, int maxX, int maxY) calculateBoundingBox(
-//   List<Point> points,
-// ) {
-//   int minX = double.infinity.toInt();
-//   int minY = double.infinity.toInt();
-//   int maxX = -double.infinity.toInt();
-//   int maxY = -double.infinity.toInt();
-
-//   for (final Point<num> point in points) {
-//     if (point.x < minX) minX = point.x.toInt();
-//     if (point.y < minY) minY = point.y.toInt();
-//     if (point.x > maxX) maxX = point.x.toInt();
-//     if (point.y > maxY) maxY = point.y.toInt();
-//   }
-
-//   return (minX, minY, maxX, maxY);
-// }
 
 ///
 int computeKernelSize(int width, int height, double scaleFactor) {
@@ -2173,6 +2099,7 @@ int computeKernelSize(int width, int height, double scaleFactor) {
 ///
 /// Parameters:
 /// - [matrixImage]: The source matrix to be dilated (binary matrix).
+/// - [kernelSize]: The size of the kernel to use for dilation.
 ///
 /// Returns:
 /// A new [Artifact] containing the dilated matrix.
@@ -2180,70 +2107,45 @@ Artifact dilateMatrix({
   required final Artifact matrixImage,
   required int kernelSize,
 }) {
+  final Artifact result = Artifact(matrixImage.cols, matrixImage.rows);
+  final int halfKernel = kernelSize ~/ 2;
   final int width = matrixImage.cols;
   final int height = matrixImage.rows;
-  final Artifact output = Artifact(width, height);
 
-  // Precompute elliptical kernel offsets
-  final List<Point<int>> offsets = _createEllipticalKernel(kernelSize);
+  // Pre-compute row boundaries for each y position to avoid repeated calculations
+  final List<int> minKYs = List<int>.filled(height, 0);
+  final List<int> maxKYs = List<int>.filled(height, 0);
+  for (int y = 0; y < height; y++) {
+    minKYs[y] = max(0, y - halfKernel);
+    maxKYs[y] = min(height - 1, y + halfKernel);
+  }
 
+  // Pre-compute column boundaries for each x position
+  final List<int> minKXs = List<int>.filled(width, 0);
+  final List<int> maxKXs = List<int>.filled(width, 0);
+  for (int x = 0; x < width; x++) {
+    minKXs[x] = max(0, x - halfKernel);
+    maxKXs[x] = min(width - 1, x + halfKernel);
+  }
+
+  // Process the image
+  // For large images, process in chunks
+  // First pass: find all pixels that are set in the original image
+  // and mark their kernel areas in the result
   for (int y = 0; y < height; y++) {
     for (int x = 0; x < width; x++) {
       if (matrixImage.cellGet(x, y)) {
-        output.cellSet(x, y, true);
-        continue; // Already inked, no need to process neighbors
-      }
-
-      for (final offset in offsets) {
-        final int nx = x + offset.x;
-        final int ny = y + offset.y;
-
-        if (nx >= 0 &&
-            nx < width &&
-            ny >= 0 &&
-            ny < height &&
-            matrixImage.cellGet(nx, ny)) {
-          output.cellSet(x, y, true);
-          break; // Early exit when ink is found
+        // This pixel is set, so dilate it by setting all pixels in its kernel area
+        for (int ky = minKYs[y]; ky <= maxKYs[y]; ky++) {
+          for (int kx = minKXs[x]; kx <= maxKXs[x]; kx++) {
+            result.cellSet(kx, ky, true);
+          }
         }
       }
     }
   }
 
-  return output;
-}
-
-/// Creates an elliptical kernel of the given size.
-///
-/// The kernel is a 2D list of booleans, where `true` values represent the
-/// pixels that are part of the ellipse, and `false` values represent the
-/// pixels that are outside the ellipse.
-///
-/// The ellipse is centered at the center of the kernel, and its major and
-/// minor axes are equal to the size of the kernel.
-///
-/// Parameters:
-/// [size]: The size of the kernel, which determines the size of the ellipse.
-///
-/// Returns:
-/// A 2D list of booleans representing the elliptical kernel.
-List<Point<int>> _createEllipticalKernel(int kernelSize) {
-  final List<Point<int>> offsets = [];
-  final int center = kernelSize ~/ 2;
-
-  for (int ky = 0; ky < kernelSize; ky++) {
-    for (int kx = 0; kx < kernelSize; kx++) {
-      if (_isInsideEllipse(kx - center, ky - center, center)) {
-        offsets.add(Point(kx - center, ky - center));
-      }
-    }
-  }
-  return offsets;
-}
-
-// Check if a point is inside an ellipse
-bool _isInsideEllipse(int x, int y, int radius) {
-  return (x * x + y * y) <= (radius * radius);
+  return result;
 }
 
 /// Creates a new [Image] from a [Uint8List] of pixel data.

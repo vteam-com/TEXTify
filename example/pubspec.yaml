@@ -13,7 +13,7 @@ dependencies:
   path_provider: ^2.1.5
   pasteboard: ^0.3.0
   flutter_colorpicker: ^1.1.0
-  shared_preferences: ^2.5.2
+  shared_preferences: ^2.5.3
   textify:
     path: ../
 

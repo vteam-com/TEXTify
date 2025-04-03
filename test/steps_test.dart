@@ -102,10 +102,7 @@ void main() async {
         textify,
         image,
         'THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG\n'
-        'Th e\n'
-        'Over the\n'
-        'quick brown fox jumps\n'
-        'lazy dog\n'
+        'The quick brown fox jumps over the lazy dog\n'
         '2025-12-31',
         printResuls: false,
         dilateFactor: 22,
@@ -150,7 +147,9 @@ Future<void> testFromImage(
   final int? dilateFactor,
   final bool innerSplit = false,
 }) async {
+  //
   // Black and White
+  //
   final ui.Image imageBlackAndWhite = await imageToBlackOnWhite(image);
   expect(imageBlackAndWhite.width, image.width);
   expect(imageBlackAndWhite.height, image.height);
@@ -168,7 +167,7 @@ Future<void> testFromImage(
   // Dilate
   //
   int kernelSize =
-      dilateFactor ?? computeKernelSize(image.width, image.height, 0.03);
+      dilateFactor ?? computeKernelSize(image.width, image.height, 0.02);
 
   final Artifact imageAsMatrixDilated = dilateMatrix(
     matrixImage: matrixSourceImage,
@@ -176,7 +175,7 @@ Future<void> testFromImage(
   );
   expect(imageAsMatrixDilated.cols, image.width);
   expect(imageAsMatrixDilated.rows, image.height);
-  // printMatrix(imageAsMatrixDilated);
+  printMatrix(imageAsMatrixDilated, printResuls);
 
   //
   // Find the Artifacts in each regions

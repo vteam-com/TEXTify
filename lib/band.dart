@@ -270,18 +270,6 @@ class Band {
   }
 
   ///
-  static void sortArtifactByRectFound(List<Artifact> list) {
-    list.sort((Artifact a, Artifact b) {
-      final aCenterY = a.rectFound.top + a.rectFound.height / 2;
-      final bCenterY = b.rectFound.top + b.rectFound.height / 2;
-      if ((aCenterY - bCenterY).abs() < 10) {
-        return a.rectFound.left.compareTo(b.rectFound.left);
-      }
-      return aCenterY.compareTo(bCenterY);
-    });
-  }
-
-  ///
   void replaceOneArtifactWithMore(
     final Artifact artifactToReplace,
     final List<Artifact> artifactsToInsert,
@@ -582,6 +570,18 @@ class Band {
         artifact.locationFound = IntOffset(artifact.locationFound.x, bandTop);
       }
     }
+  }
+
+  @override
+  String toString() {
+    String title =
+        '[${this.artifacts.length}] Avg(W:${this.averageWidth.toStringAsFixed(0)}, H:${this.rectangleAdjusted.height} G:${this.averageKerning.toStringAsFixed(0)})';
+
+    if (spacesCount > 0) {
+      title += ' S[$spacesCount]';
+    }
+
+    return title;
   }
 }
 

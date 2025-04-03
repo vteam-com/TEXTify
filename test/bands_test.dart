@@ -9,6 +9,7 @@ void main() {
       final bands = Bands([band]);
       bands.mergeBandsHorizontally();
       expect(bands.length, 1);
+      expect(band.toString(), '[0] Avg(W:0, H:0 G:-1)');
     });
 
     test('merges multiple empty bands in sequence', () {
@@ -56,6 +57,8 @@ void main() {
         bands.list.first.artifacts.length,
         2,
       );
+      expect(band1.toString(), '[2] Avg(W:2, H:2 G:1)');
+      expect(band2.toString(), '[1] Avg(W:3, H:2 G:-1)');
     });
 
     test('does not merge bands with large horizontal gap', () {

@@ -949,67 +949,6 @@ class Artifact {
     return getContentRect().shift(this.rectAdjusted.topLeft);
   }
 
-  /// Creates a string representation of two overlaid matrices.
-  ///
-  /// This static method compares two matrices cell by cell and generates a new
-  /// representation where each cell is represented by a character based on the
-  /// values in both input matrices.
-  ///
-  /// Parameters:
-  /// - [grid1]: The first Matrix to be overlaid.
-  /// - [grid2]: The second Matrix to be overlaid.
-  ///
-  /// Returns:
-  /// A ```List<String>``` where each string represents a row in the overlaid result.
-  /// The characters in the resulting strings represent:
-  ///   '=' : Both matrices have true in this cell
-  ///   '*' : Only grid1 has true in this cell
-  ///   '#' : Only grid2 has true in this cell
-  ///   '.' : Both matrices have false in this cell
-  ///
-  /// Throws:
-  /// An Exception if the input matrices have different dimensions.
-  ///
-  /// Note:
-  /// This method is useful for visualizing the differences and similarities
-  /// between two matrices, which can be helpful in debugging or analysis tasks.
-  static List<String> getStringListOfOverlappedGrids(
-    final Artifact grid1,
-    final Artifact grid2,
-  ) {
-    final int height = grid1.rows;
-    final int width = grid1.cols;
-
-    if (height != grid2.rows || width != grid2.cols) {
-      throw Exception('Grids must have the same dimensions');
-    }
-
-    final List<String> overlappedGrid = [];
-
-    for (int row = 0; row < height; row++) {
-      String overlappedRow = '';
-
-      for (int col = 0; col < width; col++) {
-        final bool cell1 = grid1.cellGet(col, row);
-        final bool cell2 = grid2.cellGet(col, row);
-
-        if (cell1 && cell2) {
-          overlappedRow += '=';
-        } else if (cell1) {
-          overlappedRow += '*';
-        } else if (cell2) {
-          overlappedRow += '#';
-        } else {
-          overlappedRow += '.';
-        }
-      }
-
-      overlappedGrid.add(overlappedRow);
-    }
-
-    return overlappedGrid;
-  }
-
   /// Converts the matrix to a string representation.
   ///
   /// This method creates a string representation of the matrix, with options
@@ -1167,26 +1106,6 @@ class Artifact {
   /// Ensure that x & y are in the boundary of the grid
   bool _isValidXY(final int x, final int y) {
     return (x >= 0 && x < cols) && (y >= 0 && y < rows);
-  }
-
-  /// Custom comparison method for matrices
-  static bool matrixEquals(Artifact a, Artifact b) {
-    // Check if dimensions are the same
-    if (a.rows != b.rows || a.cols != b.cols) {
-      return false;
-    }
-
-    // Compare each cell
-    for (int y = 0; y < a.rows; y++) {
-      for (int x = 0; x < a.cols; x++) {
-        if (a.cellGet(x, y) != b.cellGet(x, y)) {
-          return false;
-        }
-      }
-    }
-
-    // If we've made it this far, the matrices are equal
-    return true;
   }
 
   /// Sets the grid of the Matrix object.
@@ -1867,89 +1786,6 @@ Future<Uint8List> imageToUint8List(final Image? image) async {
   return data?.buffer.asUint8List() ?? Uint8List(0);
 }
 
-/// Performs an erosion operation on the input image.
-///
-/// This function takes a [Image] and performs an erosion operation on it.
-/// The erosion operation shrinks the black pixels (letters) against the white background.
-///
-/// Parameters:
-/// - [inputImage]: The source image to be eroded (black and white).
-/// - [kernelSize]: The size of the erosion kernel (must be an odd number).
-///
-/// Returns:
-/// A [Future] that resolves to a [Image] containing the eroded image.
-Future<Image> erode(
-  final Image inputImage, {
-  final int kernelSize = 3,
-}) async {
-  final int width = inputImage.width;
-  final int height = inputImage.height;
-
-  // Get the pixel data from the input image
-  final ByteData? byteData =
-      await inputImage.toByteData(format: ImageByteFormat.rawRgba);
-  if (byteData == null) {
-    throw Exception('Failed to get image data');
-  }
-  final Uint8List inputPixels = byteData.buffer.asUint8List();
-
-  // Create a new Uint8List for the output image
-  final Uint8List outputPixels = Uint8List(width * height * 4);
-
-  // Calculate the radius of the kernel
-  final int radius = kernelSize ~/ 2;
-
-  for (int y = 0; y < height; y++) {
-    for (int x = 0; x < width; x++) {
-      // Initialize the maximum value to black (0)
-      int maxValue = 0;
-
-      // Check the kernel area
-      for (int ky = -radius; ky <= radius; ky++) {
-        for (int kx = -radius; kx <= radius; kx++) {
-          // Calculate the index of the neighbor pixel
-          int neighborX = x + kx;
-          int neighborY = y + ky;
-
-          // Ensure we stay within bounds
-          if (neighborX >= 0 &&
-              neighborX < width &&
-              neighborY >= 0 &&
-              neighborY < height) {
-            // Get the pixel value (assuming binary image, check the red channel)
-            int pixelIndex = (neighborY * width + neighborX) * 4; // RGBA
-            int r =
-                inputPixels[pixelIndex]; // Assuming grayscale, use red channel
-
-            // Update the maximum value
-            maxValue = max(maxValue, r);
-          }
-        }
-      }
-
-      // Set the eroded pixel value in the output image
-      int outputIndex = (y * width + x) * 4;
-      outputPixels[outputIndex] = maxValue; // R
-      outputPixels[outputIndex + 1] = maxValue; // G
-      outputPixels[outputIndex + 2] = maxValue; // B
-      outputPixels[outputIndex + 3] = 255; // A (fully opaque)
-    }
-  }
-
-  // Create a new Image from the output pixels
-  final ImmutableBuffer buffer =
-      await ImmutableBuffer.fromUint8List(outputPixels);
-  final ImageDescriptor descriptor = ImageDescriptor.raw(
-    buffer,
-    width: width,
-    height: height,
-    pixelFormat: PixelFormat.rgba8888,
-  );
-  final Codec codec = await descriptor.instantiateCodec();
-  final FrameInfo frameInfo = await codec.getNextFrame();
-  return frameInfo.image;
-}
-
 /// Finds the regions in a binary image matrix.
 ///
 /// This method performs a flood fill algorithm to identify connected regions
@@ -1997,20 +1833,15 @@ List<Artifact> findMatrices({required Artifact dilatedMatrixImage}) {
   return regions;
 }
 
-/// Finds the regions in a binary image matrix.
-///
-/// This method performs a flood fill algorithm to identify connected regions
-/// in a binary image matrix. It creates a dilated copy of the binary image
-/// to merge nearby pixels, and then scans through each pixel to find
-/// connected regions. The method returns a list of [Rect] objects
-/// representing the bounding boxes of the identified regions.
+/// Finds the regions in a binary image matrix and returns them as IntRect objects.
+/// This optimized version calculates rectangles directly during flood fill without
+/// storing all individual points.
 ///
 /// Parameters:
-///   [binaryImages]: The binary image matrix to analyze.
+///   [dilatedMatrixImage]: The binary image matrix to analyze.
 ///
 /// Returns:
-///   A list of [Rect] objects representing the bounding boxes of the
-///   identified regions.
+///   A list of IntRect objects representing the bounding boxes of the identified regions.
 List<IntRect> findRegions({required Artifact dilatedMatrixImage}) {
   // Clear existing regions
   List<IntRect> regions = [];
@@ -2033,15 +1864,16 @@ List<IntRect> findRegions({required Artifact dilatedMatrixImage}) {
       final int index = rowOffset + x;
       // Check if pixel is on and not visited using direct array access
       if (visitedData[index] == 0 && imageData[index] == 1) {
-        final List<Point<int>> connectedPoints = floodFill(
+        // Find region bounds directly without storing all points
+        final IntRect rect = floodFillToRect(
           dilatedMatrixImage,
           visited,
           x,
           y,
         );
 
-        if (connectedPoints.isNotEmpty) {
-          regions.add(rectFromPoints(connectedPoints));
+        if (rect.width > 0 && rect.height > 0) {
+          regions.add(rect);
         }
       }
     }
@@ -2101,7 +1933,7 @@ List<Point<int>> floodFill(
   visitedData[startIndex] = 1;
   queue.add(startIndex);
 
-  // Pre-compute direction offsets for adjacent pixels
+  // Direction offsets for adjacent pixels
   const List<int> rowOffsets = [0, 0, -1, 1]; // Row adjustments
   const List<int> colOffsets = [-1, 1, 0, 0]; // Column adjustments
 
@@ -2136,6 +1968,102 @@ List<Point<int>> floodFill(
   return connectedPoints;
 }
 
+/// Performs a flood fill algorithm and directly calculates the bounding rectangle
+/// without storing all individual points.
+///
+/// Parameters:
+///   [binaryPixels]: A Matrix representing the binary image.
+///   [visited]: A Matrix to keep track of visited pixels.
+///   [startX]: The starting X coordinate for the flood fill.
+///   [startY]: The starting Y coordinate for the flood fill.
+///
+/// Returns:
+///   An IntRect representing the bounding rectangle of the connected region.
+IntRect floodFillToRect(
+  final Artifact binaryPixels,
+  final Artifact visited,
+  final int startX,
+  final int startY,
+) {
+  final int width = binaryPixels.cols;
+  final int height = binaryPixels.rows;
+
+  // Early bounds check
+  if (startX < 0 || startX >= width || startY < 0 || startY >= height) {
+    return IntRect.zero;
+  }
+
+  // Early check for valid starting pixel
+  if (!binaryPixels.cellGet(startX, startY)) {
+    return IntRect.zero;
+  }
+
+  // Direct access to the underlying arrays
+  final Uint8List pixelData = binaryPixels._matrix;
+  final Uint8List visitedData = visited._matrix;
+
+  // Initialize bounds to starting point
+  int minX = startX;
+  int minY = startY;
+  int maxX = startX;
+  int maxY = startY;
+
+  final Queue<int> queue = Queue<int>();
+
+  // Calculate initial index
+  final int startIndex = startY * width + startX;
+
+  // Mark start point as visited and add to queue
+  visitedData[startIndex] = 1;
+  queue.add(startIndex);
+
+  // Direction offsets for adjacent pixels
+  const List<int> rowOffsets = [0, 0, -1, 1]; // Row adjustments
+  const List<int> colOffsets = [-1, 1, 0, 0]; // Column adjustments
+
+  while (queue.isNotEmpty) {
+    final int currentIndex = queue.removeFirst();
+    final int x = currentIndex % width;
+    final int y = currentIndex ~/ width;
+
+    // Update bounds
+    minX = min(minX, x);
+    minY = min(minY, y);
+    maxX = max(maxX, x);
+    maxY = max(maxY, y);
+
+    // Check all four directions
+    for (int i = 0; i < 4; i++) {
+      final int nx = x + colOffsets[i];
+      final int ny = y + rowOffsets[i];
+
+      // Skip out-of-bounds
+      if (nx < 0 || nx >= width || ny < 0 || ny >= height) {
+        continue;
+      }
+
+      final int neighborIndex = ny * width + nx;
+
+      // Check if neighbor is valid and not visited
+      if (pixelData[neighborIndex] == 1 && visitedData[neighborIndex] == 0) {
+        visitedData[neighborIndex] = 1;
+        queue.add(neighborIndex);
+      }
+    }
+  }
+
+  // Calculate width and height
+  final int regionWidth = maxX - minX + 1;
+  final int regionHeight = maxY - minY + 1;
+
+  return IntRect.fromLTWH(
+    minX,
+    minY,
+    regionWidth,
+    regionHeight,
+  );
+}
+
 ///
 Artifact matrixFromPoints(List<Point<int>> connectedPoints) {
   // Create a new matrix for the isolated region
@@ -2158,45 +2086,6 @@ Artifact matrixFromPoints(List<Point<int>> connectedPoints) {
   }
   return artifact;
 }
-
-///
-IntRect rectFromPoints(List<Point<int>> connectedPoints) {
-  // Create a new matrix for the isolated region
-  final int minX = connectedPoints.map((point) => point.x).reduce(min);
-  final int minY = connectedPoints.map((point) => point.y).reduce(min);
-  final int maxX = connectedPoints.map((point) => point.x).reduce(max);
-  final int maxY = connectedPoints.map((point) => point.y).reduce(max);
-
-  final int regionWidth = maxX - minX + 1;
-  final int regionHeight = maxY - minY + 1;
-
-  final IntRect region = IntRect.fromLTWH(
-    minX,
-    minY,
-    regionWidth,
-    regionHeight,
-  );
-
-  return region;
-}
-
-// (int minX, int minY, int maxX, int maxY) calculateBoundingBox(
-//   List<Point> points,
-// ) {
-//   int minX = double.infinity.toInt();
-//   int minY = double.infinity.toInt();
-//   int maxX = -double.infinity.toInt();
-//   int maxY = -double.infinity.toInt();
-
-//   for (final Point<num> point in points) {
-//     if (point.x < minX) minX = point.x.toInt();
-//     if (point.y < minY) minY = point.y.toInt();
-//     if (point.x > maxX) maxX = point.x.toInt();
-//     if (point.y > maxY) maxY = point.y.toInt();
-//   }
-
-//   return (minX, minY, maxX, maxY);
-// }
 
 ///
 int computeKernelSize(int width, int height, double scaleFactor) {

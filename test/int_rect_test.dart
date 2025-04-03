@@ -97,5 +97,14 @@ void main() {
         equals('IntRect(L:10, T:20, R:40 B:60 W:30, H:40)'),
       );
     });
+
+    test('zero creates rectangle with zero position and dimensions', () {
+      final zeroRect = IntRect.zero;
+      expect(zeroRect.left, equals(0));
+      expect(zeroRect.top, equals(0));
+      expect(zeroRect.width, equals(0));
+      expect(zeroRect.height, equals(0));
+      expect(zeroRect.isEmpty, isTrue);
+    });
   });
 }

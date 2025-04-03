@@ -61,6 +61,9 @@ class IntRect {
     );
   }
 
+  /// Creates a new [IntRect] with zero position and dimensions.
+  static final IntRect zero = IntRect(0, 0, 0, 0);
+
   /// The x-coordinate of the left edge of the rectangle.
   final int left;
 

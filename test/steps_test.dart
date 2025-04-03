@@ -148,7 +148,9 @@ Future<void> testFromImage(
   final int? dilateFactor,
   final bool innerSplit = false,
 }) async {
+  //
   // Black and White
+  //
   final ui.Image imageBlackAndWhite = await imageToBlackOnWhite(image);
   expect(imageBlackAndWhite.width, image.width);
   expect(imageBlackAndWhite.height, image.height);
@@ -174,7 +176,7 @@ Future<void> testFromImage(
   );
   expect(imageAsMatrixDilated.cols, image.width);
   expect(imageAsMatrixDilated.rows, image.height);
-  // printMatrix(imageAsMatrixDilated);
+  // printMatrix(imageAsMatrixDilated, true);
 
   //
   // Find the Artifacts in each regions

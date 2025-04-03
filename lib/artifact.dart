@@ -11,6 +11,11 @@ import 'package:textify/int_rect.dart';
 /// This class provides various ways to create, manipulate, and analyze boolean matrices,
 /// including methods for resizing, comparing, and extracting information from the grid.
 class Artifact {
+  /// Main constructor
+  Artifact(this.cols, int rows) {
+    _matrix = Uint8List(rows * cols);
+  }
+
   /// Creates a new [Artifact] instance from an existing [Artifact].
   ///
   /// This factory method creates a new [Artifact] instance based on the provided [value] matrix.
@@ -31,8 +36,8 @@ class Artifact {
   /// Matrix copy = Matrix.fromMatrix(original);
   /// ```
   factory Artifact.fromMatrix(final Artifact value) {
-    final Artifact artifact = Artifact();
-    artifact.setGrid(value._matrix);
+    final Artifact artifact = Artifact(0, 0);
+    artifact.setGrid(value._matrix, value.cols);
     artifact.locationFound = value.locationFound;
     artifact.locationAdjusted = value.locationAdjusted;
     return artifact;
@@ -42,13 +47,16 @@ class Artifact {
   ///
   /// [template] A list of strings where '#' represents true and any other character represents false.
   factory Artifact.fromAsciiDefinition(final List<String> template) {
-    final Artifact artifact = Artifact();
     final int rows = template.length;
     final int cols = template[0].length;
-    artifact._matrix = List.generate(
-      rows,
-      (y) => List.generate(cols, (x) => template[y][x] == '#'),
-    );
+
+    final Artifact artifact = Artifact(cols, rows);
+
+    for (int y = 0; y < rows; y++) {
+      for (int x = 0; x < cols; x++) {
+        artifact.cellSet(x, y, template[y][x] == '#');
+      }
+    }
     return artifact;
   }
 
@@ -56,25 +64,8 @@ class Artifact {
   ///
   /// [input] A 2D list of boolean values.
   factory Artifact.fromBoolMatrix(final List<List<bool>> input) {
-    final Artifact artifact = Artifact();
-    artifact.setGrid(input);
-    return artifact;
-  }
-
-  /// Creates a Matrix from a flat list of boolean values.
-  ///
-  /// [inputList] A flat list of boolean values.
-  /// [width] The width of the resulting matrix.
-  factory Artifact.fromFlatListOfBool(
-    final List<bool> inputList,
-    final int width,
-  ) {
-    final Artifact artifact = Artifact();
-    final rows = inputList.length ~/ width;
-
-    for (int y = 0; y < rows; y++) {
-      artifact._matrix.add(inputList.sublist(y * width, (y + 1) * width));
-    }
+    final Artifact artifact = Artifact(0, 0);
+    artifact.setGridFromBools(input);
     return artifact;
   }
 
@@ -82,11 +73,17 @@ class Artifact {
   ///
   /// [json] A map containing 'rows', 'cols', and 'data' keys.
   factory Artifact.fromJson(final Map<String, dynamic> json) {
-    final Artifact artifact = Artifact();
+    // determine the mandatory cols/width of the matrix
+    final int cols = (json['cols'] as int?) ??
+        (json['data'] as List<dynamic>)[0].toString().length;
+
+    final Artifact artifact = Artifact(cols, 0);
     artifact.font = json['font'];
-    artifact._matrix = (json['data'] as List<dynamic>).map((final dynamic row) {
-      return row.toString().split('').map((cell) => cell == '#').toList();
-    }).toList();
+    artifact._matrix = Uint8List.fromList(
+      (json['data'] as List<dynamic>).expand((final dynamic row) {
+        return row.toString().split('').map((cell) => cell == '#' ? 1 : 0);
+      }).toList(),
+    );
     return artifact;
   }
 
@@ -106,20 +103,25 @@ class Artifact {
     );
   }
 
-  /// Creates a new Matrix with the specified dimensions, filled with the given value.
+  /// Creates a Matrix from a flat list of boolean values.
   ///
-  /// [cols] The number of columns in the matrix.
-  /// [rows] The number of rows in the matrix.
-  /// [value] The initial value for all cells (default is false).
-  Artifact([
-    final int cols = 0,
-    final int rows = 0,
-    final bool value = false,
-  ]) {
-    _matrix = List.generate(
-      rows,
-      (_) => List.filled(cols, false),
-    );
+  /// [inputList] A flat list of boolean values.
+  /// [width] The width of the resulting matrix.
+  factory Artifact.fromFlatListOfBool(
+    final List<bool> inputList,
+    final int width,
+  ) {
+    final rows = inputList.length ~/ width;
+
+    final Artifact artifact = Artifact(width, rows);
+
+    for (int y = 0; y < rows; y++) {
+      final List<bool> values = inputList.sublist(y * width, (y + 1) * width);
+      for (int x = 0; x < values.length; x++) {
+        artifact.cellSet(x, y, values[x]);
+      }
+    }
+    return artifact;
   }
 
   /// The character that this artifact matches.
@@ -133,7 +135,7 @@ class Artifact {
 
   /// Empty the content
   void clear() {
-    this._matrix = [];
+    this._matrix = Uint8List(0);
   }
 
   /// Converts the artifact to a text representation.
@@ -197,7 +199,7 @@ class Artifact {
     );
 
     // Update this artifact with the merged data
-    this.setGrid(newGrid._matrix);
+    this.setGrid(newGrid._matrix, newGrid.cols);
   }
 
   /// Returns:
@@ -223,7 +225,7 @@ class Artifact {
     List<int> histogram = getHistogramHorizontal();
 
     // Step 2: Create an empty matrix for the projection
-    Artifact result = Artifact(this.cols, this.rows, false);
+    Artifact result = Artifact(this.cols, this.rows);
 
     // Step 3: Fill the matrix from the bottom up based on the projection counts
     for (int x = 0; x < width; x++) {
@@ -263,7 +265,7 @@ class Artifact {
   /// [image] The Image object to be converted. This should be a valid,
   /// non-null image object.
   ///
-  /// Returns a [Future<Matrix>] representing the image data. The returned Matrix
+  /// Returns a [Future<Artifact>] representing the image data. The returned Matrix
   /// will have the same width as the input image, and its height will be
   /// determined by the length of the Uint8List and the width.
   ///
@@ -281,15 +283,15 @@ class Artifact {
   String font = '';
 
   /// The number of columns in the matrix.
-  int get cols => _matrix.isEmpty ? 0 : _matrix[0].length;
+  int cols = 0;
 
   /// The number of rows in the matrix.
-  int get rows => _matrix.length;
+  int get rows => _matrix.isEmpty ? 0 : _matrix.length ~/ this.cols;
 
   /// The 2D list representing the boolean grid.
   /// Each outer list represents a row, and each inner list represents a column.
   /// _data[row][column] gives the boolean value at that position.
-  List<List<bool>> _matrix = [];
+  Uint8List _matrix = Uint8List(0);
 
   /// the location of this matrix.
   IntOffset locationFound = IntOffset();
@@ -344,7 +346,7 @@ class Artifact {
   /// Returns false if the coordinates are out of bounds.
   bool cellGet(final int x, final int y) {
     assert(_isValidXY(x, y) == true);
-    return _matrix[y][x];
+    return _matrix[y * cols + x] == 1;
   }
 
   /// Sets the value of a cell at the specified coordinates.
@@ -352,7 +354,7 @@ class Artifact {
   /// Does nothing if the coordinates are out of bounds.
   void cellSet(final int x, final int y, bool value) {
     assert(_isValidXY(x, y) == true);
-    _matrix[y][x] = value;
+    _matrix[y * cols + x] = value ? 1 : 0;
   }
 
   ///
@@ -422,7 +424,7 @@ class Artifact {
   /// Note: This method does not modify the original matrix but returns a new one.
   Artifact trim() {
     if (isEmpty) {
-      return Artifact();
+      return Artifact(0, 0);
     }
     // Find the boundaries of the content
     int topRow = 0;
@@ -483,8 +485,10 @@ class Artifact {
     }
 
     // Crop the grid
-    final Artifact result =
-        Artifact(rightCol - leftCol + 1, bottomRow - topRow + 1);
+    final Artifact result = Artifact(
+      rightCol - leftCol + 1,
+      bottomRow - topRow + 1,
+    );
     for (int y = topRow; y <= bottomRow; y++) {
       for (int x = leftCol; x <= rightCol; x++) {
         result.cellSet(x - leftCol, y - topRow, cellGet(x, y));
@@ -512,30 +516,6 @@ class Artifact {
     this.locationFound = this.locationFound.translate(left, top);
     this.locationAdjusted = this.locationAdjusted.translate(left, top);
     cropGridVertically(top: top, bottom: bottom);
-  }
-
-  /// Crops the matrix horizontally by removing a specified number of columns from the left and right.
-  ///
-  /// This method modifies the matrix in-place by removing columns from the left and right.
-  /// If the matrix is empty or its first row is empty, no action is taken. The number of columns
-  /// to remove is clamped to prevent out-of-range errors.
-  ///
-  /// Parameters:
-  /// - `left`: Number of columns to remove from the left of the matrix. Defaults to 0.
-  /// - `right`: Number of columns to remove from the right of the matrix. Defaults to 0.
-  void cropGridHorizontally({int left = 0, int right = 0}) {
-    if (rows == 0) {
-      return;
-    }
-
-    // Clamp values to avoid out-of-range errors
-    left = left.clamp(0, cols);
-    right = right.clamp(0, cols - left);
-
-    // Replace each row with a new cropped sublist
-    for (int y = 0; y < rows; y++) {
-      _matrix[y] = _matrix[y].sublist(left, cols - right);
-    }
   }
 
   /// Crops the matrix vertically by removing a specified number of rows from the top and bottom.
@@ -675,15 +655,19 @@ class Artifact {
     required final int paddingTop,
     required final int paddingBottom,
   }) {
-    final blankLine = List.filled(cols, false);
+    final int newRows = this.rows + paddingTop + paddingBottom;
+    final Uint8List newMatrix = Uint8List(newRows * this.cols);
 
-    for (int add = 0; add < paddingTop; add++) {
-      this._matrix.insert(0, blankLine);
+    // Copy old matrix into the new padded matrix
+    for (int y = 0; y < this.rows; y++) {
+      for (int x = 0; x < this.cols; x++) {
+        newMatrix[(y + paddingTop) * this.cols + x] =
+            this._matrix[y * this.cols + x];
+      }
     }
 
-    for (int add = 0; add < paddingBottom; add++) {
-      this._matrix.add(blankLine);
-    }
+    // Replace old matrix
+    this._matrix = newMatrix;
   }
 
   /// Creates a new Matrix with a false border wrapping around the original matrix.
@@ -777,8 +761,7 @@ class Artifact {
     final int subImageWidth = rect.width.toInt();
     final int subImageHeight = rect.height.toInt();
 
-    final Artifact subImagePixels =
-        Artifact(subImageWidth, subImageHeight, false);
+    final Artifact subImagePixels = Artifact(subImageWidth, subImageHeight);
 
     for (int x = 0; x < subImageWidth; x++) {
       for (int y = 0; y < subImageHeight; y++) {
@@ -1109,6 +1092,13 @@ class Artifact {
     final Artifact inputGrid,
     final Artifact templateGrid,
   ) {
+    if (inputGrid.cols != templateGrid.cols) {
+      return 0;
+    }
+    if (inputGrid.rows != templateGrid.rows) {
+      return 0;
+    }
+
     int matchingPixels = 0;
     int totalPixels = 0;
 
@@ -1208,21 +1198,35 @@ class Artifact {
   /// are set to 0, and the `_data` field is set to an empty list.
   ///
   /// Parameters:
-  ///   [grid] (```List<List<bool>>```): The 2D list of boolean values representing the grid.
-  void setGrid(final List<List<bool>> grid) {
+  ///   [grid] (```Uint8List```): The 2D list of boolean values representing the grid.
+  void setGrid(final Uint8List grid, final int cols) {
     if (grid.isEmpty) {
       this.clear();
       return;
     }
-
-    final int rows = grid.length;
+    this.cols = cols;
 
     // Create a deep copy of the grid
-    // _data = grid;
-    _matrix = List.generate(
-      rows,
-      (i) => List<bool>.from(grid[i]),
-    );
+    _matrix = Uint8List.fromList(grid);
+  }
+
+  ///
+  void setGridFromBools(final List<List<bool>> input) {
+    if (input.isEmpty || input[0].isEmpty) {
+      this.clear();
+      return;
+    }
+    cols = input[0].length;
+
+    // Create a new Uint8List to store the flattened grid data
+    _matrix = Uint8List(input.length * cols);
+
+    // Copy the input data into the flattened array
+    for (int y = 0; y < rows; y++) {
+      for (int x = 0; x < cols; x++) {
+        this.cellSet(x, y, input[y][x]);
+      }
+    }
   }
 
   /// Converts the Matrix object to a JSON-serializable Map.
@@ -1251,7 +1255,9 @@ class Artifact {
       'rows': rows,
       'cols': cols,
       'data': _matrix.map((row) {
-        return row.map((cell) => cell ? '#' : '.').join();
+        return List.generate(rows, (y) {
+          return List.generate(cols, (x) => cellGet(x, y) ? '#' : '.').join();
+        });
       }).toList(),
     };
   }
@@ -1963,7 +1969,7 @@ List<Artifact> findMatrices({required Artifact dilatedMatrixImage}) {
 
   // Create a matrix to track visited pixels
   final Artifact visited =
-      Artifact(dilatedMatrixImage.cols, dilatedMatrixImage.rows, false);
+      Artifact(dilatedMatrixImage.cols, dilatedMatrixImage.rows);
 
   // Scan through each pixel
   for (int y = 0; y < dilatedMatrixImage.rows; y++) {
@@ -2009,8 +2015,10 @@ List<IntRect> findRegions({required Artifact dilatedMatrixImage}) {
   List<IntRect> regions = [];
 
   // Create a matrix to track visited pixels
-  final Artifact visited =
-      Artifact(dilatedMatrixImage.cols, dilatedMatrixImage.rows, false);
+  final Artifact visited = Artifact(
+    dilatedMatrixImage.cols,
+    dilatedMatrixImage.rows,
+  );
 
   // Scan through each pixel
   for (int y = 0; y < dilatedMatrixImage.rows; y++) {
@@ -2064,32 +2072,54 @@ List<Point<int>> floodFill(
 ) {
   assert(binaryPixels.area == visited.area);
 
-  final List<Point<int>> stack = [Point(startX, startY)];
-  final List<Point<int>> connectedPoints = [];
+  final int width = binaryPixels.cols;
+  final Uint8List pixelData = binaryPixels._matrix;
+  final Uint8List visitedData = visited._matrix;
 
-  while (stack.isNotEmpty) {
-    final Point<int> point = stack.removeLast();
-    final int x = point.x;
-    final int y = point.y;
+  // Pre-allocate with a reasonable capacity to reduce reallocations
+  final List<Point<int>> connectedPoints = <Point<int>>[];
 
-    if (x < 0 || x >= binaryPixels.cols || y < 0 || y >= binaryPixels.rows) {
-      continue;
+  // Use a more efficient queue implementation for large flood fills
+  final Queue<int> queue = Queue<int>();
+
+  // Store indices directly instead of Point objects to reduce allocations
+  final int startIndex = startY * width + startX;
+  queue.add(startIndex);
+  visitedData[startIndex] = 1;
+
+  // Pre-compute direction offsets
+  final List<int> dirOffsets = [-1, 1, -width, width]; // left, right, up, down
+
+  while (queue.isNotEmpty) {
+    final int currentIndex = queue.removeFirst();
+    final int x = currentIndex % width;
+    final int y = currentIndex ~/ width;
+
+    // Add point to result list
+    connectedPoints.add(Point(x, y));
+
+    // Check all four directions
+    for (final int offset in dirOffsets) {
+      final int neighborIndex = currentIndex + offset;
+
+      // Skip out-of-bounds checks for left/right edges
+      if ((offset == -1 && x == 0) || (offset == 1 && x == width - 1)) {
+        continue;
+      }
+
+      // Skip out-of-bounds indices
+      if (neighborIndex < 0 || neighborIndex >= pixelData.length) {
+        continue;
+      }
+
+      // Check if the neighbor is valid and not visited
+      if (pixelData[neighborIndex] == 1 && visitedData[neighborIndex] == 0) {
+        queue.add(neighborIndex);
+        visitedData[neighborIndex] = 1;
+      }
     }
-
-    if (!binaryPixels.cellGet(x, y) || visited.cellGet(x, y)) {
-      // no pixel at this location
-      continue;
-    }
-
-    visited.cellSet(x, y, true);
-    connectedPoints.add(point);
-
-    // Push neighboring pixels onto the stack
-    stack.add(Point(x - 1, y)); // Left
-    stack.add(Point(x + 1, y)); // Right
-    stack.add(Point(x, y - 1)); // Top
-    stack.add(Point(x, y + 1)); // Bottom
   }
+
   return connectedPoints;
 }
 
@@ -2104,7 +2134,7 @@ Artifact matrixFromPoints(List<Point<int>> connectedPoints) {
   final int regionWidth = maxX - minX + 1;
   final int regionHeight = maxY - minY + 1;
 
-  final Artifact artifact = Artifact(regionWidth, regionHeight, false);
+  final Artifact artifact = Artifact(regionWidth, regionHeight);
   artifact.locationFound = IntOffset(minX, minY);
   artifact.locationAdjusted = artifact.locationFound;
 
@@ -2177,28 +2207,42 @@ Artifact dilateMatrix({
   final int width = matrixImage.cols;
   final int height = matrixImage.rows;
   final Artifact output = Artifact(width, height);
+  final Uint8List srcMatrix = matrixImage._matrix;
+  final Uint8List dstMatrix = output._matrix;
 
   // Precompute elliptical kernel offsets
   final List<Point<int>> offsets = _createEllipticalKernel(kernelSize);
 
+  // First, copy all existing inked pixels (this is a fast operation)
+  for (int i = 0; i < srcMatrix.length; i++) {
+    if (srcMatrix[i] == 1) {
+      dstMatrix[i] = 1;
+    }
+  }
+
+  // Then process only the non-inked pixels that might be affected
   for (int y = 0; y < height; y++) {
+    final int rowOffset = y * width;
     for (int x = 0; x < width; x++) {
-      if (matrixImage.cellGet(x, y)) {
-        output.cellSet(x, y, true);
-        continue; // Already inked, no need to process neighbors
+      final int pixelIndex = rowOffset + x;
+
+      // Skip already inked pixels
+      if (srcMatrix[pixelIndex] == 1) {
+        continue;
       }
 
+      // Check neighbors using kernel offsets
       for (final offset in offsets) {
         final int nx = x + offset.x;
         final int ny = y + offset.y;
 
-        if (nx >= 0 &&
-            nx < width &&
-            ny >= 0 &&
-            ny < height &&
-            matrixImage.cellGet(nx, ny)) {
-          output.cellSet(x, y, true);
-          break; // Early exit when ink is found
+        // Bounds check
+        if (nx >= 0 && nx < width && ny >= 0 && ny < height) {
+          final int neighborIndex = ny * width + nx;
+          if (srcMatrix[neighborIndex] == 1) {
+            dstMatrix[pixelIndex] = 1;
+            break; // Early exit when ink is found
+          }
         }
       }
     }

@@ -416,8 +416,9 @@ class Band {
     required final int rows,
     required final IntOffset locationFoundAt,
   }) {
-    final Artifact artifactSpace =
-        Artifact.fromMatrix(Artifact(cols, rows, false));
+    final Artifact artifactSpace = Artifact.fromMatrix(
+      Artifact(cols, rows),
+    );
     artifactSpace.characterMatched = ' ';
     artifactSpace.locationFound = locationFoundAt;
     artifacts.insert(insertAtIndex, artifactSpace);

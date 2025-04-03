@@ -154,4 +154,227 @@ void main() {
       expect(band.artifacts.length, 2);
     });
   });
+
+  group('Artifact Padding Tests', () {
+    test('Padding top and bottom with zeros', () {
+      final artifact = Artifact.fromAsciiDefinition(
+        [
+          '#.#',
+          '.#.',
+          '#.#',
+        ],
+      );
+
+      artifact.padTopBottom(paddingTop: 0, paddingBottom: 0);
+
+      expect(artifact.gridToStrings(), [
+        '#.#',
+        '.#.',
+        '#.#',
+      ]);
+    });
+
+    test('Padding with zero top padding', () {
+      final artifact = Artifact.fromAsciiDefinition(
+        [
+          '#.#',
+          '.#.',
+        ],
+      );
+
+      artifact.padTopBottom(paddingTop: 0, paddingBottom: 2);
+
+      expect(artifact.gridToStrings(), [
+        '#.#',
+        '.#.',
+        '...',
+        '...',
+      ]);
+    });
+
+    test('Padding with zero bottom padding', () {
+      final artifact = Artifact.fromAsciiDefinition(
+        [
+          '#.#',
+          '.#.',
+        ],
+      );
+
+      artifact.padTopBottom(paddingTop: 2, paddingBottom: 0);
+
+      expect(artifact.gridToStrings(), [
+        '...',
+        '...',
+        '#.#',
+        '.#.',
+      ]);
+    });
+
+    test('Padding single row artifact', () {
+      final artifact = Artifact.fromAsciiDefinition(
+        [
+          '#.#',
+        ],
+      );
+
+      artifact.padTopBottom(paddingTop: 1, paddingBottom: 1);
+
+      expect(artifact.gridToStrings(), [
+        '...',
+        '#.#',
+        '...',
+      ]);
+    });
+
+    test('Padding with large values', () {
+      final artifact = Artifact.fromAsciiDefinition(
+        [
+          '#',
+        ],
+      );
+
+      artifact.padTopBottom(paddingTop: 100, paddingBottom: 100);
+
+      expect(artifact.rows, 201);
+      expect(artifact.toText().split('\n').length, 201);
+    });
+  });
+
+  group('Artifact Trim Tests', () {
+    test('Trim empty artifact', () {
+      final artifact = Artifact(5, 5);
+      final trimmed = artifact.trim();
+      expect(trimmed.rows, 0);
+      expect(trimmed.cols, 0);
+    });
+
+    test('Trim artifact with content only in corners', () {
+      final artifact = Artifact.fromAsciiDefinition([
+        '#..#',
+        '....',
+        '....',
+        '#..#',
+      ]);
+
+      final trimmed = artifact.trim();
+      expect(trimmed.rows, 4);
+      expect(trimmed.cols, 4);
+      expect(trimmed.toText(), '#..#\n....\n....\n#..#');
+    });
+
+    test('Trim artifact with single cell content', () {
+      final artifact = Artifact.fromAsciiDefinition([
+        '.....',
+        '..#..',
+        '.....',
+      ]);
+      final trimmed = artifact.trim();
+      expect(trimmed.rows, 1);
+      expect(trimmed.cols, 1);
+      expect(trimmed.toText(), '#');
+    });
+
+    test('Trim artifact with content in middle rows only', () {
+      final artifact = Artifact.fromAsciiDefinition([
+        '......',
+        '......',
+        '..##..',
+        '..##..',
+        '......',
+        '......',
+      ]);
+      final trimmed = artifact.trim();
+      expect(trimmed.rows, 2);
+      expect(trimmed.cols, 2);
+      expect(trimmed.toText(), '##\n##');
+    });
+
+    test('Trim artifact with content in single column', () {
+      final artifact = Artifact.fromAsciiDefinition([
+        '..#..',
+        '..#..',
+        '..#..',
+        '..#..',
+      ]);
+      final trimmed = artifact.trim();
+      expect(trimmed.rows, 4);
+      expect(trimmed.cols, 1);
+      expect(trimmed.toText(), '#\n#\n#\n#');
+    });
+
+    test('Trim artifact with single row content', () {
+      final artifact = Artifact.fromAsciiDefinition([
+        '......',
+        '......',
+        '..####',
+        '......',
+        '......',
+      ]);
+      final trimmed = artifact.trim();
+      expect(trimmed.rows, 1);
+      expect(trimmed.cols, 4);
+      expect(trimmed.toText(), '####');
+    });
+  });
+
+  group('Artifact Normalization Tests', () {
+    test('createNormalizeMatrix resizes artifact correctly', () {
+      // Create a test artifact
+      final artifact = Artifact.fromAsciiDefinition([
+        '##..',
+        '.##.',
+        '..##',
+      ]);
+
+      // Test resizing to larger dimensions
+      final resizedLarger = artifact.createNormalizeMatrix(6, 5);
+      expect(resizedLarger.cols, 6);
+      expect(resizedLarger.rows, 5);
+      expect(
+        resizedLarger.gridToStrings(),
+        [
+          '......',
+          '.##...',
+          '..##..',
+          '...##.',
+          '......',
+        ],
+      );
+
+      // Test resizing to smaller dimensions
+      final resizedSmaller = artifact.createNormalizeMatrix(2, 2);
+      expect(resizedSmaller.cols, 2);
+      expect(resizedSmaller.rows, 2);
+      expect(
+        resizedSmaller.gridToStrings(),
+        [
+          '##',
+          '##',
+        ],
+      );
+
+      // Test with punctuation
+      final punctuation = Artifact.fromAsciiDefinition([
+        '.#.',
+        '###',
+        '.#.',
+      ]);
+
+      punctuation.characterMatched = '.';
+
+      final resizedPunctuation = punctuation.createNormalizeMatrix(5, 5);
+      expect(resizedPunctuation.cols, 5);
+      expect(resizedPunctuation.rows, 5);
+      expect(
+        resizedPunctuation.gridToStrings(),
+        [
+          '.....',
+          '..#..',
+          '.###.',
+          '..#..',
+          '.....',
+        ],
+      );
+    });
+  });
 }

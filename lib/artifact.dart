@@ -135,6 +135,7 @@ class Artifact {
 
   /// Empty the content
   void clear() {
+    this.cols = 0;
     this._matrix = Uint8List(0);
   }
 
@@ -2020,12 +2021,18 @@ List<IntRect> findRegions({required Artifact dilatedMatrixImage}) {
     dilatedMatrixImage.rows,
   );
 
-  // Scan through each pixel
-  for (int y = 0; y < dilatedMatrixImage.rows; y++) {
-    for (int x = 0; x < dilatedMatrixImage.cols; x++) {
-      // If pixel is on and not visited, flood fill from this point
-      if (!visited.cellGet(x, y) && dilatedMatrixImage.cellGet(x, y)) {
-        // Get connected points using flood fill
+  final int width = dilatedMatrixImage.cols;
+  final int height = dilatedMatrixImage.rows;
+  final Uint8List imageData = dilatedMatrixImage._matrix;
+  final Uint8List visitedData = visited._matrix;
+
+  // Scan through each pixel - use direct array access
+  for (int y = 0; y < height; y++) {
+    final int rowOffset = y * width;
+    for (int x = 0; x < width; x++) {
+      final int index = rowOffset + x;
+      // Check if pixel is on and not visited using direct array access
+      if (visitedData[index] == 0 && imageData[index] == 1) {
         final List<Point<int>> connectedPoints = floodFill(
           dilatedMatrixImage,
           visited,
@@ -2033,10 +2040,9 @@ List<IntRect> findRegions({required Artifact dilatedMatrixImage}) {
           y,
         );
 
-        if (connectedPoints.isEmpty) {
-          continue;
+        if (connectedPoints.isNotEmpty) {
+          regions.add(rectFromPoints(connectedPoints));
         }
-        regions.add(rectFromPoints(connectedPoints));
       }
     }
   }
@@ -2197,6 +2203,7 @@ int computeKernelSize(int width, int height, double scaleFactor) {
 ///
 /// Parameters:
 /// - [matrixImage]: The source matrix to be dilated (binary matrix).
+/// - [kernelSize]: The size of the kernel to use for dilation.
 ///
 /// Returns:
 /// A new [Artifact] containing the dilated matrix.
@@ -2204,84 +2211,45 @@ Artifact dilateMatrix({
   required final Artifact matrixImage,
   required int kernelSize,
 }) {
+  final Artifact result = Artifact(matrixImage.cols, matrixImage.rows);
+  final int halfKernel = kernelSize ~/ 2;
   final int width = matrixImage.cols;
   final int height = matrixImage.rows;
-  final Artifact output = Artifact(width, height);
-  final Uint8List srcMatrix = matrixImage._matrix;
-  final Uint8List dstMatrix = output._matrix;
 
-  // Precompute elliptical kernel offsets
-  final List<Point<int>> offsets = _createEllipticalKernel(kernelSize);
-
-  // First, copy all existing inked pixels (this is a fast operation)
-  for (int i = 0; i < srcMatrix.length; i++) {
-    if (srcMatrix[i] == 1) {
-      dstMatrix[i] = 1;
-    }
+  // Pre-compute row boundaries for each y position to avoid repeated calculations
+  final List<int> minKYs = List<int>.filled(height, 0);
+  final List<int> maxKYs = List<int>.filled(height, 0);
+  for (int y = 0; y < height; y++) {
+    minKYs[y] = max(0, y - halfKernel);
+    maxKYs[y] = min(height - 1, y + halfKernel);
   }
 
-  // Then process only the non-inked pixels that might be affected
+  // Pre-compute column boundaries for each x position
+  final List<int> minKXs = List<int>.filled(width, 0);
+  final List<int> maxKXs = List<int>.filled(width, 0);
+  for (int x = 0; x < width; x++) {
+    minKXs[x] = max(0, x - halfKernel);
+    maxKXs[x] = min(width - 1, x + halfKernel);
+  }
+
+  // Process the image
+  // For large images, process in chunks
+  // First pass: find all pixels that are set in the original image
+  // and mark their kernel areas in the result
   for (int y = 0; y < height; y++) {
-    final int rowOffset = y * width;
     for (int x = 0; x < width; x++) {
-      final int pixelIndex = rowOffset + x;
-
-      // Skip already inked pixels
-      if (srcMatrix[pixelIndex] == 1) {
-        continue;
-      }
-
-      // Check neighbors using kernel offsets
-      for (final offset in offsets) {
-        final int nx = x + offset.x;
-        final int ny = y + offset.y;
-
-        // Bounds check
-        if (nx >= 0 && nx < width && ny >= 0 && ny < height) {
-          final int neighborIndex = ny * width + nx;
-          if (srcMatrix[neighborIndex] == 1) {
-            dstMatrix[pixelIndex] = 1;
-            break; // Early exit when ink is found
+      if (matrixImage.cellGet(x, y)) {
+        // This pixel is set, so dilate it by setting all pixels in its kernel area
+        for (int ky = minKYs[y]; ky <= maxKYs[y]; ky++) {
+          for (int kx = minKXs[x]; kx <= maxKXs[x]; kx++) {
+            result.cellSet(kx, ky, true);
           }
         }
       }
     }
   }
 
-  return output;
-}
-
-/// Creates an elliptical kernel of the given size.
-///
-/// The kernel is a 2D list of booleans, where `true` values represent the
-/// pixels that are part of the ellipse, and `false` values represent the
-/// pixels that are outside the ellipse.
-///
-/// The ellipse is centered at the center of the kernel, and its major and
-/// minor axes are equal to the size of the kernel.
-///
-/// Parameters:
-/// [size]: The size of the kernel, which determines the size of the ellipse.
-///
-/// Returns:
-/// A 2D list of booleans representing the elliptical kernel.
-List<Point<int>> _createEllipticalKernel(int kernelSize) {
-  final List<Point<int>> offsets = [];
-  final int center = kernelSize ~/ 2;
-
-  for (int ky = 0; ky < kernelSize; ky++) {
-    for (int kx = 0; kx < kernelSize; kx++) {
-      if (_isInsideEllipse(kx - center, ky - center, center)) {
-        offsets.add(Point(kx - center, ky - center));
-      }
-    }
-  }
-  return offsets;
-}
-
-// Check if a point is inside an ellipse
-bool _isInsideEllipse(int x, int y, int radius) {
-  return (x * x + y * y) <= (radius * radius);
+  return result;
 }
 
 /// Creates a new [Image] from a [Uint8List] of pixel data.

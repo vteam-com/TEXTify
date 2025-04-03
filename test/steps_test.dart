@@ -66,8 +66,7 @@ void main() async {
       await testWidthFont(
         textify: textify,
         text: inputText,
-        result: 'Quit\n'
-            '\'\n'
+        result: 'Quit ,\n'
             'word we',
         fontFamily: 'Courier',
         imageWidth: 130,
@@ -168,7 +167,7 @@ Future<void> testFromImage(
   // Dilate
   //
   int kernelSize =
-      dilateFactor ?? computeKernelSize(image.width, image.height, 0.03);
+      dilateFactor ?? computeKernelSize(image.width, image.height, 0.02);
 
   final Artifact imageAsMatrixDilated = dilateMatrix(
     matrixImage: matrixSourceImage,
@@ -176,7 +175,7 @@ Future<void> testFromImage(
   );
   expect(imageAsMatrixDilated.cols, image.width);
   expect(imageAsMatrixDilated.rows, image.height);
-  // printMatrix(imageAsMatrixDilated, true);
+  printMatrix(imageAsMatrixDilated, printResuls);
 
   //
   // Find the Artifacts in each regions

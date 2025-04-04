@@ -1,7 +1,7 @@
 import 'dart:ui' as ui;
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:textify/artifact.dart';
+import 'package:textify/band.dart';
 import 'package:textify/character_definition.dart';
 import 'package:textify/correction.dart';
 
@@ -151,6 +151,87 @@ void main() async {
     );
   });
 
+  test('Image with Connected_Letters - REMARKABLE', () async {
+    final ui.Image uiImage = await Textify.loadImageFromAssets(
+      'assets/test/REMARKABLE_test.png',
+    );
+
+    final ui.Image imageBlackAndWhite = await imageToBlackOnWhite(uiImage);
+
+    final Artifact imageAsArtifact =
+        await Artifact.fromImage(imageBlackAndWhite);
+
+    instance.applyDictionary = false;
+
+    //
+    // First test withtout the [Inner-splitting]
+    //
+    {
+      instance.innerSplit = false;
+
+      instance.extractBandsAndArtifacts(imageAsArtifact);
+      expect(instance.bands.list.length, 1);
+
+      final Band band = instance.bands.list.first;
+      //
+      //  R E MAR KAB L E
+      //
+      expect(band.artifacts.length, 6);
+
+      List<Artifact> suspectedChunks = band.getLargeChunks();
+      expect(suspectedChunks.length, 2);
+
+      //
+      // Now attempt to split the two chunks MAR & KAB
+      //
+
+      // Chunk MAR
+      {
+        final chunk1 = suspectedChunks[0];
+
+        final List<Artifact> subArtifactsOfChunk1 = band.splitChunk(chunk1);
+        expect(subArtifactsOfChunk1.length, 3, reason: '${chunk1.toText()}\n');
+      }
+
+      // Chunk KAB
+      {
+        final chunk2 = suspectedChunks[0];
+        final List<Artifact> subArtifactsOfChunk2 = band.splitChunk(chunk2);
+        expect(subArtifactsOfChunk2.length, 3, reason: '$chunk2}\n');
+      }
+
+      band.identifySuspiciousLargeArtifacts();
+
+      // for (final artifact in band.artifacts) {
+      //   print('${artifact.toText()}\n');
+      // }
+      expect(band.artifacts.length, 10);
+
+      void testExpectation(final Artifact artifact, final int expectedWidth) {
+        expect(artifact.cols, expectedWidth, reason: '${artifact.toText()}\n');
+      }
+
+      // We know that 'R E' are not connected
+      testExpectation(band.artifacts[00], 106); // R
+      testExpectation(band.artifacts[01], 099); // E
+      testExpectation(band.artifacts[02], 164); // M
+      testExpectation(band.artifacts[03], 120); // A
+      testExpectation(band.artifacts[04], 106); // R
+      testExpectation(band.artifacts[05], 123); // K
+      testExpectation(band.artifacts[06], 119); // A
+      testExpectation(band.artifacts[07], 104); // B
+      testExpectation(band.artifacts[08], 091); // L
+      testExpectation(band.artifacts[09], 098); // E
+
+      final String text = await instance.getTextInBands(listOfBands: [band]);
+      expect(text, 'REMARKA8[E'); // some comlexity with the space
+
+      instance.applyDictionary = true;
+      final String text2 = await instance.getTextInBands(listOfBands: [band]);
+      expect(text2, 'REMARKABLE');
+    }
+  });
+
   test('Convert image to text', () async {
     final ui.Image uiImage = await Textify.loadImageFromAssets(
       'assets/test/bank_statement_test.png',
@@ -161,19 +242,18 @@ void main() async {
 
     // the result are not perfect 90% accuracy, but its trending in the right direction
     expect(
-      text,
-      'FIND GOLD CAUSE MA\'I\'0SINH0S\n'
-      'C0NTINENTE AIM DR, MATOSINHOS\n'
-      'www.AMAZ0N. * IS ]AK28IB , LUXEMB0URG\n'
-      'REMAPKABLE , BALL\n'
-      'PING0 D0CE MA\'I\'0SINH0 , MA\'I\'0SINH0S\n'
-      'C0NTINENTE AIM DR, MATOSINHOS\n'
-      'PAB PORT MA\'I\'0 , MATOSINHOS\n'
-      'CASE DAS UTILIDADES , GUIMARAES\n'
-      'EUR0L0B MA\'I\'0SINH0S , MA\'I\'0SINH0S\n'
-      'CARES SAB0RES B0LI]A0, PORTO\n'
-      'TUCA CHA E CAFE, PORTO',
-    );
+        text,
+        'FIND GOLD CAUSE .M[0SINH0S\n'
+        'C0NTINENTE AIM DR, .B.T0SINH0S\n'
+        'WWW..AE0N.* LSLAR28IB, LUXE.MB0URG\n'
+        'REMARKABLE BALL\n'
+        'PING0 D0CE .M[0SINH0, .M[0SINH0S\n'
+        'C0NTINENTE AIM DR, .B.T0SINH0S\n'
+        'BAD PORT .M[0, .B.T0SINH0S\n'
+        'CASE DAS UTILIDADES, GUIMARAES\n'
+        'EUR0L0B.M[0SINH0S, .M[0SINH0S\n'
+        'CARES SAB0RES B0LHA.0, PORTO\n'
+        'TUCA CHA E CAFE, PORTO');
     // errors here        ^       ^          ^
   });
 

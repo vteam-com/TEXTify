@@ -189,66 +189,11 @@ Future<void> testFromImage(
   final stringInAllBands1 = bands.getText();
   expect(stringInAllBands1.trim(), isEmpty);
 
-  String resultingText = await textify.getTextFromArtifacts(
+  String resultingText = await textify.getTextInBands(
     listOfBands: bands.list,
   );
   final stringInAllBands2 = bands.getText();
   expect(stringInAllBands2, isNotEmpty);
 
   expect(resultingText, expectedText);
-}
-
-List<Band> testRegionToBand(
-  Artifact matrixSourceImage,
-  IntRect region,
-  bool printResuls,
-) {
-  //
-  // get the source image for the region
-  //
-  final Artifact regionMatrix = Artifact.extractSubGrid(
-    matrix: matrixSourceImage,
-    rect: region,
-  );
-  // printMatrix(regionMatrix);
-
-  rowToBand(
-    regionMatrix: matrixSourceImage,
-    offset: region.topLeft,
-  );
-
-  // Split Region into Rows
-  List<Band> bandsFoundInRegion = getBandsFromRegionRow(
-    regionMatrix: regionMatrix,
-  );
-
-  // Print all charactes found
-  bandsFoundInRegion.forEach((Band b) {
-    b.artifacts.forEach((a) {
-      printMatrix(a, printResuls);
-    });
-  });
-  return bandsFoundInRegion;
-}
-
-List<Band> getBandsFromRegionRow({
-  required final Artifact regionMatrix,
-}) {
-  // Split Region into Rows
-  List<Artifact> regionAsRows = splitRegionIntoRows(regionMatrix);
-
-  //
-  // Find the Matrices in the Row
-  //
-  List<Band> bandsFoundInRegion = [];
-
-  for (final Artifact regionRow in regionAsRows) {
-    bandsFoundInRegion.add(
-      rowToBand(
-        regionMatrix: regionMatrix,
-        offset: regionRow.rectFound.topLeft,
-      ),
-    );
-  }
-  return bandsFoundInRegion;
 }

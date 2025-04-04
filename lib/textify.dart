@@ -52,7 +52,7 @@ class Textify {
 
   /// Whether to attempt splitting touching characters.
   /// When true, the system tries to separate characters that are connected.
-  bool innerSplit = false;
+  bool innerSplit = true;
 
   /// Whether to apply dictionary-based text correction.
   ///
@@ -128,7 +128,7 @@ class Textify {
 
     extractBandsAndArtifacts(imageAsMatrix);
 
-    String result = await getTextFromArtifacts(
+    String result = await getTextInBands(
       listOfBands: this.bands.list,
       supportedCharacters: supportedCharacters,
     );
@@ -168,7 +168,7 @@ class Textify {
   /// [artifact] is the normalized character image.
   /// [supportedCharacters] optionally limits recognition to specific characters.
   /// Returns the best matching character or empty string if no match.
-  String _getCharacterFromArtifactNormalizedMatrix(
+  String getCharacterFromArtifactNormalizedMatrix(
     final Artifact artifact, [
     final String supportedCharacters = '',
   ]) {
@@ -249,7 +249,7 @@ class Textify {
   /// [listOfBands] contains grouped artifacts representing lines of text.
   /// [supportedCharacters] optionally limits recognition to specific characters.
   /// Returns extracted text with preserved line breaks.
-  Future<String> getTextFromArtifacts({
+  Future<String> getTextInBands({
     required final List<Band> listOfBands,
     final String supportedCharacters = '',
   }) async {
@@ -261,7 +261,7 @@ class Textify {
       String line = '';
 
       for (final Artifact artifact in band.artifacts) {
-        artifact.characterMatched = _getCharacterFromArtifactNormalizedMatrix(
+        artifact.characterMatched = getCharacterFromArtifactNormalizedMatrix(
           artifact,
           supportedCharacters,
         );

@@ -137,22 +137,22 @@ class PaintArtifacts extends CustomPainter {
         artifact.rectAdjusted.left.toInt(),
         artifact.rectAdjusted.top.toInt(),
         showHistogram ? artifact.getHistogramHorizontalArtifact() : artifact,
-        background: artifact.characterMatched == ' ' ? Colors.white : null,
+        background: artifact.characterMatched == ' ' ? Colors.grey : null,
       );
 
       _drawText(
         canvas,
-        artifact.rectAdjusted.topCenter.x - 2,
-        artifact.rectAdjusted.topCenter.y - 4,
+        artifact.rectAdjusted.topCenter.x - (id.toString().length * 2),
+        artifact.rectAdjusted.topCenter.y - 8,
         id.toString(),
         8,
-        TextAlign.center,
+        TextAlign.left,
       );
 
       _drawText(
         canvas,
         artifact.rectAdjusted.bottomCenter.x - 2,
-        artifact.rectAdjusted.bottomCenter.y - 4,
+        artifact.rectAdjusted.bottomCenter.y - 2,
         artifact.characterMatched,
         8,
         TextAlign.center,
@@ -218,7 +218,7 @@ class PaintArtifacts extends CustomPainter {
       _drawText(
         canvas,
         rect.left,
-        rect.top - 14,
+        rect.top - 20,
         title,
       );
     }

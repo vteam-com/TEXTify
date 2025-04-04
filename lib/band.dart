@@ -143,6 +143,34 @@ class Band {
   /// Using the average artifact width, fine the ones that have an outlier width
   /// and tag them needsInspection=true
   void identifySuspiciousLargeArtifacts() {
+    List<Artifact> listToInspect = getLargeChunks();
+
+    for (final artifactToSplit in listToInspect) {
+      final List<Artifact> artifactsFromColumns = splitChunk(artifactToSplit);
+      this.replaceOneArtifactWithMore(artifactToSplit, artifactsFromColumns);
+    }
+  }
+
+  ///
+  List<Artifact> splitChunk(Artifact artifactToSplit) {
+    // Get columns where to split the artifact
+    List<int> splitColumns = Artifact.getValleysOffsets(artifactToSplit);
+
+    // If no split columns found, return empty list
+    if (splitColumns.isEmpty) {
+      return [];
+    }
+
+    List<Artifact> artifactsFromColumns = Artifact.splitAsColumns(
+      artifactToSplit,
+      splitColumns,
+    );
+
+    return artifactsFromColumns;
+  }
+
+  ///
+  List<Artifact> getLargeChunks() {
     final List<Artifact> listToInspect = [];
 
     final double thresholdWidth = this.averageWidth * 2;
@@ -153,34 +181,7 @@ class Band {
         listToInspect.add(artifact);
       }
     }
-
-    for (final artifactToSplit in listToInspect) {
-      final List<int> peaksAndValleys =
-          artifactToSplit.getHistogramHorizontal();
-
-      final int valleySeparatorValueToSplitOn =
-          calculateThreshold(peaksAndValleys);
-
-      // Find the valley where two characters are touching
-      List<int> columnSeparators =
-          keepIndexBelowValue(peaksAndValleys, valleySeparatorValueToSplitOn);
-
-      columnSeparators = normalizeHistogram(columnSeparators);
-      if (columnSeparators.isNotEmpty) {
-        // Ensure the first and last rows are included as split points.
-        if (columnSeparators.first != 0) {
-          columnSeparators.insert(0, 0);
-        }
-        if (columnSeparators.last != artifactToSplit.cols) {
-          columnSeparators.add(artifactToSplit.cols);
-        }
-
-        final List<Artifact> artifactsFromColumns =
-            Artifact.splitAsColumns(artifactToSplit, columnSeparators);
-
-        this.replaceOneArtifactWithMore(artifactToSplit, artifactsFromColumns);
-      }
-    }
+    return listToInspect;
   }
 
   ///
@@ -231,44 +232,6 @@ class Band {
     return mergedArtifacts;
   }
 
-  /// Normalizes a histogram by extracting the middle index of consecutive sequences.
-  ///
-  /// Converts a list of potentially scattered indices into a more compact
-  /// representation by selecting the middle index of each consecutive sequence.
-  ///
-  /// Returns a list of normalized indices representing the middle points
-  /// of consecutive index groups in the original histogram.
-  List<int> normalizeHistogram(List<int> histogram) {
-    List<int> normalized = [];
-    List<int> sequence = [];
-
-    for (int i = 0; i < histogram.length; i++) {
-      if (sequence.isEmpty) {
-        sequence.add(histogram[i]);
-      } else {
-        // Check if the current value is consecutive to the last value
-        if (histogram[i] == sequence.last + 1) {
-          sequence.add(histogram[i]);
-        } else {
-          // If the sequence ends, find the middle point and add it
-          int middle = sequence[(sequence.length - 1) ~/ 2];
-          normalized.add(middle);
-
-          // Reset sequence for the next consecutive sequence
-          sequence = [histogram[i]];
-        }
-      }
-    }
-
-    // Don't forget to add the last sequence
-    if (sequence.isNotEmpty) {
-      int middle = sequence[(sequence.length - 1) ~/ 2];
-      normalized.add(middle);
-    }
-
-    return normalized;
-  }
-
   ///
   void replaceOneArtifactWithMore(
     final Artifact artifactToReplace,
@@ -278,43 +241,6 @@ class Band {
     this.artifacts.removeAt(index);
     this.artifacts.insertAll(index, artifactsToInsert);
     clearStats();
-  }
-
-  /// Splits artifact in two
-  List<Artifact> splitArtifact(
-    final Artifact artifactToSplit,
-    final List<int> splitOnTheseColumns,
-  ) {
-    List<Artifact> splits = [];
-
-    int startingCol = 0;
-
-    for (int c in splitOnTheseColumns) {
-      // Create the first sub-grid from the start to the specified column (inclusive)
-      splits.add(
-        extractArtifact(
-          artifactToSplit,
-          startingCol,
-          0,
-          c - startingCol,
-          artifactToSplit.rows,
-        ),
-      );
-      startingCol = c + 1;
-    }
-
-    // add the right side
-    splits.add(
-      extractArtifact(
-        artifactToSplit,
-        startingCol,
-        0,
-        artifactToSplit.cols - startingCol,
-        artifactToSplit.rows,
-      ),
-    );
-
-    return splits;
   }
 
   ///
@@ -348,10 +274,14 @@ class Band {
   ///
   /// The threshold is set at 50% of the average width of artifacts in the band.
   void identifySpacesInBand() {
+    this.updateStatistics();
+
     if (artifacts.isEmpty || artifacts.length <= 1) {
       return;
     }
-    final int spaceThreshold = averageKerning * 2;
+
+    // Calculate a more adaptive threshold based on both average width and kerning
+    final int spaceThreshold = calculateSpaceThreshold();
 
     for (int i = 1; i < artifacts.length; i++) {
       final Artifact leftArtifact = artifacts[i - 1];
@@ -382,6 +312,18 @@ class Band {
     }
   }
 
+  /// Calculates an appropriate threshold for determining if a gap should be considered a space
+  ///
+  /// This method analyzes the distribution of gaps between artifacts to determine
+  /// a suitable threshold for identifying spaces.
+  ///
+  /// Returns:
+  /// An integer representing the minimum gap width to be considered a space
+  int calculateSpaceThreshold() {
+    // A space is typically 1.5-2.5x wider than normal kerning
+    return max(_averageKerning * 2, averageWidth ~/ 3);
+  }
+
   /// Inserts a space artifact at a specified position in the artifacts list.
   ///
   /// This method creates a new Artifact representing a space and inserts it
@@ -410,36 +352,6 @@ class Band {
     artifactSpace.characterMatched = ' ';
     artifactSpace.locationFound = locationFoundAt;
     artifacts.insert(insertAtIndex, artifactSpace);
-  }
-
-  /// Trim the band to fit the inner artifacts
-  void trim() {
-    if (artifacts.isEmpty) {
-      return;
-    }
-
-    IntRect boundingBox = IntRect.fromCenter(
-      center: this.rectangleAdjusted.center,
-      width: 0,
-      height: 0,
-    );
-
-    for (final Artifact artifact in artifacts) {
-      IntRect rectOfContent = artifact.getContentRectAdjusted();
-      boundingBox = boundingBox.expandToInclude(rectOfContent);
-    }
-
-    int trimTop = (boundingBox.top - this.rectangleAdjusted.top).toInt();
-
-    int trimBottom =
-        (this.rectangleAdjusted.bottom - boundingBox.bottom).toInt();
-
-    // now that we have the outer most bounding rect of the content
-    // we trim the artifacts
-    for (final Artifact artifact in artifacts) {
-      artifact.cropBy(top: trimTop, bottom: trimBottom);
-    }
-    clearStats();
   }
 
   /// Adjusts the positions of artifacts to pack them from left to right.

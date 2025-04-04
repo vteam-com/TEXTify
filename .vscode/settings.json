@@ -51,4 +51,13 @@
         "pubspec.yaml": "changelog.md, readme.md, privacy.html, license, .metadata, pubspec.lock, analysis_options.yaml, devtools_options.yaml, graph.dot, graph.svg, .gitignore",
     },
     "debug.console.wordWrap": false,
+    "terminal.integrated.scrollback": 10000,
+    "testing.automaticallyOpenPeekView": "never",
+    "testing.defaultGutterClickAction": "run",
+    "testing.gutterEnabled": true,
+    "testing.openTesting": "neverOpen",
+    "dart.testAdditionalArgs": [
+        "--no-wrap"
+    ],
+    "testing.automaticallyOpenTestResults": "neverOpen"
 }

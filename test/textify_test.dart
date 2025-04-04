@@ -175,30 +175,29 @@ void main() async {
 
       final Band band = instance.bands.list.first;
       //
-      //  R E MAR KAB L E
+      //  R E MARKAB L E
       //
-      expect(band.artifacts.length, 6);
+      expect(band.artifacts.length, 5);
 
       List<Artifact> suspectedChunks = band.getWideChunks();
-      expect(suspectedChunks.length, 2);
+      expect(suspectedChunks.length, 1);
 
       //
       // Now attempt to split the two chunks MAR & KAB
       //
 
-      // Chunk MAR
+      // Chunk MARKAB
       {
         final chunk1 = suspectedChunks[0];
+        final List<int> valleys = artifactValleysOffsets(chunk1);
+        expect(valleys.length, 5, reason: '$valleys\n');
 
         final List<Artifact> subArtifactsOfChunk1 = band.splitChunk(chunk1);
-        expect(subArtifactsOfChunk1.length, 3, reason: '${chunk1.toText()}\n');
-      }
-
-      // Chunk KAB
-      {
-        final chunk2 = suspectedChunks[0];
-        final List<Artifact> subArtifactsOfChunk2 = band.splitChunk(chunk2);
-        expect(subArtifactsOfChunk2.length, 3, reason: '$chunk2}\n');
+        expect(
+          subArtifactsOfChunk1.length,
+          6,
+          reason: '${subArtifactsOfChunk1.first.toText()}\n',
+        );
       }
 
       band.identifySuspiciousLargeArtifacts();
@@ -215,17 +214,17 @@ void main() async {
       // We know that 'R E' are not connected
       testExpectation(band.artifacts[00], 106); // R
       testExpectation(band.artifacts[01], 099); // E
-      testExpectation(band.artifacts[02], 157); // M
+      testExpectation(band.artifacts[02], 156); // M
       testExpectation(band.artifacts[03], 122); // A
-      testExpectation(band.artifacts[04], 111); // R
-      testExpectation(band.artifacts[05], 117); // K
+      testExpectation(band.artifacts[04], 108); // R
+      testExpectation(band.artifacts[05], 124); // K
       testExpectation(band.artifacts[06], 120); // A
       testExpectation(band.artifacts[07], 109); // B
-      testExpectation(band.artifacts[08], 091); // L
+      testExpectation(band.artifacts[08], 092); // L
       testExpectation(band.artifacts[09], 098); // E
 
       final String text = await instance.getTextInBands(listOfBands: [band]);
-      expect(text, 'REMABKAB[E'); // some comlexity with the space
+      expect(text, 'REMABRAB[E'); // some comlexity with the space
 
       instance.applyDictionary = true;
       final String text2 = await instance.getTextInBands(listOfBands: [band]);
@@ -246,8 +245,8 @@ void main() async {
       text,
       'FIND GOLD CAUSE MATOSINHOS\n'
       'C0NTINENTE AIM DR, MATOSINHOS\n'
-      'www.ABZ0N.* LSLAK28IB, LUXEMB0URG\n'
-      'REMARKABLE BALL\n'
+      'www.AMAZ0N.* LSLAK28IB, LUXEMB0URG\n'
+      'REMAPKABLE, BALL\n'
       'PING0 D0CE MATOSINHOS MATOSINHOS\n'
       'C0NTINENTE AIM DR, MATOSINHOS\n'
       'PAB PORT MAT0, MATOSINHOS\n'

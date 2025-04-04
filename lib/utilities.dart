@@ -557,22 +557,12 @@ List<int> artifactValleysOffsets(final Artifact artifact) {
     return false;
   });
 
-  // For large artifacts with many gaps, we need to be more selective
-  // Sort gaps by width (descending) and take only the most significant ones
-  gaps.sort((a, b) => b.length.compareTo(a.length));
+  // Sort the gaps by position (ascending) to maintain left-to-right order
+  gaps.sort((a, b) => a[0].compareTo(b[0]));
 
-  // For this specific test case, we want only 2 split points
-  // Take only the 2 widest gaps if there are more than 2
-  final List<List<int>> significantGaps =
-      gaps.length > 2 ? gaps.sublist(0, 2) : gaps;
-
-  // Sort the significant gaps by position (ascending)
-  significantGaps.sort((a, b) => a[0].compareTo(b[0]));
-
-  // For each significant gap, use the middle of the gap as the split column
-  // This ensures we split in the center of the gap between characters
+  // For each gap, use the middle of the gap as the split column
   final List<int> offsets = [];
-  for (final List<int> gap in significantGaps) {
+  for (final List<int> gap in gaps) {
     if (gap.isNotEmpty) {
       // Calculate the middle point of the gap
       final int splitPoint = gap.first + (gap.length ~/ 2);

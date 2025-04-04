@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:textify/int_offset.dart';
 
 /// Exports
@@ -132,7 +134,10 @@ class IntRect {
     return false;
   }
 
+  /// Checks if this rectangle intersects vertically with another rectangle.
   ///
+  /// [other] The other rectangle to check for vertical intersection.
+  /// Returns true if the rectangles overlap vertically, false otherwise.
   bool intersectVertically(final IntRect other) {
     if (other.top > bottom || other.bottom < top) {
       return false;
@@ -140,7 +145,10 @@ class IntRect {
     return true;
   }
 
+  /// Checks if this rectangle intersects horizontally with another rectangle.
   ///
+  /// [other] The other rectangle to check for horizontal intersection.
+  /// Returns true if the rectangles overlap horizontally, false otherwise.
   bool intersectHorizontal(final IntRect other) {
     if (other.left >= this.right || other.right <= this.left) {
       // off sides
@@ -172,6 +180,26 @@ class IntRect {
     final newTop = top < input.top ? top : input.top;
     final newRight = right > input.right ? right : input.right;
     final newBottom = bottom > input.bottom ? bottom : input.bottom;
+    return IntRect.fromLTRB(newLeft, newTop, newRight, newBottom);
+  }
+
+  /// Calculates the intersection of this rectangle with another rectangle.
+  ///
+  /// [other] The other rectangle to intersect with.
+  /// Returns a new [IntRect] representing the intersection area.
+  /// If there is no intersection, returns an empty rectangle (width and height of 0).
+  IntRect intersect(final IntRect other) {
+    final int newLeft = max(left, other.left);
+    final int newTop = max(top, other.top);
+    final int newRight = min(right, other.right);
+    final int newBottom = min(bottom, other.bottom);
+
+    // Check if there is a valid intersection
+    if (newLeft >= newRight || newTop >= newBottom) {
+      // No intersection, return empty rectangle
+      return IntRect.zero;
+    }
+
     return IntRect.fromLTRB(newLeft, newTop, newRight, newBottom);
   }
 

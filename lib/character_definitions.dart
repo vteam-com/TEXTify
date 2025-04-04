@@ -137,12 +137,24 @@ class CharacterDefinitions {
 
   /// Updates or inserts a template matrix for a given character and font.
   ///
-  /// If a definition for the character doesn't exist, a new one is created.
-  /// If a matrix for the given font already exists, it is updated; otherwise, it's added.
+  /// This method manages character definitions by either creating a new definition
+  /// or updating an existing one based on the provided character and font.
   ///
-  /// [font] The font name for the matrix.
-  /// [character] The character this matrix represents.
-  /// [matrix] The Matrix object containing the character's pixel data.
+  /// Parameters:
+  /// - [font]: The font name for the matrix. Used to identify which font variation
+  ///   of the character is being updated or added.
+  /// - [character]: The character this matrix represents (e.g., 'A', '5', '&').
+  /// - [matrix]: The [Artifact] object containing the character's pixel data.
+  ///
+  /// Behavior:
+  /// - If no definition exists for the character, creates a new [CharacterDefinition]
+  ///   with the provided matrix and adds it to the collection.
+  /// - If a definition exists but no matrix for the specified font, adds the new matrix.
+  /// - If a definition and matrix for the font already exist, updates the existing matrix.
+  ///
+  /// Returns:
+  /// - [bool] `true` if a new character definition was created
+  /// - [bool] `false` if an existing definition was updated
   bool upsertTemplate(
     final String font,
     final String character,

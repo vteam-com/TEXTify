@@ -14,7 +14,7 @@ void main() async {
     'assets/samples/the-quick-brown-fox.png',
   );
 
-  // instentiate Textify once
+  // instantiate Textify once
   Textify textify = await Textify().init();
 
   // Optionally apply English dictionary word correction

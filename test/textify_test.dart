@@ -1,11 +1,12 @@
 import 'dart:ui' as ui;
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:textify/artifact.dart';
+import 'package:textify/band.dart';
 import 'package:textify/character_definition.dart';
 import 'package:textify/correction.dart';
 
 import 'package:textify/textify.dart';
+import 'package:textify/utilities.dart';
 
 void printMatrix(final Artifact matrix) {
   // ignore: avoid_print
@@ -151,6 +152,86 @@ void main() async {
     );
   });
 
+  test('Image with Connected_Letters - REMARKABLE', () async {
+    final ui.Image uiImage = await Textify.loadImageFromAssets(
+      'assets/test/REMARKABLE_test.png',
+    );
+
+    final ui.Image imageBlackAndWhite = await imageToBlackOnWhite(uiImage);
+
+    final Artifact imageAsArtifact =
+        await artifactFromImage(imageBlackAndWhite);
+
+    instance.applyDictionary = false;
+
+    //
+    // First test withtout the [Inner-splitting]
+    //
+    {
+      instance.innerSplit = false;
+
+      instance.extractBandsAndArtifacts(imageAsArtifact);
+      expect(instance.bands.list.length, 1);
+
+      final Band band = instance.bands.list.first;
+      //
+      //  R E MARKAB L E
+      //
+      expect(band.artifacts.length, 5);
+
+      List<Artifact> suspectedChunks = band.getWideChunks();
+      expect(suspectedChunks.length, 1);
+
+      //
+      // Now attempt to split the two chunks MAR & KAB
+      //
+
+      // Chunk MARKAB
+      {
+        final chunk1 = suspectedChunks[0];
+        final List<int> valleys = artifactValleysOffsets(chunk1);
+        expect(valleys.length, 5, reason: '$valleys\n');
+
+        final List<Artifact> subArtifactsOfChunk1 = band.splitChunk(chunk1);
+        expect(
+          subArtifactsOfChunk1.length,
+          6,
+          reason: '${subArtifactsOfChunk1.first.toText()}\n',
+        );
+      }
+
+      band.identifySuspiciousLargeArtifacts();
+
+      // for (final artifact in band.artifacts) {
+      //   print('${artifact.toText()}\n');
+      // }
+      expect(band.artifacts.length, 10);
+
+      void testExpectation(final Artifact artifact, final int expectedWidth) {
+        expect(artifact.cols, expectedWidth, reason: '${artifact.toText()}\n');
+      }
+
+      // We know that 'R E' are not connected
+      testExpectation(band.artifacts[00], 106); // R
+      testExpectation(band.artifacts[01], 099); // E
+      testExpectation(band.artifacts[02], 156); // M
+      testExpectation(band.artifacts[03], 122); // A
+      testExpectation(band.artifacts[04], 108); // R
+      testExpectation(band.artifacts[05], 124); // K
+      testExpectation(band.artifacts[06], 120); // A
+      testExpectation(band.artifacts[07], 109); // B
+      testExpectation(band.artifacts[08], 092); // L
+      testExpectation(band.artifacts[09], 098); // E
+
+      final String text = await instance.getTextInBands(listOfBands: [band]);
+      expect(text, 'REMABRAB[E'); // some comlexity with the space
+
+      instance.applyDictionary = true;
+      final String text2 = await instance.getTextInBands(listOfBands: [band]);
+      expect(text2, 'REMARKABLE');
+    }
+  });
+
   test('Convert image to text', () async {
     final ui.Image uiImage = await Textify.loadImageFromAssets(
       'assets/test/bank_statement_test.png',
@@ -162,19 +243,18 @@ void main() async {
     // the result are not perfect 90% accuracy, but its trending in the right direction
     expect(
       text,
-      'FIND GOLD CAUSE MA\'I\'0SINH0S\n'
+      'FIND GOLD CAUSE MATOSINHOS\n'
       'C0NTINENTE AIM DR, MATOSINHOS\n'
-      'www.AMAZ0N. * IS ]AK28IB , LUXEMB0URG\n'
-      'REMAPKABLE , BALL\n'
-      'PING0 D0CE MA\'I\'0SINH0 , MA\'I\'0SINH0S\n'
+      'www.AMAZ0N.* LSLAK28IB, LUXEMB0URG\n'
+      'REMAPKABLE, BALL\n'
+      'PING0 D0CE MATOSINHOS MATOSINHOS\n'
       'C0NTINENTE AIM DR, MATOSINHOS\n'
-      'PAB PORT MA\'I\'0 , MATOSINHOS\n'
-      'CASE DAS UTILIDADES , GUIMARAES\n'
-      'EUR0L0B MA\'I\'0SINH0S , MA\'I\'0SINH0S\n'
-      'CARES SAB0RES B0LI]A0, PORTO\n'
+      'PAB PORT MAT0, MATOSINHOS\n'
+      'CASE DAS UTILIDABES, GUIMARAES\n'
+      'EUR0L0JAMAT0SINH0S, MATOSINHOS\n'
+      'CARES SAB0RES B0LHA0, PORTO\n'
       'TUCA CHA E CAFE, PORTO',
     );
-    // errors here        ^       ^          ^
   });
 
   test('Dictionary Correction', () async {

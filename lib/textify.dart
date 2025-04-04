@@ -5,8 +5,8 @@ import 'package:flutter/widgets.dart';
 import 'package:textify/bands.dart';
 import 'package:textify/character_definitions.dart';
 import 'package:textify/correction.dart';
-import 'package:textify/int_rect.dart';
 import 'package:textify/score_match.dart';
+import 'package:textify/utilities.dart';
 
 /// Textify is a class designed to extract text from clean digital images.
 ///
@@ -52,7 +52,7 @@ class Textify {
 
   /// Whether to attempt splitting touching characters.
   /// When true, the system tries to separate characters that are connected.
-  bool innerSplit = false;
+  bool innerSplit = true;
 
   /// Whether to apply dictionary-based text correction.
   ///
@@ -102,7 +102,7 @@ class Textify {
     final ui.Image imageBlackAndWhite = await imageToBlackOnWhite(image);
 
     final Artifact imageAsArtifact =
-        await Artifact.fromImage(imageBlackAndWhite);
+        await artifactFromImage(imageBlackAndWhite);
 
     return await getTextFromMatrix(
       imageAsMatrix: imageAsArtifact,
@@ -128,7 +128,7 @@ class Textify {
 
     extractBandsAndArtifacts(imageAsMatrix);
 
-    String result = await getTextFromArtifacts(
+    String result = await getTextInBands(
       listOfBands: this.bands.list,
       supportedCharacters: supportedCharacters,
     );
@@ -149,12 +149,12 @@ class Textify {
 
     int kernelSize =
         computeKernelSize(matrixSourceImage.cols, matrixSourceImage.rows, 0.02);
-    final Artifact dilatedImage = dilateMatrix(
+    final Artifact dilatedImage = dilateArtifact(
       matrixImage: matrixSourceImage,
       kernelSize: kernelSize,
     );
 
-    this.regionsFromDilated = findRegions(dilatedMatrixImage: dilatedImage);
+    this.regionsFromDilated = dilatedImage.findSubRegions();
 
     this.bands = Bands.getBandsOfArtifacts(
       matrixSourceImage,
@@ -168,7 +168,7 @@ class Textify {
   /// [artifact] is the normalized character image.
   /// [supportedCharacters] optionally limits recognition to specific characters.
   /// Returns the best matching character or empty string if no match.
-  String _getCharacterFromArtifactNormalizedMatrix(
+  String getCharacterFromArtifactNormalizedMatrix(
     final Artifact artifact, [
     final String supportedCharacters = '',
   ]) {
@@ -194,7 +194,7 @@ class Textify {
         final ScoreMatch scoreMatch = ScoreMatch(
           character: template.character,
           matrixIndex: i,
-          score: Artifact.hammingDistancePercentage(
+          score: hammingDistancePercentageOfTwoArtifacts(
             inputMatrix,
             artifact,
           ),
@@ -218,7 +218,7 @@ class Textify {
         double totalScore2 = 0;
 
         for (final matrix in template1.matrices) {
-          totalScore1 += Artifact.hammingDistancePercentage(
+          totalScore1 += hammingDistancePercentageOfTwoArtifacts(
             inputMatrix,
             matrix,
           );
@@ -226,7 +226,7 @@ class Textify {
         totalScore1 /= template1.matrices.length;
 
         for (final matrix in template2.matrices) {
-          totalScore2 += Artifact.hammingDistancePercentage(
+          totalScore2 += hammingDistancePercentageOfTwoArtifacts(
             inputMatrix,
             matrix,
           );
@@ -249,7 +249,7 @@ class Textify {
   /// [listOfBands] contains grouped artifacts representing lines of text.
   /// [supportedCharacters] optionally limits recognition to specific characters.
   /// Returns extracted text with preserved line breaks.
-  Future<String> getTextFromArtifacts({
+  Future<String> getTextInBands({
     required final List<Band> listOfBands,
     final String supportedCharacters = '',
   }) async {
@@ -261,7 +261,7 @@ class Textify {
       String line = '';
 
       for (final Artifact artifact in band.artifacts) {
-        artifact.characterMatched = _getCharacterFromArtifactNormalizedMatrix(
+        artifact.characterMatched = getCharacterFromArtifactNormalizedMatrix(
           artifact,
           supportedCharacters,
         );

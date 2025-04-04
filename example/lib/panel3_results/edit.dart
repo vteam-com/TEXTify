@@ -5,6 +5,7 @@ import 'package:textify/character_definitions.dart';
 import 'package:textify/score_match.dart';
 
 import 'package:textify/textify.dart';
+import 'package:textify/utilities.dart';
 import 'package:textify_dashboard/widgets/paint_grid.dart';
 
 class EditScreen extends StatefulWidget {
@@ -293,11 +294,12 @@ class _EditScreenState extends State<EditScreen> {
     if (definition != null && matrixIndex < definition.matrices.length) {
       final templatedMatrix = definition.matrices[matrixIndex];
 
-      final double scoreForThisVariation = Artifact.hammingDistancePercentage(
-            matrixFound,
-            templatedMatrix,
-          ) *
-          100;
+      final double scoreForThisVariation =
+          hammingDistancePercentageOfTwoArtifacts(
+                matrixFound,
+                templatedMatrix,
+              ) *
+              100;
 
       final Artifact characterMatrix =
           widget.textify.characterDefinitions.getMatrix(character, matrixIndex);

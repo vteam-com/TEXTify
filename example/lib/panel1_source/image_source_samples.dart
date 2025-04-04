@@ -63,9 +63,29 @@ class _ImageSourceSamplesState extends State<ImageSourceSamples> {
       'HELLO THIS IS A TEST IN UPPER CASE.\nThis is a normal phrase with number like 123,456.89\nDATES\n2020-01-02\n2021/03/04\n2022.05.05\nEnds\nHere',
     ),
     ImageData(
-      'color-on-white-gummy.png',
+      'bank_statement.png',
       // cspell:disable-next-line
-      'ABCDEF\nGHIJKL\nMNOPQ\nRSTUV\nWXYZ',
+      'FINO GOLF CLUB MATOSINHOS\n'
+          // cspell:disable-next-line
+          'CONTINENTE BOM DIA, MATOSINHOS\n'
+          // cspell:disable-next-line
+          'WWW.AMAZON.* LS1AK28I5, LUXEMBOURG\n'
+          // cspell:disable-next-line
+          'REMARKABLE, OSLO\n'
+          // cspell:disable-next-line
+          'PING0 DOCE MATOSINHOS, MATOSINHOS\n'
+          // cspell:disable-next-line
+          'CONTINENTE BOM DIA, MATOSINHOS\n'
+          // cspell:disable-next-line
+          'PAD PORT MATO, MATOSINHOS\n'
+          // cspell:disable-next-line
+          'CASE DAS UTILIDADES, Guimaraes\n'
+          // cspell:disable-next-line
+          'EUROLOJA MATOSINHOS, MATOSINHOS\n'
+          // cspell:disable-next-line
+          'CORES SABORES BOLHAO, PORTO\n'
+          // cspell:disable-next-line
+          'Tuca Cha E Cafe, PORTO',
     ),
     ImageData(
       'bank-statement.png',

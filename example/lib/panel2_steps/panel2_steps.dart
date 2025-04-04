@@ -4,8 +4,8 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:textify/artifact.dart';
-import 'package:textify/int_rect.dart';
 import 'package:textify/textify.dart';
+import 'package:textify/utilities.dart';
 import 'package:textify_dashboard/generate_samples/generate_image.dart';
 import 'package:textify_dashboard/panel1_source/debounce.dart';
 import 'package:textify_dashboard/panel1_source/panel1_content.dart';
@@ -200,8 +200,8 @@ class _PanelStepsState extends State<PanelSteps> {
         //
         // Task 2 - Convert ot Binary Matrix
         //
-        Artifact.fromImage(imageBW).then((final Artifact binaryImage) {
-          final Artifact dilatedMatrix = dilateMatrix(
+        artifactFromImage(imageBW).then((final Artifact binaryImage) {
+          final Artifact dilatedMatrix = dilateArtifact(
             matrixImage: binaryImage,
             kernelSize: widget.kernelSizeDilate,
           );
@@ -213,7 +213,7 @@ class _PanelStepsState extends State<PanelSteps> {
             //
             // Task 4 - Find Regions
             //
-            _regions = findRegions(dilatedMatrixImage: dilatedMatrix);
+            _regions = dilatedMatrix.findSubRegions();
 
             //
             // Task 5 - Histograms
@@ -241,6 +241,33 @@ class _PanelStepsState extends State<PanelSteps> {
       regionsHistograms.add(getHistogramOfRegion(binaryImage, region));
     }
     return regionsHistograms;
+  }
+
+  /// Calculates the histogram of a binary image region.
+  ///
+  /// Iterates over the specified [region] of the [binaryImage] and counts the
+  /// number of set pixels in each column, storing the results in a list.
+  ///
+  /// Parameters:
+  /// - [binaryImage]: The binary image to analyze.
+  /// - [region]: The rectangular region of the image to analyze.
+  ///
+  /// Returns:
+  /// A list of integers representing the histogram of the specified region.
+  List<int> getHistogramOfRegion(final Artifact binaryImage, IntRect region) {
+    final List<int> histogram = [];
+    int col = 0;
+    for (int x = region.left.toInt(); x < region.right.toInt(); x++) {
+      histogram.add(0);
+      for (int y = region.top.toInt(); y < region.bottom.toInt(); y++) {
+        if (binaryImage.cellGet(x, y)) {
+          histogram[col]++;
+        }
+      }
+      col++;
+    }
+
+    return histogram;
   }
 
   ui.Image drawRectanglesOnImage(

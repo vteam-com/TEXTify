@@ -1,5 +1,5 @@
 import 'package:textify/band.dart';
-import 'package:textify/int_rect.dart';
+import 'package:textify/utilities.dart';
 
 /// Exports
 export 'package:textify/band.dart';
@@ -11,7 +11,9 @@ export 'package:textify/band.dart';
 /// It supports operations like identifying artifacts, adjusting their locations,
 /// and preparing text bands for further analysis.
 class Bands {
-  /// Creates a new Bands instance with an optional initial list of bands.
+  /// Initializes a new empty Bands collection.
+  ///
+  /// Creates a collection with an empty list of bands ready to be populated.
   Bands([List<Band> bands = const <Band>[]]) {
     list.addAll(bands);
   }
@@ -22,13 +24,17 @@ class Bands {
   /// Clears all bands from the collection.
   void clear() => list.clear();
 
-  /// Returns the number of bands in the collection.
+  /// Gets the number of bands in the collection.
+  ///
+  /// Returns the count of bands currently in this collection.
   int get length => list.length;
 
-  /// Returns the total number of artifacts across all bands, including newline characters.
+  /// Gets the number of characters across all bands in the collection.
   ///
-  /// Each band contributes its artifacts count plus one for the newline character,
-  /// except for the last band where the newline is not counted.
+  /// Counts the total number of matched characters in all artifacts
+  /// within all bands.
+  ///
+  /// Returns the total character count.
   int get totalArtifacts {
     int countCharacters = 0;
 
@@ -214,13 +220,12 @@ class Bands {
     // Explore each regions/rectangles
     for (final IntRect regionFromDilated in regions) {
       //
-      final Artifact regionMatrixFromImage = Artifact.extractSubGrid(
-        matrix: matrixSourceImage,
+      final Artifact regionMatrixFromImage = matrixSourceImage.extractSubGrid(
         rect: regionFromDilated,
       );
 
       bandsFound.add(
-        rowToBand(
+        Band.splitArtifactIntoBand(
           regionMatrix: regionMatrixFromImage,
           offset: regionFromDilated.topLeft,
         ),

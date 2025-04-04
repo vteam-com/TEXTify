@@ -2,6 +2,77 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:textify/int_rect.dart';
 
 void main() {
+  group('IntOffset', () {
+    test('constructor defaults to zero', () {
+      final offset = IntOffset();
+      expect(offset.x, equals(0));
+      expect(offset.y, equals(0));
+    });
+
+    test('constructor with values', () {
+      final offset = IntOffset(2, 3);
+      expect(offset.x, equals(2));
+      expect(offset.y, equals(3));
+    });
+
+    test('addition operator', () {
+      final offset1 = IntOffset(1, 2);
+      final offset2 = IntOffset(3, 4);
+      final result = offset1 + offset2;
+      expect(result.x, equals(4));
+      expect(result.y, equals(6));
+    });
+
+    test('subtraction operator', () {
+      final offset1 = IntOffset(5, 8);
+      final offset2 = IntOffset(2, 3);
+      final result = offset1 - offset2;
+      expect(result.x, equals(3));
+      expect(result.y, equals(5));
+    });
+
+    test('multiplication operator', () {
+      final offset = IntOffset(2, 3);
+      final result = offset * 3;
+      expect(result.x, equals(6));
+      expect(result.y, equals(9));
+    });
+
+    test('division operator', () {
+      final offset = IntOffset(6, 9);
+      final result = offset ~/ 3;
+      expect(result.x, equals(2));
+      expect(result.y, equals(3));
+    });
+
+    test('equality', () {
+      final offset1 = IntOffset(1, 2);
+      final offset2 = IntOffset(1, 2);
+      final offset3 = IntOffset(2, 1);
+      expect(offset1, equals(offset2));
+      expect(offset1, isNot(equals(offset3)));
+    });
+
+    test('toString', () {
+      final offset = IntOffset(1, 2);
+      expect(offset.toString(), equals('x:1 y:2'));
+    });
+
+    test('translate', () {
+      final offset = IntOffset(1, 2);
+      final result = offset.translate(3, 4);
+      expect(result.x, equals(4));
+      expect(result.y, equals(6));
+    });
+
+    test('hashcode', () {
+      final offset1 = IntOffset(1, 2);
+      final offset2 = IntOffset(1, 2);
+      final offset3 = IntOffset(2, 1);
+      expect(offset1.hashCode, equals(offset2.hashCode));
+      expect(offset1.hashCode, isNot(equals(offset3.hashCode)));
+    });
+  });
   group('IntRect', () {
     test('fromLTRB constructor creates correct rectangle', () {
       final rect = IntRect.fromLTRB(10, 20, 30, 40);
@@ -105,6 +176,39 @@ void main() {
       expect(zeroRect.width, equals(0));
       expect(zeroRect.height, equals(0));
       expect(zeroRect.isEmpty, isTrue);
+    });
+
+    test('intersect method returns correct intersection rectangle', () {
+      final rect1 = IntRect(10, 10, 20, 20);
+      final rect2 = IntRect(20, 20, 20, 20);
+      final intersection = rect1.intersect(rect2);
+
+      expect(intersection.left, equals(20));
+      expect(intersection.top, equals(20));
+      expect(intersection.width, equals(10));
+      expect(intersection.height, equals(10));
+      expect(intersection.right, equals(30));
+      expect(intersection.bottom, equals(30));
+    });
+
+    test('intersect method returns zero rect when no intersection', () {
+      final rect1 = IntRect(10, 10, 20, 20);
+      final rect2 = IntRect(40, 40, 10, 10);
+      final intersection = rect1.intersect(rect2);
+
+      expect(intersection, equals(IntRect.zero));
+      expect(intersection.isEmpty, isTrue);
+    });
+
+    test('fromLTWH factory creates correct rectangle', () {
+      final rect = IntRect.fromLTWH(10, 20, 30, 40);
+
+      expect(rect.left, equals(10));
+      expect(rect.top, equals(20));
+      expect(rect.width, equals(30));
+      expect(rect.height, equals(40));
+      expect(rect.right, equals(40));
+      expect(rect.bottom, equals(60));
     });
   });
 }

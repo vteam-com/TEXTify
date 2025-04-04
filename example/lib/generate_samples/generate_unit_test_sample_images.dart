@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:textify/artifact.dart';
 import 'package:textify/character_definition.dart';
 import 'package:textify/textify.dart';
+import 'package:textify/utilities.dart';
 import 'package:textify_dashboard/generate_samples/generate_image.dart';
 import 'package:textify_dashboard/generate_samples/textify_generated_image.dart';
 import 'package:textify_dashboard/panel1_source/image_source_generated.dart';
@@ -222,7 +223,7 @@ class ContentState extends State<GenerateImagesForUnitTestsScreen> {
 
     // Apply image processing pipeline
     final ui.Image imageOptimized = await imageToBlackOnWhite(newImageSource);
-    final Artifact imageAsMatrix = await Artifact.fromImage(imageOptimized);
+    final Artifact imageAsMatrix = await artifactFromImage(imageOptimized);
 
     // Find artifacts from the binary image
     textify.extractBandsAndArtifacts(imageAsMatrix);

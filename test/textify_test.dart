@@ -178,7 +178,7 @@ void main() async {
       //
       expect(band.artifacts.length, 6);
 
-      List<Artifact> suspectedChunks = band.getLargeChunks();
+      List<Artifact> suspectedChunks = band.getWideChunks();
       expect(suspectedChunks.length, 2);
 
       //
@@ -242,19 +242,19 @@ void main() async {
 
     // the result are not perfect 90% accuracy, but its trending in the right direction
     expect(
-        text,
-        'FIND GOLD CAUSE .M[0SINH0S\n'
-        'C0NTINENTE AIM DR, .B.T0SINH0S\n'
-        'WWW..AE0N.* LSLAR28IB, LUXE.MB0URG\n'
-        'REMARKABLE BALL\n'
-        'PING0 D0CE .M[0SINH0, .M[0SINH0S\n'
-        'C0NTINENTE AIM DR, .B.T0SINH0S\n'
-        'BAD PORT .M[0, .B.T0SINH0S\n'
-        'CASE DAS UTILIDADES, GUIMARAES\n'
-        'EUR0L0B.M[0SINH0S, .M[0SINH0S\n'
-        'CARES SAB0RES B0LHA.0, PORTO\n'
-        'TUCA CHA E CAFE, PORTO');
-    // errors here        ^       ^          ^
+      text,
+      'FIND GOLD CAUSE MATOSINHOSS\n'
+      'C0NTINENTE AIM DR, .B.T0SINH0S\n'
+      'WWW..AE0N.* LSLAR28IB, LUXE.MB0URG\n'
+      'REMARKABLE BALL\n'
+      'PING0 D0CE MA.T0SINH0, MATOSINHOSS\n'
+      'C0NTINENTE AIM DR, .B.T0SINH0S\n'
+      'LEAD PORT MASTER .B.T0SINH0S\n'
+      'CASE DASH UTILID.Ades, guimaraes\n'
+      'EUR0L0JA MA.T0SINH0S, .B.T0SINH0S\n'
+      'CARES S.AB0RES B0LHA.0, PORTO\n'
+      'TUCA CHA E CAFE, PORTO',
+    );
   });
 
   test('Dictionary Correction', () async {

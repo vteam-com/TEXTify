@@ -121,7 +121,7 @@ void main() {
 
       expect(band.artifacts.length, 3);
 
-      band.mergeConnectedArtifactsInPlace();
+      band.mergeArtifactsBasedOnVerticalAlignment();
       expect(band.artifacts.length, 1);
       // print(band.artifacts.first.toText());
     });
@@ -150,7 +150,7 @@ void main() {
 
       expect(band.artifacts.length, 2);
 
-      band.mergeConnectedArtifactsInPlace();
+      band.mergeArtifactsBasedOnVerticalAlignment();
       expect(band.artifacts.length, 2);
     });
   });

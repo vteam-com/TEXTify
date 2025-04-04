@@ -1,8 +1,8 @@
 import 'dart:async';
 import 'dart:collection';
 import 'dart:math';
-import 'dart:typed_data';
 import 'dart:ui';
+import 'package:flutter/foundation.dart';
 import 'package:textify/int_rect.dart';
 
 /// Represents a 2D grid of boolean values, primarily used for image processing
@@ -171,6 +171,11 @@ class Artifact {
       forCode: forCode,
       onChar: onChar,
     );
+  }
+
+  /// used for debugging
+  void debugPrintGrid() {
+    debugPrint('${this.toText()}\n');
   }
 
   /// Merges the current artifact with another artifact.

@@ -143,7 +143,7 @@ class Band {
   /// Using the average artifact width, fine the ones that have an outlier width
   /// and tag them needsInspection=true
   void identifySuspiciousLargeArtifacts() {
-    List<Artifact> listToInspect = getLargeChunks();
+    List<Artifact> listToInspect = getWideChunks();
 
     for (final artifactToSplit in listToInspect) {
       final List<Artifact> artifactsFromColumns = splitChunk(artifactToSplit);
@@ -170,7 +170,7 @@ class Band {
   }
 
   ///
-  List<Artifact> getLargeChunks() {
+  List<Artifact> getWideChunks() {
     final List<Artifact> listToInspect = [];
 
     final double thresholdWidth = this.averageWidth * 2;
@@ -184,44 +184,42 @@ class Band {
     return listToInspect;
   }
 
-  ///
-  void mergeConnectedArtifactsInPlace() {
-    this.artifacts = mergeConnectedArtifacts(
-      artifacts: this.artifacts,
-      verticalTolerance: this.rectangleOriginal.height,
-    );
-  }
-
   /// Merges connected artifacts based on specified thresholds.
   ///
   /// This method iterates through the list of artifacts and merges those that are
   /// considered connected based on vertical and horizontal thresholds.
   ///
-  /// Parameters:
-  ///   [verticalThreshold]: The maximum vertical distance between artifacts to be considered connected.
-  ///   [horizontalThreshold]: The maximum horizontal distance between artifacts to be considered connected.
+  /// The algorithm works by:
+  /// 1. Sorting artifacts by their horizontal position
+  /// 2. Creating a working copy of the sorted artifacts
+  /// 3. For each artifact, checking if it should be merged with any subsequent artifacts
+  /// 4. If artifacts should be merged, combining them and removing the merged artifact
   ///
-  /// Returns:
-  ///   A list of [Artifact] objects after merging connected artifacts.
-  static List<Artifact> mergeConnectedArtifacts({
-    required final List<Artifact> artifacts,
-    required final int verticalTolerance,
-  }) {
+  /// After processing, the band's artifacts list is replaced with the merged artifacts.
+  void mergeArtifactsBasedOnVerticalAlignment() {
     final List<Artifact> mergedArtifacts = [];
 
-    for (int i = 0; i < artifacts.length; i++) {
-      final Artifact current = artifacts[i];
+    // First, sort artifacts by their horizontal position
+    final List<Artifact> sortedArtifacts = List.from(artifacts);
+    sortedArtifacts
+        .sort((a, b) => a.rectFound.left.compareTo(b.rectFound.left));
 
-      for (int j = i + 1; j < artifacts.length; j++) {
-        final Artifact next = artifacts[j];
+    // Create a working copy of the artifacts list
+    final List<Artifact> workingArtifacts = List.from(sortedArtifacts);
 
-        if (areArtifactsOnTheSameColumn(
-          current.rectFound,
-          next.rectFound,
-          verticalTolerance,
-        )) {
+    for (int i = 0; i < workingArtifacts.length; i++) {
+      final Artifact current = workingArtifacts[i];
+
+      for (int j = i + 1; j < workingArtifacts.length; j++) {
+        final Artifact next = workingArtifacts[j];
+
+        // Check if these artifacts should be merged
+        if (shouldMergeArtifacts(current, next)) {
+          // current.debugPrintGrid();
+          // next.debugPrintGrid();
+
           current.mergeArtifact(next);
-          artifacts.removeAt(j);
+          workingArtifacts.removeAt(j);
           j--; // Adjust index since we removed an artifact
         }
       }
@@ -229,10 +227,56 @@ class Band {
       mergedArtifacts.add(current);
     }
 
-    return mergedArtifacts;
+    this.artifacts = mergedArtifacts;
   }
 
+  /// Determines if two artifacts should be merged based on their spatial relationship.
   ///
+  /// This method checks if the smaller artifact significantly overlaps with the larger one.
+  /// If the smaller artifact has at least 80% overlap with the larger one, they are
+  /// considered parts of the same character and should be merged.
+  ///
+  /// Parameters:
+  ///   [artifact1]: The first artifact to check.
+  ///   [artifact2]: The second artifact to check.
+  ///
+  /// Returns:
+  ///   true if the artifacts should be merged, false otherwise.
+  static bool shouldMergeArtifacts(
+    final Artifact artifact1,
+    final Artifact artifact2,
+  ) {
+    // Calculate areas to determine which is smaller
+    final int area1 = artifact1.rectFound.width * artifact1.rectFound.height;
+    final int area2 = artifact2.rectFound.width * artifact2.rectFound.height;
+
+    // Identify smaller and larger artifacts
+    final Artifact smaller = area1 <= area2 ? artifact1 : artifact2;
+    final Artifact larger = area1 <= area2 ? artifact2 : artifact1;
+
+    // Calculate overlap area
+    final IntRect overlap = smaller.rectFound.intersect(larger.rectFound);
+    if (overlap.isEmpty) {
+      return false;
+    }
+
+    final int overlapArea = overlap.width * overlap.height;
+    final int smallerArea = smaller.rectFound.width * smaller.rectFound.height;
+
+    // If the smaller artifact overlaps with the larger one by at least 80%,
+    // they should be merged
+    return overlapArea >= (smallerArea * 0.8);
+  }
+
+  /// Replaces a single artifact with multiple artifacts in the band.
+  ///
+  /// This method removes the specified artifact from the band's artifact list
+  /// and inserts the provided list of artifacts at the same position.
+  /// It also clears cached statistics since the band's composition has changed.
+  ///
+  /// Parameters:
+  ///   [artifactToReplace]: The artifact to be removed from the band.
+  ///   [artifactsToInsert]: The list of artifacts to insert in its place.
   void replaceOneArtifactWithMore(
     final Artifact artifactToReplace,
     final List<Artifact> artifactsToInsert,
@@ -243,7 +287,20 @@ class Band {
     clearStats();
   }
 
+  /// Extracts a sub-artifact from a source artifact based on specified dimensions.
   ///
+  /// This method creates a new artifact by extracting a rectangular region from
+  /// the source artifact's matrix.
+  ///
+  /// Parameters:
+  ///   [source]: The source artifact to extract from.
+  ///   [left]: The left coordinate of the extraction rectangle.
+  ///   [top]: The top coordinate of the extraction rectangle.
+  ///   [width]: The width of the extraction rectangle.
+  ///   [height]: The height of the extraction rectangle.
+  ///
+  /// Returns:
+  ///   A new Artifact containing the extracted region, marked as part of a split.
   Artifact extractArtifact(
     Artifact source,
     int left,
@@ -559,7 +616,7 @@ Band rowToBand({
   newBand.padVerticallyArtifactToMatchTheBand();
 
   // Clean up inner Matrix overlap for example the letter X may have one of the lines not touching the others like so  `/,
-  newBand.mergeConnectedArtifactsInPlace();
+  newBand.mergeArtifactsBasedOnVerticalAlignment();
 
   newBand.clearStats();
 

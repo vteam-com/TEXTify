@@ -197,7 +197,7 @@ class Band {
   void identifySuspiciousLargeArtifacts() {
     List<Artifact> listToInspect = getWideChunks();
 
-    for (final artifactToSplit in listToInspect) {
+    for (final Artifact artifactToSplit in listToInspect) {
       final List<Artifact> artifactsFromColumns = splitChunk(artifactToSplit);
       this.replaceOneArtifactWithMore(artifactToSplit, artifactsFromColumns);
     }
@@ -232,11 +232,37 @@ class Band {
   /// This method finds artifacts whose width exceeds twice the average width
   /// of all artifacts in the band, which often indicates merged characters.
   ///
+  /// Special cases:
+  /// - If there are only 1-2 artifacts of similar width, they are not considered wide
+  /// - Width comparison uses a dynamic threshold based on the number of artifacts
+  ///
   /// Returns a list of artifacts that are candidates for splitting.
   List<Artifact> getWideChunks() {
     final List<Artifact> listToInspect = [];
 
-    final double thresholdWidth = this.averageWidth * 2;
+    // If we have 0 or 1 artifacts, there's nothing to inspect
+    if (artifacts.isEmpty || artifacts.length == 1) {
+      return listToInspect;
+    }
+
+    // Special case: If we have exactly 2 artifacts with similar widths,
+    // don't consider either of them as wide chunks
+    if (artifacts.length == 2) {
+      final double widthRatio = artifacts[0].cols / artifacts[1].cols;
+      // If the width ratio is between 0.7 and 1.3, they're similar enough
+      if (widthRatio >= 0.7 && widthRatio <= 1.3) {
+        return listToInspect; // Return empty list
+      }
+    }
+
+    // Calculate threshold based on number of artifacts
+    // With fewer artifacts, we need a higher threshold to avoid false positives
+    double thresholdMultiplier = 2.0;
+    if (artifacts.length <= 3) {
+      thresholdMultiplier = 2.5; // More conservative for small sets
+    }
+
+    final double thresholdWidth = this.averageWidth * thresholdMultiplier;
 
     for (final Artifact artifact in this.artifacts) {
       artifact.needsInspection = artifact.cols > thresholdWidth;

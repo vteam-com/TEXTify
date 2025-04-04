@@ -1,7 +1,7 @@
 name: textify
 description: "A cross-platform Flutter package that extracts text from clean digital images using standard fonts, run offline with no external dependencies."
 
-version: 0.3.4
+version: 0.4.0
 homepage: https://github.com/vteam-com/textify
 
 environment:

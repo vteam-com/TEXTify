@@ -4,95 +4,106 @@
 
 All notable changes to this project will be documented in this file.
 
-## [0.3.4] - 2025-01-14
-
-### Add
-
-- Add 300 more English words
-
-### Fix
-
-- Fix Dashboard "Apply Dictionary"
-
-## [0.3.3] - 2025-01-13
-
-### Add
-
-- Examples "Simplified" and "Dashboard"
-
-## [0.3.2] - 2025-01-09
-
-### Change
-
-- Improve API document/comment of file [correction.dart]
-
-## [0.3.1] - 2025-01-09
-
-### Change
-
-- Update README.md show example of Good Clean vs Problematic text in input images
-- Improve Example using the sample of "Good Clean Image"
-
-## [0.3.0] - 2025-01-07
-
-### Add
-
-- Optional operation mode of AutoCorrection using English Dictionary and AutoCassing of words
-
-### Change
-
-- new minimum sdk: >=3.6.0,  flutter: >=3.27.0
-
-## [0.2.0] - 2024-12-16
-
-### Change
-
-- Adjust band tolerance to 50% (was 80%)
-- Adjust word gap to 50% (was 75)
-- Adjust gray scale to 190 (was 128)
-  
-## [0.1.9] - 2024-12-15
+## 0.4.0 : 2025-04-04
 
 ### Added
 
-- Unit test - convert PNG image to text
-
-## [0.1.8] - 2024-12-15
+- Support for connected characters
 
 ### Changed
 
-- Update README.md
-- Update documentation [band.dart, matrix.dart]
+- Performance improvements
+- Increased code coverage to 99.1%
 
-## [0.1.7] - 2024-12-14
+## 0.3.4 : 2025-01-14
+
+### Added
+
+- 300 more English words to dictionary
+
+### Fixed
+
+- Dashboard "Apply Dictionary" functionality
+
+## 0.3.3 : 2025-01-13
+
+### Added
+
+- New examples : "Simplified" and "Dashboard"
+
+## 0.3.2 : 2025-01-09
 
 ### Changed
 
-- Flutter 3.27.0 fix 1 deprecated warning
-- Update packages
+- Improved API documentation and comments in `correction.dart`
 
-## [0.1.6] - 2024-10-13
+## 0.3.1 : 2025-01-09
 
 ### Changed
 
-- Improve Band assignement of artifacts
+- Updated README.md to show examples of good clean vs problematic text in input images
+- Improved example using the sample of "Good Clean Image"
+
+## 0.3.0 : 2025-01-07
+
+### Added
+
+- Optional operation mode of AutoCorrection using English Dictionary and AutoCassing of words
+
+### Changed
+
+- Updated minimum SDK requirements : >=3.6.0, flutter : >=3.27.0
+
+## 0.2.0 : 2024-12-16
+
+### Changed
+
+- Adjusted band tolerance to 50% (was 80%)
+- Adjusted word gap to 50% (was 75%)
+- Adjusted gray scale to 190 (was 128)
+  
+## 0.1.9 : 2024-12-15
+
+### Added
+
+- Unit test for converting PNG image to text
+
+## 0.1.8 : 2024-12-15
+
+### Changed
+
+- Updated README.md
+- Updated documentation in `band.dart` and `matrix.dart`
+
+## 0.1.7 : 2024-12-14
+
+### Changed
+
+- Fixed deprecated warning for Flutter 3.27.0
+- Updated packages
+
+## 0.1.6 : 2024-10-13
+
+### Changed
+
+- Improved Band assignment of artifacts
 - Major refactoring
   
-## [0.1.5] - 2024-10-12
+## 0.1.5 : 2024-10-12
 
 ### Changed
 
-- Update Matrices.json to hit 100% match for the 4 fontds at size 40
-- refactor clean up code
+- Updated Matrices.json to achieve 100% match for the 4 fonts at size 40
+- Refactored and cleaned up code
 
-## [0.1.4] - 2024-10-10
+## 0.1.4 : 2024-10-10
 
 ### Changed
 
-- Removed [image_pipeline.dart]
-- Rename "Encloser" to "Enclosure"
+- Removed `image_pipeline.dart`
+- Renamed "Encloser" to "Enclosure"
   
-## [0.1.3] - 2024-10-09
+## 0.1.3 : 2024-10-09
 
 ### Changed
 
@@ -103,49 +114,49 @@ All notable changes to this project will be documented in this file.
 
 - Fixed enclosure count for 'R'
 
-## [0.1.2] - 2024-10-08
+## 0.1.2 : 2024-10-08
 
 ### Added
 
-- Support for characters: ! @ # & * - + = { } [ ] < > ?
+- Support for characters : ! @ # & * - + = { } [ ] < > ?
 
-## [0.1.1] - 2024-10-06
-
-### Changed
-
-- Use embedded fonts for generating template [Arial, Courier, Helvetica, Times New Roman]
-
-## [0.1.0] - 2024-10-03
+## 0.1.1 : 2024-10-06
 
 ### Changed
 
-- Removed unused function
+- Used embedded fonts for generating template [Arial, Courier, Helvetica, Times New Roman]
+
+## 0.1.0 : 2024-10-03
+
+### Changed
+
+- Removed unused functions
 - Made functions private
 - Documented code
 
-## [0.0.9] - 2024-10-02
+## 0.0.9 : 2024-10-02
 
 ### Changed
 
 - Refactored to handle Bands and detect spaces
 
-## [0.0.8] - 2024-10-01
+## 0.0.8 : 2024-10-01
 
 ### Added
 
 - Documented public API - Artifact, Band, CharacterDefinitions
 
-## [0.0.7] - 2024-10-01
+## 0.0.7 : 2024-10-01
 
 ### Added
 
-- Support for characters: $ ; \
+- Support for characters : $ ; \
 
 ### Changed
 
 - Refactored to enable better editing of templates
 
-## [0.0.6] - 2024-10-01
+## 0.0.6 : 2024-10-01
 
 ### Added
 
@@ -153,13 +164,13 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 
-- Performance improvement: avoid scoring the Artifact for space " "
+- Performance improvement : avoid scoring the Artifact for space " "
 
 ### Fixed
 
 - Bug in the Example:Edit Screen
 
-## [0.0.5] - 2024-09-30
+## 0.0.5 : 2024-09-30
 
 ### Added
 
@@ -169,19 +180,19 @@ All notable changes to this project will be documented in this file.
 
 - Ran `dart format .`
 
-## [0.0.4] - 2024-09-30
+## 0.0.4 : 2024-09-30
 
 ### Added
 
-- Linked package to GitHub repo: <https://github.com/vteam-com/textify>
+- Linked package to GitHub repo : <https://github.com/vteam-com/textify>
 
-## [0.0.3] - 2024-09-30
+## 0.0.3 : 2024-09-30
 
 ### Changed
 
 - Updated README.md
 
-## [0.0.2] - 2024-09-30
+## 0.0.2 : 2024-09-30
 
 ### Added
 
@@ -195,7 +206,7 @@ All notable changes to this project will be documented in this file.
 
 - Fixed many typos
 
-## [0.0.1] - 2024-09-23
+## 0.0.1 : 2024-09-23
 
 ### Added
 

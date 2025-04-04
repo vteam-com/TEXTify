@@ -134,7 +134,10 @@ class IntRect {
     return false;
   }
 
+  /// Checks if this rectangle intersects vertically with another rectangle.
   ///
+  /// [other] The other rectangle to check for vertical intersection.
+  /// Returns true if the rectangles overlap vertically, false otherwise.
   bool intersectVertically(final IntRect other) {
     if (other.top > bottom || other.bottom < top) {
       return false;
@@ -142,7 +145,10 @@ class IntRect {
     return true;
   }
 
+  /// Checks if this rectangle intersects horizontally with another rectangle.
   ///
+  /// [other] The other rectangle to check for horizontal intersection.
+  /// Returns true if the rectangles overlap horizontally, false otherwise.
   bool intersectHorizontal(final IntRect other) {
     if (other.left >= this.right || other.right <= this.left) {
       // off sides

@@ -143,10 +143,10 @@ class Artifact {
   /// The character that this artifact matches.
   String characterMatched = '';
 
-  /// Tag the artifact as needs more attentions
+  /// Tag the artifact as needing more attention during inspection
   bool needsInspection = false;
 
-  ///
+  /// Indicates whether this artifact was created as part of a splitting operation
   bool wasPartOfSplit = false;
 
   /// Empty the content
@@ -155,14 +155,16 @@ class Artifact {
     this._matrix = Uint8List(0);
   }
 
-  /// Converts the artifact to a text representation.
+  /// Converts the matrix to a text representation.
+  ///
+  /// This method creates a string representation of the matrix where each true cell
+  /// is represented by the specified character.
   ///
   /// Parameters:
-  /// - onChar: The character to use for 'on' pixels (default: '#').
-  /// - forCode: Whether the output is intended for code representation (default: false).
+  /// - [onChar]: The character to use for representing true cells. Defaults to '#'.
+  /// - [forCode]: Whether the output is intended for code representation. Defaults to false.
   ///
-  /// Returns:
-  /// A string representation of the artifact.
+  /// Returns a formatted string representation of the matrix.
   String toText({
     final String onChar = '#',
     final bool forCode = false,
@@ -173,7 +175,10 @@ class Artifact {
     );
   }
 
-  /// used for debugging
+  /// Prints the grid to the debug console.
+  ///
+  /// This method is useful for debugging purposes, allowing visual inspection
+  /// of the matrix structure in the console output.
   void debugPrintGrid() {
     debugPrint('${this.toText()}\n');
   }
@@ -224,22 +229,24 @@ class Artifact {
     this.setGrid(newGrid._matrix, newGrid.cols);
   }
 
-  /// Returns:
-  /// A string representation ths artifact.
+  /// Returns a string representation of this artifact.
+  ///
+  /// The string includes information about the matched character, position,
+  /// dimensions, emptiness status, enclosures, and vertical line detection.
+  ///
+  /// Returns a formatted string with artifact details.
   @override
   String toString() {
     return '"$characterMatched" left:${locationFound.x} top:${locationFound.y} CW:${rectFound.width} CH:${rectFound.height} isEmpty:$isEmpty E:$enclosures LL:$verticalLineLeft LR:$verticalLineRight';
   }
 
-  /// Creates a new Matrix by taking the vertical projection of the source Matrix.
+  /// Creates a new Artifact representing the horizontal histogram of this artifact.
   ///
-  /// The vertical projection of a Matrix is a new Matrix where each column in the
-  /// result contains a boolean value indicating whether there is a true value in
-  /// that column of the source Matrix.
+  /// The horizontal histogram visualizes the count of true cells in each column
+  /// as a vertical bar. The resulting artifact has the same dimensions as the original,
+  /// with each column filled from the bottom up based on the count of true cells.
   ///
-  /// [source] The source Matrix to take the vertical projection of.
-  /// Returns a new Matrix with the same number of rows as the source, and a number
-  /// of columns equal to the number of columns in the source.
+  /// Returns a new Artifact representing the horizontal histogram.
   Artifact getHistogramHorizontalArtifact() {
     int width = this.cols;
 
@@ -379,7 +386,12 @@ class Artifact {
     _matrix[y * cols + x] = value ? 1 : 0;
   }
 
+  /// Determines if this artifact contains content that can be discarded.
   ///
+  /// An artifact is considered discardable if it is very small (area ≤ 2)
+  /// or if it is classified as a line.
+  ///
+  /// Returns true if the artifact can be discarded, false otherwise.
   bool discardableContent() {
     return (this.rectFound.width * this.rectFound.height) <= 2 ||
         isConsideredLine();
@@ -565,17 +577,17 @@ class Artifact {
     _matrix.removeRange(rows - bottom, rows);
   }
 
-  /// Creates a new Matrix with the specified desired width and height, by resizing the current Matrix.
+  /// Creates a new Artifact with the specified desired width and height, by resizing the current Artifact.
   ///
-  /// If the current Matrix is punctuation, it will not be cropped and will be centered in the new Matrix.
-  /// Otherwise, the current Matrix will be trimmed and then wrapped with false values before being resized.
+  /// If the current Artifact is punctuation, it will not be cropped and will be centered in the new Artifact.
+  /// Otherwise, the current Artifact will be trimmed and then wrapped with false values before being resized.
   ///
   /// Parameters:
-  /// - `desiredWidth`: The desired width of the new Matrix.
-  /// - `desiredHeight`: The desired height of the new Matrix.
+  /// - `desiredWidth`: The desired width of the new Artifact.
+  /// - `desiredHeight`: The desired height of the new Artifact.
   ///
   /// Returns:
-  /// A new Matrix with the specified dimensions, containing a resized version of the original Matrix's content.
+  /// A new Artifact with the specified dimensions, containing a resized version of the original Artifact's content.
   Artifact createNormalizeMatrix(
     final int desiredWidth,
     final int desiredHeight,
@@ -737,20 +749,13 @@ class Artifact {
   /// Gets the number of enclosed regions in the matrix.
   ///
   /// An enclosed region is a contiguous area of false cells completely
-  /// surrounded by true cells. This getter calculates the number of such
-  /// regions in the matrix.
+  /// surrounded by true cells. This property is useful for character recognition,
+  /// as different characters have different numbers of enclosed regions
+  /// (e.g., 'O' has one, 'B' has two).
   ///
-  /// The calculation is performed only once and the result is cached for
-  /// subsequent calls to improve performance.
-  ///
-  /// Returns:
-  /// An integer representing the number of enclosed regions in the matrix.
-  ///
-  /// Note: The actual counting is performed by the `countEnclosedRegion`
-  /// function, which is assumed to be defined elsewhere in the class or
-  /// imported from another file.
+  /// Returns the number of enclosed regions in the matrix.
   int get enclosures {
-    if (_enclosures == -1) {
+    if (_enclosures < 0) {
       _enclosures = _countEnclosedRegion(this);
     }
     return _enclosures;
@@ -1354,7 +1359,7 @@ class Artifact {
   ///
   /// Time Complexity: O(rows * cols), where each cell is visited at most once.
   /// Space Complexity: O(rows * cols) for the 'visited' matrix.
-  int _countEnclosedRegion(final Artifact grid) {
+  static int _countEnclosedRegion(final Artifact grid) {
     final int rows = grid.rows;
     final int cols = grid.cols;
 
@@ -1378,7 +1383,15 @@ class Artifact {
     return loopCount;
   }
 
+  /// Sorts a list of Artifact objects based on their vertical and horizontal positions.
   ///
+  /// This method first compares the vertical center positions of artifacts.
+  /// If two artifacts are approximately on the same line (within 10 pixels vertically),
+  /// it sorts them from left to right based on their horizontal position.
+  /// Otherwise, it sorts them from top to bottom.
+  ///
+  /// Parameters:
+  ///   [list]: The list of Artifact objects to sort.
   static void sortMatrices(List<Artifact> list) {
     list.sort((Artifact a, Artifact b) {
       final aCenterY = a.rectFound.top + a.rectFound.height / 2;
@@ -1390,7 +1403,17 @@ class Artifact {
     });
   }
 
+  /// Sorts a list of IntRect objects based on their vertical and horizontal positions.
   ///
+  /// This method first compares the vertical center positions of rectangles.
+  /// If two rectangles are approximately on the same line (within the specified threshold),
+  /// it sorts them from left to right based on their horizontal position.
+  /// Otherwise, it sorts them from top to bottom.
+  ///
+  /// Parameters:
+  ///   [list]: The list of IntRect objects to sort.
+  ///   [threshold]: The maximum vertical distance (in pixels) for rectangles to be
+  ///                considered on the same line. Defaults to 5.0.
   static void sortRectangles(List<IntRect> list, {double threshold = 5.0}) {
     list.sort((a, b) {
       // If the vertical difference is within the threshold, treat them as the same row
@@ -1418,7 +1441,7 @@ class Artifact {
   /// The size of the explored region (number of connected cells).
   ///
   /// Note: This function modifies the [visited] matrix in-place to mark explored cells.
-  int _exploreRegion(
+  static int _exploreRegion(
     final Artifact grid,
     final Artifact visited,
     final int startX,
@@ -1482,7 +1505,7 @@ class Artifact {
   /// A region is considered not enclosed if:
   /// 1. It reaches the edge of the grid during exploration.
   /// 2. Its size is less than 1% of the total grid area (adjustable threshold).
-  bool _isEnclosedRegion(
+  static bool _isEnclosedRegion(
     final Artifact grid,
     final int startX,
     final int startY,
@@ -1845,19 +1868,14 @@ class Artifact {
   }
 }
 
-/// Converts a UI image to a black and white image by applying an adaptive threshold.
+/// Converts a color image to a binary (black and white) image.
 ///
-/// This function takes a UI image, converts it to grayscale, and then applies an adaptive
-/// threshold to convert the image to black and white. The adaptive threshold is computed
-/// by taking the average of all the pixel values and subtracting 90 from it, which helps
-/// to create a sharper separation between the foreground and background.
+/// This preprocessing step simplifies the image for text recognition by
+/// converting it to a binary format where text is represented as black pixels
+/// on a white background.
 ///
-/// Parameters:
-/// - [inputImage]: The input UI image to be converted.
-/// - [backgroundBrightnessThreshold_0_255]: The brightness threshold for the background, between 0 and 255. Defaults to 190.
-///
-/// Returns:
-/// A Future that resolves to the converted black and white UI image.
+/// [image] is the source color image to convert.
+/// Returns a ```Future<ui.Image>``` containing the binary version of the input image.
 Future<Image> imageToBlackOnWhite(
   final Image inputImage, {
   // Adjust contrast level (0 = normal, 100 = high contrast)
@@ -2004,15 +2022,13 @@ List<Artifact> findMatrices({required Artifact dilatedMatrixImage}) {
   return regions;
 }
 
-/// Finds the regions in a binary image matrix and returns them as IntRect objects.
-/// This optimized version calculates rectangles directly during flood fill without
-/// storing all individual points.
+/// Identifies distinct regions in a dilated binary image.
 ///
-/// Parameters:
-///   [dilatedMatrixImage]: The binary image matrix to analyze.
+/// This function analyzes a dilated image to find connected components that
+/// likely represent characters or groups of characters.
 ///
-/// Returns:
-///   A list of IntRect objects representing the bounding boxes of the identified regions.
+/// [dilatedMatrixImage] is the preprocessed binary image after dilation.
+/// Returns a list of IntRect objects representing the bounding boxes of identified regions.
 List<IntRect> findRegions({required Artifact dilatedMatrixImage}) {
   // Clear existing regions
   List<IntRect> regions = [];
@@ -2258,22 +2274,24 @@ Artifact matrixFromPoints(List<Point<int>> connectedPoints) {
   return artifact;
 }
 
+/// Computes the appropriate kernel size for dilation based on image dimensions.
 ///
+/// [cols] is the width of the image in pixels.
+/// [rows] is the height of the image in pixels.
+/// [factor] is a scaling factor that determines how the kernel size relates to image dimensions.
+/// Returns an integer representing the computed kernel size.
 int computeKernelSize(int width, int height, double scaleFactor) {
   return (scaleFactor * width).round().clamp(1, width);
 }
 
-/// Performs a dilation operation on the input matrix.
+/// Applies dilation morphological operation to a binary image.
 ///
-/// This function takes a [Artifact] and performs a dilation operation on it.
-/// The dilation operation expands the black pixels against the white background.
+/// Dilation expands the white regions in a binary image, which helps connect
+/// nearby text elements and fill small gaps in characters.
 ///
-/// Parameters:
-/// - [matrixImage]: The source matrix to be dilated (binary matrix).
-/// - [kernelSize]: The size of the kernel to use for dilation.
-///
-/// Returns:
-/// A new [Artifact] containing the dilated matrix.
+/// [matrixImage] is the source binary image to dilate.
+/// [kernelSize] determines the size of the dilation kernel.
+/// Returns a new Artifact containing the dilated image.
 Artifact dilateMatrix({
   required final Artifact matrixImage,
   required int kernelSize,
@@ -2379,8 +2397,18 @@ List<int> getHistogramOfRegion(final Artifact binaryImage, IntRect region) {
   return histogram;
 }
 
+/// Calculates a threshold value for splitting a histogram at its valleys.
 ///
-int calculateThreshold(List<int> histogram) {
+/// This function analyzes a histogram to find local minima (valleys) and returns
+/// a threshold value slightly higher than the smallest valley found.
+///
+/// Parameters:
+/// - [histogram]: A list of integers representing the histogram to analyze.
+///
+/// Returns:
+/// - A threshold value to use for splitting, or -1 if no suitable valley is found
+///   or the histogram is too small.
+int calculateHistogramValleyThreshold(List<int> histogram) {
   if (histogram.length < 3) {
     return -1;
   }
@@ -2404,7 +2432,15 @@ int calculateThreshold(List<int> histogram) {
   return -1;
 }
 
+/// Applies an offset to the location of a list of matrices.
 ///
+/// This function translates the locationFound property of each matrix in the list
+/// by the specified x and y offsets.
+///
+/// Parameters:
+/// - [matrices]: The list of Artifact objects to offset.
+/// - [x]: The horizontal offset to apply.
+/// - [y]: The vertical offset to apply.
 void offsetMatrices(final List<Artifact> matrices, final int x, final int y) {
   matrices.forEach(
     (matrix) => matrix.locationFound = matrix.locationFound.translate(x, y),

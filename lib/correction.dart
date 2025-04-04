@@ -1,10 +1,13 @@
 import 'dart:math';
 import 'package:textify/english_words.dart';
 
-/// Applies dictionary-based correction to an entire paragraph of [inputParagraph]. It first tries to match words
-/// directly in the dictionary, then attempts to substitute commonly confused characters,
-/// and finally finds the closest match in the dictionary if no direct match is found.
-/// The original casing of the input words is preserved in the corrected output.
+/// Applies dictionary-based correction to the extracted text.
+///
+/// This function improves recognition accuracy by comparing extracted text
+/// against a dictionary and correcting likely missed recognitions.
+///
+/// [text] is the raw text extracted from the image.
+/// Returns the corrected text after dictionary-based processing.
 String applyDictionaryCorrection(
   final String inputParagraph,
 ) {

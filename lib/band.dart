@@ -11,14 +11,21 @@ export 'package:textify/artifact.dart';
 /// A Band contains multiple [Artifact] objects and provides methods for
 /// analyzing their layout and characteristics.
 class Band {
-  /// Creates a new Band with the specified rectangle.
+  /// Creates a new Band instance.
   ///
+  /// Initializes an empty band with no artifacts.
   Band();
 
   /// List of artifacts contained within this band.
   List<Artifact> artifacts = [];
 
+  /// Retrieves the concatenated text from all artifacts in the band.
   ///
+  /// Iterates through all artifacts in the band and combines their matched
+  /// characters into a single string.
+  ///
+  /// Returns:
+  /// A string containing all the text from the artifacts in this band.
   String getText() {
     String text = '';
 
@@ -151,7 +158,13 @@ class Band {
     }
   }
 
+  /// Splits an artifact into multiple artifacts based on detected valleys.
   ///
+  /// This method analyzes the given artifact to find natural splitting points
+  /// (valleys in the pixel density) and divides it into multiple artifacts.
+  ///
+  /// [artifactToSplit] The artifact to be split into multiple components.
+  /// Returns a list of new artifacts created from the split.
   List<Artifact> splitChunk(Artifact artifactToSplit) {
     // Get columns where to split the artifact
     List<int> splitColumns = Artifact.getValleysOffsets(artifactToSplit);
@@ -169,7 +182,12 @@ class Band {
     return artifactsFromColumns;
   }
 
+  /// Identifies artifacts that are significantly wider than average.
   ///
+  /// This method finds artifacts whose width exceeds twice the average width
+  /// of all artifacts in the band, which often indicates merged characters.
+  ///
+  /// Returns a list of artifacts that are candidates for splitting.
   List<Artifact> getWideChunks() {
     final List<Artifact> listToInspect = [];
 
@@ -451,17 +469,10 @@ class Band {
     return getBoundingBox(this.artifacts, useAdjustedRect: false);
   }
 
-  /// Gets the bounding rectangle of this object.
+  /// The bounding rectangle that encompasses all artifacts in the band.
   ///
-  /// This getter uses lazy initialization to compute the bounding box
-  /// only when first accessed, and then caches the result for subsequent calls.
-  ///
-  /// Returns:
-  ///   A [Rect] representing the bounding box of this object.
-  ///
-  /// Note: If the object's dimensions or position can change, this cached
-  /// value may become outdated. In such cases, consider adding a method
-  /// to invalidate the cache when necessary.
+  /// This property calculates the smallest rectangle that contains all artifacts,
+  /// adjusted for any transformations.
   IntRect get rectangleAdjusted {
     return getBoundingBox(this.artifacts, useAdjustedRect: true);
   }

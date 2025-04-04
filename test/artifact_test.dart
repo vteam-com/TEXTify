@@ -381,27 +381,27 @@ void main() {
   group('calculateThreshold Tests', () {
     test('Empty histogram returns -1', () {
       final List<int> histogram = [1, 2];
-      final int threshold = calculateThreshold(histogram);
+      final int threshold = calculateHistogramValleyThreshold(histogram);
       expect(threshold, -1);
     });
 
     test('Histogram with no valleys uses average height', () {
       final List<int> histogram = [1, 2, 3, 4, 5];
-      final int threshold = calculateThreshold(histogram);
+      final int threshold = calculateHistogramValleyThreshold(histogram);
       // Average is 3, threshold should be 3 * 0.5 = 1.5 -> 1
       expect(threshold, -1);
     });
 
     test('Histogram with valleys adjusts threshold', () {
       final List<int> histogram = [5, 2, 7, 1, 6];
-      final int threshold = calculateThreshold(histogram);
+      final int threshold = calculateHistogramValleyThreshold(histogram);
       // Valley is 1, threshold should be 1 * 0.8 = 0.8 -> 0
       expect(threshold, 1);
     });
 
     test('Histogram with multiple valleys uses minimum', () {
       final List<int> histogram = [5, 2, 7, 3, 9, 1, 8];
-      final int threshold = calculateThreshold(histogram);
+      final int threshold = calculateHistogramValleyThreshold(histogram);
       // Valleys are 2, 3, 1; minimum is 1
       expect(threshold, 1);
     });

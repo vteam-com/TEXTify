@@ -319,9 +319,9 @@ void main() {
       final List<Artifact> result = band.splitChunk(artifact);
 
       // Verify the artifact was split correctly
-      expect(result[0].cols, 164, reason: '${result[0].toText()}\n');
-      expect(result[1].cols, 120, reason: '${result[1].toText()}\n');
-      expect(result[2].cols, 106, reason: '${result[2].toText()}\n');
+      expect(result[0].cols, 157, reason: '${result[0].toText()}\n');
+      expect(result[1].cols, 122, reason: '${result[1].toText()}\n');
+      expect(result[2].cols, 111, reason: '${result[2].toText()}\n');
     });
   });
 }

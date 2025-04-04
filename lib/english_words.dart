@@ -587,6 +587,7 @@ Set<String> englishWords = {
   'mention',
   'message',
   'method',
+  'microsoft',
   'middle',
   'mile',
   'mind',

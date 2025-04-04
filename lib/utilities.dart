@@ -540,6 +540,23 @@ List<int> artifactValleysOffsets(final Artifact artifact) {
     gaps.add(currentGap);
   }
 
+  // Filter out gaps that are at the edges of the artifact
+  // These are likely serifs or other character features, not actual gaps between characters
+  gaps.removeWhere((gap) {
+    // Remove gaps that start at column 0 (left edge)
+    if (gap.first == 0) {
+      return true;
+    }
+
+    // Remove gaps that end at the last column (right edge)
+    if (gap.last == peaksAndValleys.length - 1) {
+      return true;
+    }
+
+    // Keep all other gaps
+    return false;
+  });
+
   // For large artifacts with many gaps, we need to be more selective
   // Sort gaps by width (descending) and take only the most significant ones
   gaps.sort((a, b) => b.length.compareTo(a.length));
@@ -552,13 +569,13 @@ List<int> artifactValleysOffsets(final Artifact artifact) {
   // Sort the significant gaps by position (ascending)
   significantGaps.sort((a, b) => a[0].compareTo(b[0]));
 
-  // For each significant gap, use the right edge of the gap as the split column
-  // This ensures we split between characters, not through them
+  // For each significant gap, use the middle of the gap as the split column
+  // This ensures we split in the center of the gap between characters
   final List<int> offsets = [];
   for (final List<int> gap in significantGaps) {
     if (gap.isNotEmpty) {
-      // Use the right edge of the gap instead of the middle
-      final int splitPoint = gap.last;
+      // Calculate the middle point of the gap
+      final int splitPoint = gap.first + (gap.length ~/ 2);
       offsets.add(splitPoint);
     }
   }

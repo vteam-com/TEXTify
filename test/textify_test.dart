@@ -215,17 +215,17 @@ void main() async {
       // We know that 'R E' are not connected
       testExpectation(band.artifacts[00], 106); // R
       testExpectation(band.artifacts[01], 099); // E
-      testExpectation(band.artifacts[02], 164); // M
-      testExpectation(band.artifacts[03], 120); // A
-      testExpectation(band.artifacts[04], 106); // R
-      testExpectation(band.artifacts[05], 123); // K
-      testExpectation(band.artifacts[06], 119); // A
-      testExpectation(band.artifacts[07], 104); // B
+      testExpectation(band.artifacts[02], 157); // M
+      testExpectation(band.artifacts[03], 122); // A
+      testExpectation(band.artifacts[04], 111); // R
+      testExpectation(band.artifacts[05], 117); // K
+      testExpectation(band.artifacts[06], 120); // A
+      testExpectation(band.artifacts[07], 109); // B
       testExpectation(band.artifacts[08], 091); // L
       testExpectation(band.artifacts[09], 098); // E
 
       final String text = await instance.getTextInBands(listOfBands: [band]);
-      expect(text, 'REMARKA8[E'); // some comlexity with the space
+      expect(text, 'REMABKAB[E'); // some comlexity with the space
 
       instance.applyDictionary = true;
       final String text2 = await instance.getTextInBands(listOfBands: [band]);
@@ -244,16 +244,16 @@ void main() async {
     // the result are not perfect 90% accuracy, but its trending in the right direction
     expect(
       text,
-      'FIND GOLD CAUSE MATOSINHOSS\n'
-      'C0NTINENTE AIM DR, .B.T0SINH0S\n'
-      'WWW..AE0N.* LSLAR28IB, LUXE.MB0URG\n'
+      'FIND GOLD CAUSE MATOSINHOS\n'
+      'C0NTINENTE AIM DR, MATOSINHOS\n'
+      'www.ABZ0N.* LSLAK28IB, LUXEMB0URG\n'
       'REMARKABLE BALL\n'
-      'PING0 D0CE MA.T0SINH0, MATOSINHOSS\n'
-      'C0NTINENTE AIM DR, .B.T0SINH0S\n'
-      'LEAD PORT MASTER .B.T0SINH0S\n'
-      'CASE DASH UTILID.Ades, guimaraes\n'
-      'EUR0L0JA MA.T0SINH0S, .B.T0SINH0S\n'
-      'CARES S.AB0RES B0LHA.0, PORTO\n'
+      'PING0 D0CE MATOSINHOS MATOSINHOS\n'
+      'C0NTINENTE AIM DR, MATOSINHOS\n'
+      'PAB PORT MAT0, MATOSINHOS\n'
+      'CASE DAS UTILIDABES, GUIMARAES\n'
+      'EUR0L0JAMAT0SINH0S, MATOSINHOS\n'
+      'CARES SAB0RES B0LHA0, PORTO\n'
       'TUCA CHA E CAFE, PORTO',
     );
   });

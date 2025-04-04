@@ -376,37 +376,6 @@ class Band {
     clearStats();
   }
 
-  /// Extracts a sub-artifact from a source artifact based on specified dimensions.
-  ///
-  /// This method creates a new artifact by extracting a rectangular region from
-  /// the source artifact's matrix.
-  ///
-  /// Parameters:
-  ///   [source]: The source artifact to extract from.
-  ///   [left]: The left coordinate of the extraction rectangle.
-  ///   [top]: The top coordinate of the extraction rectangle.
-  ///   [width]: The width of the extraction rectangle.
-  ///   [height]: The height of the extraction rectangle.
-  ///
-  /// Returns:
-  ///   A new Artifact containing the extracted region, marked as part of a split.
-  Artifact extractArtifact(
-    Artifact source,
-    int left,
-    int top,
-    int width,
-    int height,
-  ) {
-    IntRect rectLeft = IntRect.fromLTWH(
-      left,
-      top,
-      width,
-      height,
-    );
-    final sub = source.extractSubGrid(rect: rectLeft);
-    return Artifact.fromMatrix(sub)..wasPartOfSplit = true;
-  }
-
   /// Identifies and inserts space artifacts between existing artifacts in the band.
   ///
   /// This method analyzes the Kerning between artifacts and inserts space artifacts

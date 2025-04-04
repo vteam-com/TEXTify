@@ -132,8 +132,8 @@ void main() async {
 
   group('calculateThreshold Tests', () {
     test('returns -1 for histograms with less than 3 elements', () {
-      expect(calculateHistogramValleyThreshold([1, 2]), -1);
-      expect(calculateHistogramValleyThreshold([]), -1);
+      expect(calculateThreshold([1, 2]), -1);
+      expect(calculateThreshold([]), -1);
     });
 
     test('finds threshold from valleys in histogram', () {
@@ -141,7 +141,7 @@ void main() async {
       final List<int> histogram = [5, 2, 6, 1, 7];
 
       // The smallest valley is 1, so that should be the threshold
-      expect(calculateHistogramValleyThreshold(histogram), 1);
+      expect(calculateThreshold(histogram), 1);
     });
 
     test('handles histogram with multiple valleys', () {
@@ -149,7 +149,7 @@ void main() async {
       final List<int> histogram = [8, 3, 7, 2, 9, 1, 6];
 
       // Should average the smallest 20% of valleys (just 1 in this case)
-      expect(calculateHistogramValleyThreshold(histogram), 1);
+      expect(calculateThreshold(histogram), 1);
     });
 
     test('handles histogram with no valleys', () {
@@ -157,7 +157,7 @@ void main() async {
       final List<int> histogram = [1, 2, 3, 4, 5];
 
       // No valleys, should return -1
-      expect(calculateHistogramValleyThreshold(histogram), -1);
+      expect(calculateThreshold(histogram), -1);
     });
   });
 }

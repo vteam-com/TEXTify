@@ -57,6 +57,15 @@ void main() {
       expect(definitions.getDefinition('X'), isNotNull);
       expect(definitions.getDefinition('X')!.matrices.first, artifact);
       expect(definitions.getDefinition('X')!.matrices.first.font, 'Arial');
+
+      // insert a fake character
+      final bool result2 =
+          definitions.upsertTemplate('Courier', '😭', artifact);
+      expect(result2, true);
+      // Again
+      final bool result3 =
+          definitions.upsertTemplate('Courier', '😭', artifact);
+      expect(result3, false);
     });
 
     test('_sortDefinitions sorts definitions alphabetically', () {

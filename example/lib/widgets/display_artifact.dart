@@ -117,6 +117,32 @@ class PaintArtifacts extends CustomPainter {
     return '#$id$band';
   }
 
+  /// Creates a new Artifact representing the horizontal histogram of this artifact.
+  ///
+  /// The horizontal histogram visualizes the count of true cells in each column
+  /// as a vertical bar. The resulting artifact has the same dimensions as the original,
+  /// with each column filled from the bottom up based on the count of true cells.
+  ///
+  /// Returns a new Artifact representing the horizontal histogram.
+  Artifact getHistogramHorizontalArtifact(final Artifact artifact) {
+    int width = artifact.cols;
+
+    // Step 1: Compute vertical projection (count active pixels per column)
+    List<int> histogram = artifact.getHistogramHorizontal();
+
+    // Step 2: Create an empty matrix for the projection
+    Artifact result = Artifact(artifact.cols, artifact.rows);
+
+    // Step 3: Fill the matrix from the bottom up based on the projection counts
+    for (int x = 0; x < width; x++) {
+      for (int y = 0; y < histogram[x]; y++) {
+        result.cellSet(x, artifact.rows - 1 - y, true);
+      }
+    }
+
+    return result;
+  }
+
   void _paintArtifactsInRow({
     required final Canvas canvas,
     required final List<Artifact> artifacts,
@@ -136,7 +162,7 @@ class PaintArtifacts extends CustomPainter {
         colors[id % colors.length],
         artifact.rectAdjusted.left.toInt(),
         artifact.rectAdjusted.top.toInt(),
-        showHistogram ? artifact.getHistogramHorizontalArtifact() : artifact,
+        showHistogram ? getHistogramHorizontalArtifact(artifact) : artifact,
         background: artifact.characterMatched == ' ' ? Colors.grey : null,
       );
 
@@ -194,7 +220,7 @@ class PaintArtifacts extends CustomPainter {
         color,
         artifact.rectFound.left.toInt(),
         artifact.rectFound.top.toInt(),
-        showHistogram ? artifact.getHistogramHorizontalArtifact() : artifact,
+        showHistogram ? getHistogramHorizontalArtifact(artifact) : artifact,
       );
     }
   }

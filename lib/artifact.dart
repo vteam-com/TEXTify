@@ -88,11 +88,9 @@ class Artifact {
   /// [json] A map containing 'rows', 'cols', and 'data' keys.
   factory Artifact.fromJson(final Map<String, dynamic> json) {
     // determine the mandatory cols/width of the matrix
-    final int cols = (json['cols'] as int?) ??
-        (json['data'] as List<dynamic>)[0].toString().length;
-
+    final int cols = (json['cols'] as int?) ?? 0;
     final Artifact artifact = Artifact(cols, 0);
-    artifact.font = json['font'];
+    artifact.font = json['font'] ?? '';
     artifact._matrix = Uint8List.fromList(
       (json['data'] as List<dynamic>).expand((final dynamic row) {
         return row.toString().split('').map((cell) => cell == '#' ? 1 : 0);
@@ -261,32 +259,6 @@ class Artifact {
     return '"$characterMatched" left:${locationFound.x} top:${locationFound.y} CW:${rectFound.width} CH:${rectFound.height} isEmpty:$isEmpty E:$enclosures LL:$verticalLineLeft LR:$verticalLineRight';
   }
 
-  /// Creates a new Artifact representing the horizontal histogram of this artifact.
-  ///
-  /// The horizontal histogram visualizes the count of true cells in each column
-  /// as a vertical bar. The resulting artifact has the same dimensions as the original,
-  /// with each column filled from the bottom up based on the count of true cells.
-  ///
-  /// Returns a new Artifact representing the horizontal histogram.
-  Artifact getHistogramHorizontalArtifact() {
-    int width = this.cols;
-
-    // Step 1: Compute vertical projection (count active pixels per column)
-    List<int> histogram = getHistogramHorizontal();
-
-    // Step 2: Create an empty matrix for the projection
-    Artifact result = Artifact(this.cols, this.rows);
-
-    // Step 3: Fill the matrix from the bottom up based on the projection counts
-    for (int x = 0; x < width; x++) {
-      for (int y = 0; y < histogram[x]; y++) {
-        result.cellSet(x, this.rows - 1 - y, true);
-      }
-    }
-
-    return result;
-  }
-
   /// Returns the horizontal histogram of the matrix.
   ///
   /// The histogram represents the number of `true` (or inked) cells
@@ -393,8 +365,7 @@ class Artifact {
   ///
   /// Returns true if the artifact can be discarded, false otherwise.
   bool discardableContent() {
-    return (this.rectFound.width * this.rectFound.height) <= 2 ||
-        isConsideredLine();
+    return this.area <= 2 || isConsideredLine();
   }
 
   /// Returns the vertical histogram of the matrix.
@@ -500,52 +471,6 @@ class Artifact {
       }
     }
     return result;
-  }
-
-  /// Creates a new Matrix by cropping the current Matrix to the specified boundaries.
-  ///
-  /// Parameters:
-  /// - `bottomRow`: The bottom row index of the crop area (inclusive). Defaults to 0.
-  /// - `topRow`: The top row index of the crop area (inclusive). Defaults to 0.
-  /// - `leftCol`: The left column index of the crop area (inclusive). Defaults to 0.
-  /// - `rightCol`: The right column index of the crop area (inclusive). Defaults to 0.
-  ///
-  /// Returns:
-  /// A new Matrix containing the cropped section of the original Matrix.
-  void cropBy({
-    int left = 0,
-    int top = 0,
-    int right = 0,
-    int bottom = 0,
-  }) {
-    this.locationFound = this.locationFound.translate(left, top);
-    this.locationAdjusted = this.locationAdjusted.translate(left, top);
-    cropGridVertically(top: top, bottom: bottom);
-  }
-
-  /// Crops the matrix vertically by removing a specified number of rows from the top and bottom.
-  ///
-  /// This method modifies the matrix in-place by removing rows from the top and bottom.
-  /// If the matrix is empty, no action is taken. The number of rows to remove is clamped
-  /// to prevent out-of-range errors.
-  ///
-  /// Parameters:
-  /// - `top`: Number of rows to remove from the top of the matrix. Defaults to 0.
-  /// - `bottom`: Number of rows to remove from the bottom of the matrix. Defaults to 0.
-  void cropGridVertically({int top = 0, int bottom = 0}) {
-    if (rows == 0) {
-      return;
-    }
-
-    // Clamp values to avoid out-of-range errors
-    top = top.clamp(0, rows);
-    bottom = bottom.clamp(0, rows - top);
-
-    // Remove top rows
-    _matrix.removeRange(0, top);
-
-    // Remove bottom rows
-    _matrix.removeRange(rows - bottom, rows);
   }
 
   /// Creates a new Artifact with the specified desired width and height, by resizing the current Artifact.

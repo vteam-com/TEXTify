@@ -217,66 +217,63 @@ IntRect floodFillToRect(
   final int width = binaryPixels.cols;
   final int height = binaryPixels.rows;
 
-  // Early bounds check
-  if (startX < 0 || startX >= width || startY < 0 || startY >= height) {
-    return IntRect.zero;
-  }
-
-  // Early check for valid starting pixel
-  if (!binaryPixels.cellGet(startX, startY)) {
-    return IntRect.zero;
-  }
-
-  // Direct access to the underlying arrays
-  final Uint8List pixelData = binaryPixels.matrix;
-  final Uint8List visitedData = visited.matrix;
-
   // Initialize bounds to starting point
   int minX = startX;
   int minY = startY;
   int maxX = startX;
   int maxY = startY;
 
-  final Queue<int> queue = Queue<int>();
+  // Early bounds check
+  if (startX >= 0 && startX < width && startY >= 0 && startY < height) {
+    // Early check for valid starting pixel
+    if (binaryPixels.cellGet(startX, startY)) {
+      // Direct access to the underlying arrays
+      final Uint8List pixelData = binaryPixels.matrix;
+      final Uint8List visitedData = visited.matrix;
 
-  // Calculate initial index
-  final int startIndex = startY * width + startX;
+      final Queue<int> queue = Queue<int>();
 
-  // Mark start point as visited and add to queue
-  visitedData[startIndex] = 1;
-  queue.add(startIndex);
+      // Calculate initial index
+      final int startIndex = startY * width + startX;
 
-  // Direction offsets for adjacent pixels
-  const List<int> rowOffsets = [0, 0, -1, 1]; // Row adjustments
-  const List<int> colOffsets = [-1, 1, 0, 0]; // Column adjustments
+      // Mark start point as visited and add to queue
+      visitedData[startIndex] = 1;
+      queue.add(startIndex);
 
-  while (queue.isNotEmpty) {
-    final int currentIndex = queue.removeFirst();
-    final int x = currentIndex % width;
-    final int y = currentIndex ~/ width;
+      // Direction offsets for adjacent pixels
+      const List<int> rowOffsets = [0, 0, -1, 1]; // Row adjustments
+      const List<int> colOffsets = [-1, 1, 0, 0]; // Column adjustments
 
-    // Update bounds
-    minX = min(minX, x);
-    minY = min(minY, y);
-    maxX = max(maxX, x);
-    maxY = max(maxY, y);
+      while (queue.isNotEmpty) {
+        final int currentIndex = queue.removeFirst();
+        final int x = currentIndex % width;
+        final int y = currentIndex ~/ width;
 
-    // Check all four directions
-    for (int i = 0; i < 4; i++) {
-      final int nx = x + colOffsets[i];
-      final int ny = y + rowOffsets[i];
+        // Update bounds
+        minX = min(minX, x);
+        minY = min(minY, y);
+        maxX = max(maxX, x);
+        maxY = max(maxY, y);
 
-      // Skip out-of-bounds
-      if (nx < 0 || nx >= width || ny < 0 || ny >= height) {
-        continue;
-      }
+        // Check all four directions
+        for (int i = 0; i < 4; i++) {
+          final int nx = x + colOffsets[i];
+          final int ny = y + rowOffsets[i];
 
-      final int neighborIndex = ny * width + nx;
+          // Skip out-of-bounds
+          if (nx < 0 || nx >= width || ny < 0 || ny >= height) {
+            continue;
+          }
 
-      // Check if neighbor is valid and not visited
-      if (pixelData[neighborIndex] == 1 && visitedData[neighborIndex] == 0) {
-        visitedData[neighborIndex] = 1;
-        queue.add(neighborIndex);
+          final int neighborIndex = ny * width + nx;
+
+          // Check if neighbor is valid and not visited
+          if (pixelData[neighborIndex] == 1 &&
+              visitedData[neighborIndex] == 0) {
+            visitedData[neighborIndex] = 1;
+            queue.add(neighborIndex);
+          }
+        }
       }
     }
   }
@@ -389,41 +386,6 @@ Future<Image> createImageFromPixels(
   return frameInfo.image;
 }
 
-/// Calculates a threshold value for splitting a histogram at its valleys.
-///
-/// This function analyzes a histogram to find local minima (valleys) and returns
-/// a threshold value slightly higher than the smallest valley found.
-///
-/// Parameters:
-/// - [histogram]: A list of integers representing the histogram to analyze.
-///
-/// Returns:
-/// - A threshold value to use for splitting, or -1 if no suitable valley is found
-///   or the histogram is too small.
-int calculateHistogramValleyThreshold(List<int> histogram) {
-  if (histogram.length < 3) {
-    return -1;
-  }
-
-  // Find all valleys (local minima)
-  List<int> valleys = [];
-  for (int i = 1; i < histogram.length - 1; i++) {
-    if (histogram[i] < histogram[i - 1] && histogram[i] < histogram[i + 1]) {
-      valleys.add(histogram[i]);
-    }
-  }
-
-  // If we found valleys, use the smallest one as threshold
-  if (valleys.isNotEmpty) {
-    int smallestValley = valleys.reduce(min);
-    return (smallestValley * 1.2)
-        .toInt(); // Slightly higher than smallest valley
-  }
-
-  // If no valleys found, return -1 to indicate that splitting is not possible
-  return -1;
-}
-
 /// Applies an offset to the location of a list of matrices.
 ///
 /// This function translates the locationFound property of each matrix in the list
@@ -513,60 +475,59 @@ List<int> artifactValleysOffsets(final Artifact artifact) {
     return [];
   }
 
+  final List<int> offsets = [];
+
   // Calculate a more appropriate threshold for large artifacts
   final int threshold = calculateThreshold(peaksAndValleys);
 
-  // If we couldn't determine a valid threshold, return empty list
-  if (threshold < 0) {
-    return [];
-  }
+  if (threshold >= 0) {
+    // Find columns where the pixel count is below the threshold
+    final List<List<int>> gaps = [];
+    List<int> currentGap = [];
 
-  // Find columns where the pixel count is below the threshold
-  final List<List<int>> gaps = [];
-  List<int> currentGap = [];
-
-  // Identify gaps (consecutive columns below threshold)
-  for (int i = 0; i < peaksAndValleys.length; i++) {
-    if (peaksAndValleys[i] <= threshold) {
-      currentGap.add(i);
-    } else if (currentGap.isNotEmpty) {
-      gaps.add(List.from(currentGap));
-      currentGap = [];
-    }
-  }
-
-  // Add the last gap if it exists
-  if (currentGap.isNotEmpty) {
-    gaps.add(currentGap);
-  }
-
-  // Filter out gaps that are at the edges of the artifact
-  // These are likely serifs or other character features, not actual gaps between characters
-  gaps.removeWhere((gap) {
-    // Remove gaps that start at column 0 (left edge)
-    if (gap.first == 0) {
-      return true;
+    // Identify gaps (consecutive columns below threshold)
+    for (int i = 0; i < peaksAndValleys.length; i++) {
+      if (peaksAndValleys[i] <= threshold) {
+        currentGap.add(i);
+      } else if (currentGap.isNotEmpty) {
+        gaps.add(List.from(currentGap));
+        currentGap = [];
+      }
     }
 
-    // Remove gaps that end at the last column (right edge)
-    if (gap.last == peaksAndValleys.length - 1) {
-      return true;
+    // Add the last gap if it exists
+    if (currentGap.isNotEmpty) {
+      gaps.add(currentGap);
     }
 
-    // Keep all other gaps
-    return false;
-  });
+    // Filter out gaps that are at the edges of the artifact
+    // These are likely serifs or other character features, not actual gaps between characters
+    gaps.removeWhere((gap) {
+      // Remove gaps that start at column 0 (left edge)
+      if (gap.first == 0) {
+        return true;
+      }
 
-  // Sort the gaps by position (ascending) to maintain left-to-right order
-  gaps.sort((a, b) => a[0].compareTo(b[0]));
+      // Remove gaps that end at the last column (right edge)
+      if (gap.last == peaksAndValleys.length - 1) {
+        return true;
+      }
 
-  // For each gap, use the middle of the gap as the split column
-  final List<int> offsets = [];
-  for (final List<int> gap in gaps) {
-    if (gap.isNotEmpty) {
-      // Calculate the middle point of the gap
-      final int splitPoint = gap.first + (gap.length ~/ 2);
-      offsets.add(splitPoint);
+      // Keep all other gaps
+      return false;
+    });
+
+    // Sort the gaps by position (ascending) to maintain left-to-right order
+    gaps.sort((a, b) => a[0].compareTo(b[0]));
+
+    // For each gap, use the middle of the gap as the split column
+
+    for (final List<int> gap in gaps) {
+      if (gap.isNotEmpty) {
+        // Calculate the middle point of the gap
+        final int splitPoint = gap.first + (gap.length ~/ 2);
+        offsets.add(splitPoint);
+      }
     }
   }
 
@@ -671,50 +632,48 @@ List<Artifact> splitArtifactByColumns(
 /// Returns:
 /// An integer threshold value, or -1 if a valid threshold couldn't be determined.
 int calculateThreshold(List<int> histogram) {
-  if (histogram.length < 3) {
-    return -1;
-  }
+  // need at least 3 elements to have a valley
+  if (histogram.length >= 3) {
+    // Find all valleys (local minima)
+    List<int> valleys = [];
 
-  // Find all valleys (local minima)
-  List<int> valleys = [];
-
-  // Handle single-point valleys
-  for (int i = 1; i < histogram.length - 1; i++) {
-    if (histogram[i] < histogram[i - 1] && histogram[i] < histogram[i + 1]) {
-      valleys.add(histogram[i]);
-    }
-  }
-
-  // Handle flat valleys (consecutive identical values that are lower than neighbors)
-  for (int i = 1; i < histogram.length - 2; i++) {
-    // Check if we have a sequence of identical values
-    if (histogram[i] == histogram[i + 1]) {
-      // Find the end of this flat region
-      int j = i + 1;
-      while (j < histogram.length - 1 && histogram[j] == histogram[i]) {
-        j++;
-      }
-
-      // Check if this flat region is a valley (lower than both neighbors)
-      if (i > 0 &&
-          j < histogram.length &&
-          histogram[i] < histogram[i - 1] &&
-          histogram[i] < histogram[j]) {
+    // Handle single-point valleys
+    for (int i = 1; i < histogram.length - 1; i++) {
+      if (histogram[i] < histogram[i - 1] && histogram[i] < histogram[i + 1]) {
         valleys.add(histogram[i]);
       }
+    }
 
-      // Skip to the end of this flat region
-      i = j - 1;
+    // Handle flat valleys (consecutive identical values that are lower than neighbors)
+    for (int i = 1; i < histogram.length - 2; i++) {
+      // Check if we have a sequence of identical values
+      if (histogram[i] == histogram[i + 1]) {
+        // Find the end of this flat region
+        int j = i + 1;
+        while (j < histogram.length - 1 && histogram[j] == histogram[i]) {
+          j++;
+        }
+
+        // Check if this flat region is a valley (lower than both neighbors)
+        if (i > 0 &&
+            j < histogram.length &&
+            histogram[i] < histogram[i - 1] &&
+            histogram[i] < histogram[j]) {
+          valleys.add(histogram[i]);
+        }
+
+        // Skip to the end of this flat region
+        i = j - 1;
+      }
+    }
+
+    // If we found valleys, use the smallest one as threshold
+    if (valleys.isNotEmpty) {
+      int smallestValley = valleys.reduce(min);
+      return (smallestValley * 1.2)
+          .toInt(); // Slightly higher than smallest valley
     }
   }
-
-  // If we found valleys, use the smallest one as threshold
-  if (valleys.isNotEmpty) {
-    int smallestValley = valleys.reduce(min);
-    return (smallestValley * 1.2)
-        .toInt(); // Slightly higher than smallest valley
-  }
-
   // If no valleys found, return -1 to indicate that splitting is not possible
   return -1;
 }

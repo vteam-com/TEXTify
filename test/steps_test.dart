@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:textify/bands.dart';
 import 'package:textify/int_rect.dart';
 import 'package:textify/textify.dart';
+import 'package:textify/utilities.dart';
 
 // ignore: avoid_relative_lib_imports
 import '../example/lib/generate_samples/generate_image.dart';

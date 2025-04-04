@@ -6,6 +6,7 @@ import 'package:textify/character_definition.dart';
 import 'package:textify/correction.dart';
 
 import 'package:textify/textify.dart';
+import 'package:textify/utilities.dart';
 
 void printMatrix(final Artifact matrix) {
   // ignore: avoid_print

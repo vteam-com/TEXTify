@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:textify/artifact.dart';
+import 'package:textify/utilities.dart';
 
 void main() async {
   group('artifact Histograms', () {

@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import 'package:textify/artifact.dart';
 import 'package:textify/int_rect.dart';
 import 'package:textify/textify.dart';
+import 'package:textify/utilities.dart';
 import 'package:textify_dashboard/generate_samples/generate_image.dart';
 import 'package:textify_dashboard/panel1_source/debounce.dart';
 import 'package:textify_dashboard/panel1_source/panel1_content.dart';

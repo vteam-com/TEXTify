@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:textify/bands.dart';
 import 'package:textify/int_rect.dart';
+import 'package:textify/utilities.dart';
 
 void main() {
   group('Artifact Merging Tests', () {

@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/widgets.dart';
 import 'package:textify/artifact.dart';
 import 'package:textify/int_rect.dart';
+import 'package:textify/utilities.dart';
 
 export 'package:textify/artifact.dart';
 

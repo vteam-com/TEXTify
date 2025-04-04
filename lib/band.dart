@@ -2,7 +2,6 @@ import 'dart:math';
 
 import 'package:flutter/widgets.dart';
 import 'package:textify/artifact.dart';
-import 'package:textify/int_rect.dart';
 import 'package:textify/utilities.dart';
 
 export 'package:textify/artifact.dart';
@@ -16,6 +15,51 @@ class Band {
   ///
   /// Initializes an empty band with no artifacts.
   Band();
+
+  ///
+  factory Band.splitArtifactIntoBand({
+    required final Artifact regionMatrix,
+    required final IntOffset offset,
+  }) {
+    //
+    // Find the Matrices in the Region
+    //
+    List<Artifact> artifactsFound = regionMatrix.findSubArtifacts();
+
+    //
+    // IntOffset their locations found
+    //
+    offsetArtifacts(
+      artifactsFound,
+      offset.x.toInt(),
+      offset.y.toInt(),
+    );
+
+    //
+    // Band
+    //
+    final Band newBand = Band();
+
+    // sort horizontally
+    artifactsFound
+        .sort((a, b) => a.locationFound.x.compareTo(b.locationFound.x));
+
+    for (final Artifact artifact in artifactsFound) {
+      if (artifact.discardableContent() == false) {
+        newBand.addArtifact(artifact);
+      }
+    }
+
+    // All artifact will have the same grid height
+    newBand.padVerticallyArtifactToMatchTheBand();
+
+    // Clean up inner Matrix overlap for example the letter X may have one of the lines not touching the others like so  `/,
+    newBand.mergeArtifactsBasedOnVerticalAlignment();
+
+    newBand.clearStats();
+
+    return newBand;
+  }
 
   /// List of artifacts contained within this band.
   List<Artifact> artifacts = [];
@@ -54,7 +98,7 @@ class Band {
   }
 
   /// Kerning between each artifact when applying packing
-  static int kerningWidth = 4;
+  int kerningWidth = 4;
 
   /// Gets the average width of artifacts in the band.
   ///
@@ -168,14 +212,14 @@ class Band {
   /// Returns a list of new artifacts created from the split.
   List<Artifact> splitChunk(Artifact artifactToSplit) {
     // Get columns where to split the artifact
-    List<int> splitColumns = Artifact.getValleysOffsets(artifactToSplit);
+    List<int> splitColumns = artifactValleysOffsets(artifactToSplit);
 
     // If no split columns found, return empty list
     if (splitColumns.isEmpty) {
       return [];
     }
 
-    List<Artifact> artifactsFromColumns = Artifact.splitAsColumns(
+    List<Artifact> artifactsFromColumns = splitArtifactByColumns(
       artifactToSplit,
       splitColumns,
     );
@@ -261,7 +305,7 @@ class Band {
   ///
   /// Returns:
   ///   true if the artifacts should be merged, false otherwise.
-  static bool shouldMergeArtifacts(
+  bool shouldMergeArtifacts(
     final Artifact artifact1,
     final Artifact artifact2,
   ) {
@@ -333,7 +377,7 @@ class Band {
       width,
       height,
     );
-    final sub = Artifact.extractSubGrid(matrix: source, rect: rectLeft);
+    final sub = source.extractSubGrid(rect: rectLeft);
     return Artifact.fromMatrix(sub)..wasPartOfSplit = true;
   }
 
@@ -415,7 +459,7 @@ class Band {
   /// - Band ID is set to the current band's ID.
   /// - Rectangle is set based on the provided x-coordinates and the band's top and bottom.
   /// - A matrix is created based on the dimensions of the rectangle.
-  static void insertArtifactForSpace({
+  void insertArtifactForSpace({
     required final List<Artifact> artifacts,
     required final int insertAtIndex,
     required final int cols,
@@ -564,73 +608,4 @@ class Band {
 
     return title;
   }
-}
-
-/// Determines if two artifacts are connected based on their rectangles and thresholds.
-///
-/// This method checks both horizontal and vertical proximity of the rectangles.
-///
-/// Parameters:
-///   [rect1]: The rectangle of the first artifact.
-///   [rect2]: The rectangle of the second artifact.
-///   [verticalThreshold]: The maximum vertical distance to be considered connected.
-///   [horizontalThreshold]: The maximum horizontal distance to be considered connected.
-///
-/// Returns:
-///   true if the artifacts are considered connected, false otherwise.
-bool areArtifactsOnTheSameColumn(
-  final IntRect rect1,
-  final IntRect rect2,
-  final int verticalTolerance,
-) {
-  if (rect1.intersects(rect2)) {
-    return true;
-  }
-  return false;
-}
-
-///
-Band rowToBand({
-  required final Artifact regionMatrix,
-  required final IntOffset offset,
-}) {
-  //
-  // Find the Matrices in the Region
-  //
-  List<Artifact> artifactsFound = findMatrices(
-    dilatedMatrixImage: regionMatrix,
-  );
-
-  //
-  // IntOffset their locations found
-  //
-  offsetMatrices(
-    artifactsFound,
-    offset.x.toInt(),
-    offset.y.toInt(),
-  );
-
-  //
-  // Band
-  //
-  final Band newBand = Band();
-
-  // sort horizontally
-  artifactsFound.sort((a, b) => a.locationFound.x.compareTo(b.locationFound.x));
-
-  for (final Artifact artifact in artifactsFound) {
-    if (artifact.discardableContent() == false) {
-      newBand.addArtifact(artifact);
-    }
-  }
-
-  // All artifact will have the same grid height
-  newBand.padVerticallyArtifactToMatchTheBand();
-
-  // Clean up inner Matrix overlap for example the letter X may have one of the lines not touching the others like so  `/,
-  newBand.mergeArtifactsBasedOnVerticalAlignment();
-
-  newBand.clearStats();
-
-  return newBand;
 }

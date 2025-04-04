@@ -223,7 +223,7 @@ class ContentState extends State<GenerateImagesForUnitTestsScreen> {
 
     // Apply image processing pipeline
     final ui.Image imageOptimized = await imageToBlackOnWhite(newImageSource);
-    final Artifact imageAsMatrix = await Artifact.fromImage(imageOptimized);
+    final Artifact imageAsMatrix = await artifactFromImage(imageOptimized);
 
     // Find artifacts from the binary image
     textify.extractBandsAndArtifacts(imageAsMatrix);

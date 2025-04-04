@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:textify/bands.dart';
-import 'package:textify/int_rect.dart';
 import 'package:textify/textify.dart';
 import 'package:textify/utilities.dart';
 
@@ -159,7 +158,7 @@ Future<void> testFromImage(
   // To Matrix
   //
   final Artifact matrixSourceImage =
-      await Artifact.fromImage(imageBlackAndWhite);
+      await artifactFromImage(imageBlackAndWhite);
   expect(matrixSourceImage.cols, image.width);
   expect(matrixSourceImage.rows, image.height);
   printMatrix(matrixSourceImage, printResuls);
@@ -170,7 +169,7 @@ Future<void> testFromImage(
   int kernelSize =
       dilateFactor ?? computeKernelSize(image.width, image.height, 0.02);
 
-  final Artifact imageAsMatrixDilated = dilateMatrix(
+  final Artifact imageAsMatrixDilated = dilateArtifact(
     matrixImage: matrixSourceImage,
     kernelSize: kernelSize,
   );
@@ -181,8 +180,7 @@ Future<void> testFromImage(
   //
   // Find the Artifacts in each regions
   //
-  final List<IntRect> regions =
-      findRegions(dilatedMatrixImage: imageAsMatrixDilated);
+  final List<IntRect> regions = imageAsMatrixDilated.findSubRegions();
 
   Bands bands =
       Bands.getBandsOfArtifacts(matrixSourceImage, regions, innerSplit);

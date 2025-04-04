@@ -160,7 +160,7 @@ void main() async {
     final ui.Image imageBlackAndWhite = await imageToBlackOnWhite(uiImage);
 
     final Artifact imageAsArtifact =
-        await Artifact.fromImage(imageBlackAndWhite);
+        await artifactFromImage(imageBlackAndWhite);
 
     instance.applyDictionary = false;
 

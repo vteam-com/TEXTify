@@ -1,5 +1,5 @@
 import 'package:textify/band.dart';
-import 'package:textify/int_rect.dart';
+import 'package:textify/utilities.dart';
 
 /// Exports
 export 'package:textify/band.dart';
@@ -220,13 +220,12 @@ class Bands {
     // Explore each regions/rectangles
     for (final IntRect regionFromDilated in regions) {
       //
-      final Artifact regionMatrixFromImage = Artifact.extractSubGrid(
-        matrix: matrixSourceImage,
+      final Artifact regionMatrixFromImage = matrixSourceImage.extractSubGrid(
         rect: regionFromDilated,
       );
 
       bandsFound.add(
-        rowToBand(
+        Band.splitArtifactIntoBand(
           regionMatrix: regionMatrixFromImage,
           offset: regionFromDilated.topLeft,
         ),

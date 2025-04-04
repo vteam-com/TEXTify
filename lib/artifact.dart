@@ -1,9 +1,6 @@
-import 'dart:async';
 import 'dart:collection';
 import 'dart:math';
-import 'dart:ui';
 import 'package:flutter/foundation.dart';
-import 'package:textify/int_rect.dart';
 import 'package:textify/utilities.dart';
 
 /// Represents a 2D grid of boolean values, primarily used for image processing
@@ -141,6 +138,29 @@ class Artifact {
     return artifact;
   }
 
+  ///
+  factory Artifact.fromPoints(List<Point<int>> connectedPoints) {
+    // Create a new matrix for the isolated region
+    final int minX = connectedPoints.map((point) => point.x).reduce(min);
+    final int minY = connectedPoints.map((point) => point.y).reduce(min);
+    final int maxX = connectedPoints.map((point) => point.x).reduce(max);
+    final int maxY = connectedPoints.map((point) => point.y).reduce(max);
+
+    final int regionWidth = maxX - minX + 1;
+    final int regionHeight = maxY - minY + 1;
+
+    final Artifact artifact = Artifact(regionWidth, regionHeight);
+    artifact.locationFound = IntOffset(minX, minY);
+    artifact.locationAdjusted = artifact.locationFound;
+
+    for (final Point<int> point in connectedPoints) {
+      final int localX = (point.x - minX);
+      final int localY = (point.y - minY);
+      artifact.cellSet(localX, localY, true);
+    }
+    return artifact;
+  }
+
   /// The character that this artifact matches.
   String characterMatched = '';
 
@@ -212,14 +232,14 @@ class Artifact {
     final Artifact newGrid = Artifact(newRect.width, newRect.height);
 
     // Copy both grids onto the new grid with correct offsets
-    Artifact.copyGrid(
+    copyArtifactGrid(
       this,
       newGrid,
       (this.rectFound.left - newRect.left),
       (this.rectFound.top - newRect.top),
     );
 
-    Artifact.copyGrid(
+    copyArtifactGrid(
       toMerge,
       newGrid,
       (toMerge.rectFound.left - newRect.left),
@@ -283,30 +303,6 @@ class Artifact {
       }
     }
     return histogram;
-  }
-
-  /// Creates a [Artifact] from a [Image].
-  ///
-  /// This factory constructor takes a [Image] object and transforms it into a [Artifact]
-  /// representation. The process involves two main steps:
-  /// 1. Converting the image to a Uint8List using [imageToUint8List].
-  /// 2. Creating a Matrix from the Uint8List using [Matrix.fromUint8List].
-  ///
-  /// [image] The Image object to be converted. This should be a valid,
-  /// non-null image object.
-  ///
-  /// Returns a [Future<Artifact>] representing the image data. The returned Matrix
-  /// will have the same width as the input image, and its height will be
-  /// determined by the length of the Uint8List and the width.
-  ///
-  /// Throws an exception if [imageToUint8List] fails to convert the image or if
-  /// [Matrix.fromUint8List] encounters an error during matrix creation.
-  ///
-  /// Note: This constructor is asynchronous due to the [imageToUint8List] operation.
-  /// Ensure to await its result when calling.
-  static Future<Artifact> fromImage(final Image image) async {
-    final Uint8List uint8List = await imageToUint8List(image);
-    return Artifact.fromUint8List(uint8List, image.width);
   }
 
   /// Font this matrix template is based on
@@ -399,35 +395,6 @@ class Artifact {
   bool discardableContent() {
     return (this.rectFound.width * this.rectFound.height) <= 2 ||
         isConsideredLine();
-  }
-
-  /// Copies the contents of a source Matrix into a target Matrix, with an optional offset.
-  ///
-  /// This method copies the values from the source Matrix into the target Matrix,
-  /// starting at the specified offset coordinates. If the source Matrix extends
-  /// beyond the bounds of the target Matrix, only the portion that fits within
-  /// the target Matrix will be copied.
-  ///
-  /// Parameters:
-  /// - `source`: The Matrix to copy from.
-  /// - `target`: The Matrix to copy into.
-  /// - `offsetX`: The horizontal offset to apply when copying the source into the target.
-  /// - `offsetY`: The vertical offset to apply when copying the source into the target.
-  static void copyGrid(
-    final Artifact source,
-    final Artifact target,
-    final int offsetX,
-    final int offsetY,
-  ) {
-    for (int y = 0; y < source.rows; y++) {
-      for (int x = 0; x < source.cols; x++) {
-        if (y + offsetY < target.rows && x + offsetX < target.cols) {
-          if (source.cellGet(x, y)) {
-            target.cellSet(x + offsetX, y + offsetY, true);
-          }
-        }
-      }
-    }
   }
 
   /// Returns the vertical histogram of the matrix.
@@ -783,8 +750,7 @@ class Artifact {
   ///   image, the out-of-bounds areas in the resulting sub-grid will be false.
   /// - The method uses integer coordinates, so any fractional values in the
   ///   rect will be truncated.
-  static Artifact extractSubGrid({
-    required final Artifact matrix,
+  Artifact extractSubGrid({
     required final IntRect rect,
   }) {
     final int startX = rect.left.toInt();
@@ -799,228 +765,17 @@ class Artifact {
         final int sourceX = startX + x;
         final int sourceY = startY + y;
 
-        if (sourceX < matrix.cols && sourceY < matrix.rows) {
-          subImagePixels.cellSet(x, y, matrix.cellGet(sourceX, sourceY));
+        if (sourceX < this.cols && sourceY < this.rows) {
+          subImagePixels.cellSet(x, y, this.cellGet(sourceX, sourceY));
         }
       }
     }
 
-    subImagePixels.locationFound = rect.shift(matrix.rectFound.topLeft).topLeft;
+    subImagePixels.locationFound = rect.shift(this.rectFound.topLeft).topLeft;
     subImagePixels.locationAdjusted =
-        rect.shift(matrix.rectAdjusted.topLeft).topLeft;
+        rect.shift(this.rectAdjusted.topLeft).topLeft;
 
     return subImagePixels;
-  }
-
-  /// Splits the given matrix into multiple row matrices based on the provided row offsets.
-  ///
-  /// Each row offset in [rowOffsets] marks the start of a new split.
-  /// The function returns a list of [Artifact] objects, where each matrix represents
-  /// a horizontal slice of the original [input] matrix while maintaining its relative position.
-  ///
-  /// Example:
-  /// ```dart
-  /// Matrix input = Matrix(5, 5);
-  /// List<int> rowOffsets = [0, 2, 4]; // Splits at row indices 0, 2, and 4
-  /// List<Matrix> rowMatrices = Matrix.splitAsRows(input, rowOffsets);
-  /// ```
-  ///
-  /// - [input]: The original matrix to split.
-  /// - [rowOffsets]: A list of row indices where splits should occur.
-  /// - Returns: A list of matrices representing the split rows while preserving `locationFound`.
-  static List<Artifact> splitAsRows(
-    final Artifact input,
-    List<int> rowOffsets,
-  ) {
-    List<Artifact> result = [];
-
-    for (int i = 0; i < rowOffsets.length; i++) {
-      int startRow = rowOffsets[i];
-      int endRow = (i < rowOffsets.length - 1) ? rowOffsets[i + 1] : input.rows;
-
-      // Create a new matrix with the same width but only the selected row range
-      Artifact rowArtifact = Artifact(input.cols, endRow - startRow);
-
-      // Copy the relevant rows from input to rowMatrix
-      for (int y = startRow; y < endRow; y++) {
-        for (int x = 0; x < input.cols; x++) {
-          rowArtifact.cellSet(x, y - startRow, input.cellGet(x, y));
-        }
-      }
-
-      // Adjust locationFound based on the original matrix
-      rowArtifact.locationFound = IntOffset(
-        input.locationFound.x, // Keep the same X position
-        input.locationFound.y +
-            startRow, // Adjust the Y position based on the split
-      );
-
-      result.add(rowArtifact);
-    }
-
-    return result;
-  }
-
-  /// Returns a list of column indices where the artifact should be split
-  ///
-  /// This method analyzes the horizontal histogram of the artifact to identify
-  /// valleys (columns with fewer pixels) that are good candidates for splitting.
-  ///
-  /// If all columns have identical values (no valleys or peaks), returns an empty list
-  /// indicating no splitting is needed.
-  ///
-  /// Returns:
-  /// A list of column indices where splits should occur.
-  static List<int> getValleysOffsets(final Artifact artifactToSplit) {
-    final List<int> peaksAndValleys = artifactToSplit.getHistogramHorizontal();
-
-    // Check if all columns have identical values
-    final bool allIdentical =
-        peaksAndValleys.every((value) => value == peaksAndValleys[0]);
-    if (allIdentical) {
-      // no valleys
-      return [];
-    }
-
-    // Calculate a more appropriate threshold for large artifacts
-    final int threshold = calculateThreshold(peaksAndValleys);
-
-    // If we couldn't determine a valid threshold, return empty list
-    if (threshold < 0) {
-      return [];
-    }
-
-    // Find columns where the pixel count is below the threshold
-    final List<List<int>> gaps = [];
-    List<int> currentGap = [];
-
-    // Identify gaps (consecutive columns below threshold)
-    for (int i = 0; i < peaksAndValleys.length; i++) {
-      if (peaksAndValleys[i] <= threshold) {
-        currentGap.add(i);
-      } else if (currentGap.isNotEmpty) {
-        gaps.add(List.from(currentGap));
-        currentGap = [];
-      }
-    }
-
-    // Add the last gap if it exists
-    if (currentGap.isNotEmpty) {
-      gaps.add(currentGap);
-    }
-
-    // For large artifacts with many gaps, we need to be more selective
-    // Sort gaps by width (descending) and take only the most significant ones
-    gaps.sort((a, b) => b.length.compareTo(a.length));
-
-    // For this specific test case, we want only 2 split points
-    // Take only the 2 widest gaps if there are more than 2
-    final List<List<int>> significantGaps =
-        gaps.length > 2 ? gaps.sublist(0, 2) : gaps;
-
-    // Sort the significant gaps by position (ascending)
-    significantGaps.sort((a, b) => a[0].compareTo(b[0]));
-
-    // For each significant gap, use the right edge of the gap as the split column
-    // This ensures we split between characters, not through them
-    final List<int> offsets = [];
-    for (final List<int> gap in significantGaps) {
-      if (gap.isNotEmpty) {
-        // Use the right edge of the gap instead of the middle
-        final int splitPoint = gap.last;
-        offsets.add(splitPoint);
-      }
-    }
-
-    return offsets;
-  }
-
-  /// Splits the given matrix into multiple row matrices based on the provided row offsets.
-  ///
-  /// Each row offset in [offsets] marks the start of a new split.
-  /// The function returns a list of [Artifact] objects, where each matrix represents
-  /// a horizontal slice of the original [artifactToSplit] matrix while maintaining its relative position.
-  ///
-  /// Example:
-  /// ```dart
-  /// Matrix input = Matrix(5, 5);
-  /// List<int> rowOffsets = [0, 2, 4]; // Splits at row indices 0, 2, and 4
-  /// List<Matrix> rowMatrices = Matrix.splitAsRows(input, rowOffsets);
-  /// ```
-  ///
-  /// - [artifactToSplit]: The original matrix to split.
-  /// - [offsets]: A list of row indices where splits should occur.
-  /// - Returns: A list of matrices representing the split rows while preserving `locationFound`.
-  static List<Artifact> splitAsColumns(
-    final Artifact artifactToSplit,
-    List<int> offsets,
-  ) {
-    List<Artifact> result = [];
-
-    // Handle the first segment (from 0 to first offset)
-    if (offsets.isNotEmpty && offsets[0] > 0) {
-      Artifact firstSegment = Artifact(offsets[0], artifactToSplit.rows);
-
-      // Copy the relevant columns
-      for (int x = 0; x < offsets[0]; x++) {
-        for (int y = 0; y < artifactToSplit.rows; y++) {
-          firstSegment.cellSet(x, y, artifactToSplit.cellGet(x, y));
-        }
-      }
-
-      // Set location properties
-      firstSegment.locationFound = IntOffset(
-        artifactToSplit.locationFound.x,
-        artifactToSplit.locationFound.y,
-      );
-
-      firstSegment.locationAdjusted = IntOffset(
-        artifactToSplit.locationAdjusted.x,
-        artifactToSplit.locationAdjusted.y,
-      );
-
-      firstSegment.wasPartOfSplit = true;
-      result.add(firstSegment);
-    }
-
-    // Handle middle segments and last segment
-    for (int i = 0; i < offsets.length; i++) {
-      int columnStart = offsets[i];
-      int columnEnd =
-          (i < offsets.length - 1) ? offsets[i + 1] : artifactToSplit.cols;
-
-      // Skip if this segment has no width
-      if (columnEnd <= columnStart) {
-        continue;
-      }
-
-      // Create segment
-      Artifact segment =
-          Artifact(columnEnd - columnStart, artifactToSplit.rows);
-
-      // Copy the relevant columns
-      for (int x = columnStart; x < columnEnd; x++) {
-        for (int y = 0; y < artifactToSplit.rows; y++) {
-          segment.cellSet(x - columnStart, y, artifactToSplit.cellGet(x, y));
-        }
-      }
-
-      // Set location properties
-      segment.locationFound = IntOffset(
-        artifactToSplit.locationFound.x + columnStart,
-        artifactToSplit.locationFound.y,
-      );
-
-      segment.locationAdjusted = IntOffset(
-        artifactToSplit.locationAdjusted.x + columnStart,
-        artifactToSplit.locationAdjusted.y,
-      );
-
-      segment.wasPartOfSplit = true;
-      result.add(segment);
-    }
-
-    return result;
   }
 
   /// Calculates the bounding rectangle of the content in the matrix.
@@ -1129,56 +884,6 @@ class Artifact {
     }
 
     return result;
-  }
-
-  /// Calculates the normalized Hamming distance between two matrices.
-  ///
-  /// The Hamming distance is the number of positions at which the corresponding
-  /// elements in two matrices are different. This method computes a normalized
-  /// similarity score based on the Hamming distance.
-  ///
-  /// Parameters:
-  /// - [inputGrid]: The first Matrix to compare.
-  /// - [templateGrid]: The second Matrix to compare against.
-  ///
-  /// Returns:
-  /// A double value between 0 and 1, where:
-  /// - 1.0 indicates perfect similarity (no differences)
-  /// - 0.0 indicates maximum dissimilarity (all elements are different)
-  ///
-  /// Note: This method assumes that both matrices have the same dimensions.
-  /// If the matrices have different sizes, the behavior is undefined and may
-  /// result in errors or incorrect results.
-  static double hammingDistancePercentage(
-    final Artifact inputGrid,
-    final Artifact templateGrid,
-  ) {
-    if (inputGrid.cols != templateGrid.cols) {
-      return 0;
-    }
-    if (inputGrid.rows != templateGrid.rows) {
-      return 0;
-    }
-
-    int matchingPixels = 0;
-    int totalPixels = 0;
-
-    for (int y = 0; y < inputGrid.rows; y++) {
-      for (int x = 0; x < inputGrid.cols; x++) {
-        if (inputGrid.cellGet(x, y) || templateGrid.cellGet(x, y)) {
-          totalPixels++;
-          if (inputGrid.cellGet(x, y) == templateGrid.cellGet(x, y)) {
-            matchingPixels++;
-          }
-        }
-      }
-    }
-
-    if (totalPixels == 0) {
-      return 0.0;
-    } // If no true pixels, consider it a perfect match
-
-    return matchingPixels / totalPixels;
   }
 
   /// Determines if the current Matrix is considered a line based on its aspect ratio.
@@ -1812,62 +1517,97 @@ class Artifact {
     return false;
   }
 
-  /// Calculates an appropriate threshold for identifying valleys in a histogram
+  /// Identifies distinct regions in a dilated binary image.
   ///
-  /// This function finds the smallest valleys (local minima) in the histogram,
-  /// which represent the gaps between characters.
+  /// This function analyzes a dilated image to find connected components that
+  /// likely represent characters or groups of characters.
+  ///
+  /// [this] is the preprocessed binary image after dilation.
+  /// Returns a list of IntRect objects representing the bounding boxes of identified regions.
+  List<IntRect> findSubRegions() {
+    // Clear existing regions
+    List<IntRect> regions = [];
+
+    // Create a matrix to track visited pixels
+    final Artifact visited = Artifact(
+      this.cols,
+      this.rows,
+    );
+
+    final int width = this.cols;
+    final int height = this.rows;
+    final Uint8List imageData = this.matrix;
+    final Uint8List visitedData = visited.matrix;
+
+    // Scan through each pixel - use direct array access
+    for (int y = 0; y < height; y++) {
+      final int rowOffset = y * width;
+      for (int x = 0; x < width; x++) {
+        final int index = rowOffset + x;
+        // Check if pixel is on and not visited using direct array access
+        if (visitedData[index] == 0 && imageData[index] == 1) {
+          // Find region bounds directly without storing all points
+          final IntRect rect = floodFillToRect(
+            this,
+            visited,
+            x,
+            y,
+          );
+
+          if (rect.width > 0 && rect.height > 0) {
+            regions.add(rect);
+          }
+        }
+      }
+    }
+
+    Artifact.sortRectangles(regions);
+    return regions;
+  }
+
+  /// Finds the regions in a binary image matrix.
+  ///
+  /// This method performs a flood fill algorithm to identify connected regions
+  /// in a binary image matrix. It creates a dilated copy of the binary image
+  /// to merge nearby pixels, and then scans through each pixel to find
+  /// connected regions. The method returns a list of [Rect] objects
+  /// representing the bounding boxes of the identified regions.
   ///
   /// Parameters:
-  /// - [histogram]: A list of integer values representing the histogram.
+  ///   [binaryImages]: The binary image matrix to analyze.
   ///
   /// Returns:
-  /// An integer threshold value, or -1 if a valid threshold couldn't be determined.
-  static int calculateThreshold(List<int> histogram) {
-    if (histogram.length < 3) {
-      return -1;
-    }
+  ///   A list of [Rect] objects representing the bounding boxes of the
+  ///   identified regions.
+  List<Artifact> findSubArtifacts() {
+    // Clear existing regions
+    List<Artifact> regions = [];
 
-    // Find all valleys (local minima)
-    List<int> valleys = [];
+    // Create a matrix to track visited pixels
+    final Artifact visited = Artifact(this.cols, this.rows);
 
-    // Handle single-point valleys
-    for (int i = 1; i < histogram.length - 1; i++) {
-      if (histogram[i] < histogram[i - 1] && histogram[i] < histogram[i + 1]) {
-        valleys.add(histogram[i]);
+    // Scan through each pixel
+    for (int y = 0; y < this.rows; y++) {
+      for (int x = 0; x < this.cols; x++) {
+        // If pixel is on and not visited, flood fill from this point
+        if (!visited.cellGet(x, y) && this.cellGet(x, y)) {
+          // Get connected points using flood fill
+          final List<Point<int>> connectedPoints = floodFill(
+            this,
+            visited,
+            x,
+            y,
+          );
+
+          if (connectedPoints.isEmpty) {
+            continue;
+          }
+          regions.add(Artifact.fromPoints(connectedPoints));
+        }
       }
     }
 
-    // Handle flat valleys (consecutive identical values that are lower than neighbors)
-    for (int i = 1; i < histogram.length - 2; i++) {
-      // Check if we have a sequence of identical values
-      if (histogram[i] == histogram[i + 1]) {
-        // Find the end of this flat region
-        int j = i + 1;
-        while (j < histogram.length - 1 && histogram[j] == histogram[i]) {
-          j++;
-        }
-
-        // Check if this flat region is a valley (lower than both neighbors)
-        if (i > 0 &&
-            j < histogram.length &&
-            histogram[i] < histogram[i - 1] &&
-            histogram[i] < histogram[j]) {
-          valleys.add(histogram[i]);
-        }
-
-        // Skip to the end of this flat region
-        i = j - 1;
-      }
-    }
-
-    // If we found valleys, use the smallest one as threshold
-    if (valleys.isNotEmpty) {
-      int smallestValley = valleys.reduce(min);
-      return (smallestValley * 1.2)
-          .toInt(); // Slightly higher than smallest valley
-    }
-
-    // If no valleys found, return -1 to indicate that splitting is not possible
-    return -1;
+    Artifact.sortMatrices(regions);
+    return regions;
   }
 }

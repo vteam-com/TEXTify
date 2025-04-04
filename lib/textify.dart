@@ -5,7 +5,6 @@ import 'package:flutter/widgets.dart';
 import 'package:textify/bands.dart';
 import 'package:textify/character_definitions.dart';
 import 'package:textify/correction.dart';
-import 'package:textify/int_rect.dart';
 import 'package:textify/score_match.dart';
 import 'package:textify/utilities.dart';
 
@@ -103,7 +102,7 @@ class Textify {
     final ui.Image imageBlackAndWhite = await imageToBlackOnWhite(image);
 
     final Artifact imageAsArtifact =
-        await Artifact.fromImage(imageBlackAndWhite);
+        await artifactFromImage(imageBlackAndWhite);
 
     return await getTextFromMatrix(
       imageAsMatrix: imageAsArtifact,
@@ -150,12 +149,12 @@ class Textify {
 
     int kernelSize =
         computeKernelSize(matrixSourceImage.cols, matrixSourceImage.rows, 0.02);
-    final Artifact dilatedImage = dilateMatrix(
+    final Artifact dilatedImage = dilateArtifact(
       matrixImage: matrixSourceImage,
       kernelSize: kernelSize,
     );
 
-    this.regionsFromDilated = findRegions(dilatedMatrixImage: dilatedImage);
+    this.regionsFromDilated = dilatedImage.findSubRegions();
 
     this.bands = Bands.getBandsOfArtifacts(
       matrixSourceImage,
@@ -195,7 +194,7 @@ class Textify {
         final ScoreMatch scoreMatch = ScoreMatch(
           character: template.character,
           matrixIndex: i,
-          score: Artifact.hammingDistancePercentage(
+          score: hammingDistancePercentageOfTwoArtifacts(
             inputMatrix,
             artifact,
           ),
@@ -219,7 +218,7 @@ class Textify {
         double totalScore2 = 0;
 
         for (final matrix in template1.matrices) {
-          totalScore1 += Artifact.hammingDistancePercentage(
+          totalScore1 += hammingDistancePercentageOfTwoArtifacts(
             inputMatrix,
             matrix,
           );
@@ -227,7 +226,7 @@ class Textify {
         totalScore1 /= template1.matrices.length;
 
         for (final matrix in template2.matrices) {
-          totalScore2 += Artifact.hammingDistancePercentage(
+          totalScore2 += hammingDistancePercentageOfTwoArtifacts(
             inputMatrix,
             matrix,
           );

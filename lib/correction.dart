@@ -6,11 +6,14 @@ import 'package:textify/english_words.dart';
 /// This function improves recognition accuracy by comparing extracted text
 /// against a dictionary and correcting likely missed recognitions.
 ///
-/// [text] is the raw text extracted from the image.
+/// [inputParagraph] is the raw text extracted from the image, which may contain multiple lines.
 /// Returns the corrected text after dictionary-based processing.
 String applyDictionaryCorrection(
   final String inputParagraph,
 ) {
+  /// Map of commonly confused characters and their possible substitutions.
+  /// Keys are characters that might be incorrectly recognized, and values are lists
+  /// of possible correct characters to try as replacements.
   const Map<String, List<String>> correctionLetters = {
     '0': ['O', 'o', 'B', '8'],
     '5': ['S', 's'],

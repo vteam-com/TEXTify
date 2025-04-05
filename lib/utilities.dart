@@ -14,8 +14,18 @@ export 'package:textify/int_rect.dart';
 /// converting it to a binary format where text is represented as black pixels
 /// on a white background.
 ///
-/// [image] is the source color image to convert.
-/// Returns a ```Future<ui.Image>``` containing the binary version of the input image.
+/// The function works in three steps:
+/// 1. Converts the color image to grayscale using weighted RGB values
+/// 2. Applies optional contrast adjustment using the provided contrast parameter
+/// 3. Applies adaptive thresholding to convert grayscale to binary
+///
+/// Parameters:
+/// - [inputImage]: The source color image to convert.
+/// - [contrast]: Optional contrast adjustment level. 0 means no adjustment,
+///   positive values increase contrast, range typically 0-100.
+///
+/// Returns:
+/// A ```Future<Image>``` containing the binary version of the input image.
 Future<Image> imageToBlackOnWhite(
   final Image inputImage, {
   // Adjust contrast level (0 = normal, 100 = high contrast)
@@ -292,10 +302,17 @@ IntRect floodFillToRect(
 
 /// Computes the appropriate kernel size for dilation based on image dimensions.
 ///
-/// [cols] is the width of the image in pixels.
-/// [rows] is the height of the image in pixels.
-/// [factor] is a scaling factor that determines how the kernel size relates to image dimensions.
-/// Returns an integer representing the computed kernel size.
+/// This function calculates a kernel size proportional to the image dimensions,
+/// which is useful for morphological operations like dilation.
+///
+/// Parameters:
+/// - [width]: The width of the image in pixels.
+/// - [height]: The height of the image in pixels.
+/// - [scaleFactor]: A scaling factor that determines how the kernel size relates
+///   to image dimensions. Typically a small value (e.g., 0.01-0.05).
+///
+/// Returns:
+/// An integer representing the computed kernel size, clamped between 1 and the image width.
 int computeKernelSize(int width, int height, double scaleFactor) {
   return (scaleFactor * width).round().clamp(1, width);
 }
@@ -406,17 +423,17 @@ void offsetArtifacts(final List<Artifact> matrices, final int x, final int y) {
 /// This factory constructor takes a [Image] object and transforms it into a [Artifact]
 /// representation. The process involves two main steps:
 /// 1. Converting the image to a Uint8List using [imageToUint8List].
-/// 2. Creating a Matrix from the Uint8List using [Matrix.fromUint8List].
+/// 2. Creating a Matrix from the Uint8List using [Artifact.fromUint8List].
 ///
 /// [image] The Image object to be converted. This should be a valid,
 /// non-null image object.
 ///
-/// Returns a [Future<Artifact>] representing the image data. The returned Matrix
+/// Returns a [Future<Artifact>] representing the image data. The returned Artifact
 /// will have the same width as the input image, and its height will be
 /// determined by the length of the Uint8List and the width.
 ///
 /// Throws an exception if [imageToUint8List] fails to convert the image or if
-/// [Matrix.fromUint8List] encounters an error during matrix creation.
+/// [Artifact.fromUint8List] encounters an error during matrix creation.
 ///
 /// Note: This constructor is asynchronous due to the [imageToUint8List] operation.
 /// Ensure to await its result when calling.

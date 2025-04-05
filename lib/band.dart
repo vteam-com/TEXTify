@@ -16,7 +16,18 @@ class Band {
   /// Initializes an empty band with no artifacts.
   Band();
 
+  /// Creates a Band from an artifact region matrix.
   ///
+  /// This factory method analyzes a region matrix to find sub-artifacts,
+  /// positions them correctly using the provided offset, and creates a new Band
+  /// containing these artifacts.
+  ///
+  /// Parameters:
+  ///   [regionMatrix]: The artifact matrix representing a region to analyze.
+  ///   [offset]: The position offset to apply to found artifacts.
+  ///
+  /// Returns:
+  ///   A new Band containing the properly positioned and processed artifacts.
   factory Band.splitArtifactIntoBand({
     required final Artifact regionMatrix,
     required final IntOffset offset,
@@ -441,19 +452,18 @@ class Band {
 
   /// Inserts a space artifact at a specified position in the artifacts list.
   ///
-  /// This method creates a new Artifact representing a space and inserts it
-  /// into the artifacts list at the specified index.
+  /// This method creates a new empty Artifact representing a space character and
+  /// inserts it into the provided artifacts list at the specified index.
   ///
   /// Parameters:
-  /// - [insertAtIndex]: The index at which to insert the space artifact.
-  /// - [x1]: The left x-coordinate of the space artifact.
-  /// - [x2]: The right x-coordinate of the space artifact.
+  ///   [artifacts]: The list of artifacts to insert the space into.
+  ///   [insertAtIndex]: The index at which to insert the space artifact.
+  ///   [cols]: The width of the space artifact in columns.
+  ///   [rows]: The height of the space artifact in rows.
+  ///   [locationFoundAt]: The position where the space artifact should be placed.
   ///
-  /// The created space artifact has the following properties:
-  /// - Character matched is a space ' '.
-  /// - Band ID is set to the current band's ID.
-  /// - Rectangle is set based on the provided x-coordinates and the band's top and bottom.
-  /// - A matrix is created based on the dimensions of the rectangle.
+  /// The created space artifact has its [characterMatched] property set to a space ' '
+  /// and its location set to the provided [locationFoundAt] coordinates.
   void insertArtifactForSpace({
     required final List<Artifact> artifacts,
     required final int insertAtIndex,

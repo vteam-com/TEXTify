@@ -142,6 +142,11 @@ class Textify {
   ///
   /// [matrixSourceImage] is the binary image to process.
   /// Updates internal state with found regions and text bands.
+  ///
+  /// This method performs three key steps:
+  /// 1. Dilates the image to connect nearby pixels using an adaptive kernel size
+  /// 2. Identifies text regions from the dilated image
+  /// 3. Groups the regions into horizontal bands of text
   void extractBandsAndArtifacts(
     final Artifact matrixSourceImage,
   ) {

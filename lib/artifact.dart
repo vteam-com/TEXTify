@@ -136,7 +136,17 @@ class Artifact {
     return artifact;
   }
 
+  /// Creates a new [Artifact] from a list of connected points.
   ///
+  /// This factory method takes a list of points that form a connected region and
+  /// creates a new [Artifact] that contains just this region.
+  ///
+  /// Parameters:
+  /// - [connectedPoints]: A list of ```Point<int>``` representing connected cells.
+  ///
+  /// Returns:
+  /// A new [Artifact] containing only the connected region, with its location
+  /// set to the top-left corner of the bounding box of the points.
   factory Artifact.fromPoints(List<Point<int>> connectedPoints) {
     // Create a new matrix for the isolated region
     final int minX = connectedPoints.map((point) => point.x).reduce(min);
@@ -881,7 +891,15 @@ class Artifact {
     _matrix = Uint8List.fromList(grid);
   }
 
+  /// Sets the grid of the Matrix object from a 2D list of boolean values.
   ///
+  /// This method takes a 2D list of boolean values representing the grid and
+  /// converts it to the internal Uint8List representation.
+  ///
+  /// Parameters:
+  ///   [input] (```List<List<bool>>```): The 2D list of boolean values representing the grid.
+  ///
+  /// If the input grid is empty or has no rows, the Matrix is cleared.
   void setGridFromBools(final List<List<bool>> input) {
     if (input.isEmpty || input[0].isEmpty) {
       this.clear();
@@ -1447,8 +1465,15 @@ class Artifact {
   /// This function analyzes a dilated image to find connected components that
   /// likely represent characters or groups of characters.
   ///
+  /// The algorithm uses direct array access for performance optimization and
+  /// employs a flood fill approach to identify connected regions.
+  ///
   /// [this] is the preprocessed binary image after dilation.
-  /// Returns a list of IntRect objects representing the bounding boxes of identified regions.
+  ///
+  /// Returns:
+  ///   A list of [IntRect] objects representing the bounding boxes of identified regions.
+  ///   Each rectangle defines the boundaries of a potential character or character group.
+  ///   The returned list is sorted using [Artifact.sortRectangles].
   List<IntRect> findSubRegions() {
     // Clear existing regions
     List<IntRect> regions = [];
@@ -1490,20 +1515,23 @@ class Artifact {
     return regions;
   }
 
-  /// Finds the regions in a binary image matrix.
+  /// Finds the connected components (artifacts) in a binary image matrix.
   ///
-  /// This method performs a flood fill algorithm to identify connected regions
-  /// in a binary image matrix. It creates a dilated copy of the binary image
-  /// to merge nearby pixels, and then scans through each pixel to find
-  /// connected regions. The method returns a list of [Rect] objects
-  /// representing the bounding boxes of the identified regions.
+  /// This method identifies distinct connected regions in the binary image by using
+  /// a flood fill algorithm. For each unvisited "on" pixel (value = true), it performs
+  /// a flood fill to collect all connected points that form a single artifact.
+  ///
+  /// The method tracks visited pixels to ensure each pixel is processed only once.
+  /// Each connected component is converted to a separate [Artifact] object using
+  /// the [Artifact.fromPoints] factory method, which creates a minimal bounding box
+  /// containing just the connected region.
   ///
   /// Parameters:
-  ///   [binaryImages]: The binary image matrix to analyze.
+  ///   None - operates on the current [Artifact] instance.
   ///
   /// Returns:
-  ///   A list of [Rect] objects representing the bounding boxes of the
-  ///   identified regions.
+  ///   A list of [Artifact] objects, each representing a distinct connected component
+  ///   found in the binary image. The artifacts are sorted using [Artifact.sortMatrices].
   List<Artifact> findSubArtifacts() {
     // Clear existing regions
     List<Artifact> regions = [];

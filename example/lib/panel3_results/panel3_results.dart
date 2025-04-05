@@ -179,7 +179,7 @@ class _PanelStep4ResultsState extends State<PanelStep4Results> {
           characterFound: artifact.characterMatched,
           characterCorrected: characterCorrected,
           characterExpected: expectedCharacter,
-          showCorrectionRow: widget.textify.applyDictionary,
+          showCorrectionRow: true,
         ),
       );
     }).toList();

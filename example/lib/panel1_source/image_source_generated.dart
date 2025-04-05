@@ -108,10 +108,22 @@ class _ImageSourceGeneratedState extends State<ImageSourceGenerated> {
   /// Builds the input dashboard, for customizing, FontSize,FontFamily and text input.
   Widget _buildDashboardInputs() {
     return Padding(
-      padding: const EdgeInsets.all(20.0),
+      padding: const EdgeInsets.symmetric(vertical: 20.0),
       child: Row(
+        spacing: 20,
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
+          Expanded(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              spacing: 10,
+              children: [
+                buildTextInputLine1(),
+                buildTextInputLine2(),
+                buildTextInputLine3(),
+              ],
+            ),
+          ),
           Expanded(
             // Slider  [====================]
             //
@@ -150,16 +162,6 @@ class _ImageSourceGeneratedState extends State<ImageSourceGenerated> {
                     ),
                   ],
                 ),
-              ],
-            ),
-          ),
-          Expanded(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                buildTextInputLine1(),
-                buildTextInputLine2(),
-                buildTextInputLine3(),
               ],
             ),
           ),
@@ -241,7 +243,7 @@ class _ImageSourceGeneratedState extends State<ImageSourceGenerated> {
       child: Row(
         spacing: 5,
         children: [
-          Text(text),
+          SizedBox(width: 100, child: Text(text)),
           Container(
             // width: 60,
             height: 20,
@@ -276,6 +278,8 @@ class _ImageSourceGeneratedState extends State<ImageSourceGenerated> {
         border: OutlineInputBorder(),
         hintText: 'Enter text for line 1',
         labelText: 'Line 1',
+        fillColor: Colors.black,
+        filled: true,
       ),
       onChanged: (text) {
         imageSettings.defaultTextLine1 = text;
@@ -293,6 +297,8 @@ class _ImageSourceGeneratedState extends State<ImageSourceGenerated> {
         border: OutlineInputBorder(),
         hintText: 'Enter text for line 2',
         labelText: 'Line 2',
+        fillColor: Colors.black,
+        filled: true,
       ),
       onChanged: (text) {
         imageSettings.defaultTextLine2 = text;
@@ -310,6 +316,8 @@ class _ImageSourceGeneratedState extends State<ImageSourceGenerated> {
         border: OutlineInputBorder(),
         hintText: 'Enter text for line 3',
         labelText: 'Line 3',
+        fillColor: Colors.black,
+        filled: true,
       ),
       onChanged: (text) {
         imageSettings.defaultTextLine3 = text;
@@ -428,7 +436,7 @@ class _ImageSourceGeneratedState extends State<ImageSourceGenerated> {
   Widget _buildActionButtons() {
     return Row(
       spacing: 10,
-      mainAxisAlignment: MainAxisAlignment.start,
+      mainAxisAlignment: MainAxisAlignment.center,
       children: [
         SizedBox(
           width: 150,

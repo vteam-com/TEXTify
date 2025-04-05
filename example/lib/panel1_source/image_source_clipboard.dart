@@ -73,6 +73,7 @@ class _ImageSourceClipboardState extends State<ImageSourceClipboard> {
       top: Padding(
         padding: const EdgeInsets.all(8.0),
         child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
           spacing: 10,
           children: [
             OutlinedButton.icon(

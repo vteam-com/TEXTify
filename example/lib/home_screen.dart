@@ -80,7 +80,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 buildExpansionPanel(
                   context: context,
                   titleLeft: 'TEXTIFY',
-                  titleCenter: 'Source',
+                  titleCenter: sourceTitle(),
                   titleRight: '',
                   isExpanded: _settings.isExpandedSource,
                   content: PanelStep1Source(

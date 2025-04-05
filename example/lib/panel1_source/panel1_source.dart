@@ -27,15 +27,21 @@ class PanelStep1Source extends StatefulWidget {
   PanelStep1SourceState createState() => PanelStep1SourceState();
 }
 
+// Choice of Images sources
+final List<String> tabSourceViews = [
+  'Generate',
+  'Samples',
+  'Clipboard',
+];
+
+int lastestSouceViewIndex = 0;
+
+String sourceTitle() {
+  return 'Source - "${tabSourceViews[lastestSouceViewIndex]}"';
+}
+
 class PanelStep1SourceState extends State<PanelStep1Source>
     with SingleTickerProviderStateMixin {
-  // Choice of Images sources
-  final List<String> tabViews = [
-    'Generate',
-    'Samples',
-    'Clipboard',
-  ];
-
   List<String> _expectedText = [];
   String _fontName = 'Font???';
   bool _includeSpaceDetection = true;
@@ -54,7 +60,7 @@ class PanelStep1SourceState extends State<PanelStep1Source>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: tabViews.length, vsync: this);
+    _tabController = TabController(length: tabSourceViews.length, vsync: this);
     _loadLastTab();
   }
 
@@ -68,7 +74,8 @@ class PanelStep1SourceState extends State<PanelStep1Source>
             TabBar(
               isScrollable: true,
               controller: _tabController,
-              tabs: tabViews.map((e) => Tab(text: e)).toList(),
+              tabs:
+                  tabSourceViews.map((final String e) => Tab(text: e)).toList(),
               onTap: (index) {
                 _tabController.animateTo(index);
                 _saveLastTab(index);
@@ -180,12 +187,13 @@ class PanelStep1SourceState extends State<PanelStep1Source>
 
   Future<void> _loadLastTab() async {
     final prefs = await SharedPreferences.getInstance();
-    final lastIndex = prefs.getInt('last_tab_index') ?? 0;
-    _tabController.animateTo(lastIndex);
+    lastestSouceViewIndex = prefs.getInt('last_tab_index') ?? 0;
+    _tabController.animateTo(lastestSouceViewIndex);
   }
 
   Future<void> _saveLastTab(int index) async {
+    lastestSouceViewIndex = index;
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setInt('last_tab_index', index);
+    await prefs.setInt('last_tab_index', lastestSouceViewIndex);
   }
 }

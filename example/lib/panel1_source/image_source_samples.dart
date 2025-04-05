@@ -113,25 +113,25 @@ class _ImageSourceSamplesState extends State<ImageSourceSamples> {
   Widget build(BuildContext context) {
     return PanelStepContent(
       top: Row(
-        mainAxisAlignment: MainAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
         spacing: 20,
         children: [
-          IconButton(
-            icon: const Icon(Icons.arrow_back),
+          OutlinedButton(
             onPressed: _currentIndex > 0
                 ? () {
                     _changeIndex(_currentIndex - 1);
                   }
                 : null,
+            child: const Icon(Icons.arrow_back),
           ),
-          Text('Sample #${_currentIndex + 1}'),
-          IconButton(
-            icon: const Icon(Icons.arrow_forward),
+          Text('Sample\n#${_currentIndex + 1}', textAlign: TextAlign.center),
+          OutlinedButton(
             onPressed: _currentIndex < imageFileData.length - 1
                 ? () {
                     _changeIndex(_currentIndex + 1);
                   }
                 : null,
+            child: const Icon(Icons.arrow_forward),
           ),
         ],
       ),

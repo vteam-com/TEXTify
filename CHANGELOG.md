@@ -4,6 +4,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.4.1 : 2025-04-05
+
+### Changed
+
+- Improvement text matchings, now using average score of all templates fonts
+- Code Coverage 99.3%
+- Doc comments
+
 ## 0.4.0 : 2025-04-04
 
 ### Added

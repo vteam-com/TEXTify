@@ -225,7 +225,7 @@ void main() async {
       testExpectation(band.artifacts[09], 098); // E
 
       final String text = await instance.getTextInBands(listOfBands: [band]);
-      expect(text, 'REMABRAB[E'); // some comlexity with the space
+      expect(text, 'REMAPKAB[E'); // some comlexity with the space
 
       instance.applyDictionary = true;
       final String text2 = await instance.getTextInBands(listOfBands: [band]);
@@ -246,13 +246,13 @@ void main() async {
       text,
       'FIND GOLD CAUSE MATOSINHOS\n'
       'C0NTINENTE AIM DR, MATOSINHOS\n'
-      'www.AMAZ0N.* LSLAK28IB, LUXEMB0URG\n'
+      'www.AMAZON.* LSLAK28IB, LUXEMBOURG\n'
       'REMAPKABLE, BALL\n'
-      'PING0 D0CE MATOSINHOS MATOSINHOS\n'
+      'PINGO DOCE MATOSINHOS MATOSINHOS\n'
       'C0NTINENTE AIM DR, MATOSINHOS\n'
-      'PAB PORT MAT0, MATOSINHOS\n'
+      'PAB PORT MAJOR MATOSINHOS\n'
       'CASE DAS UTILIDABES, GUIMARAES\n'
-      'EUR0L0JAMAT0SINH0S, MATOSINHOS\n'
+      'EUROLOJAMATOSINHOS, MATOSINHOS\n'
       'CARES SAB0RES B0LHA0, PORTO\n'
       'TUCA CHA E CAFE, PORTO',
     );

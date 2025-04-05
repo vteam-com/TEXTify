@@ -65,7 +65,7 @@ class _ImageSourceSamplesState extends State<ImageSourceSamples> {
     ImageData(
       'bank_statement.png',
       // cspell:disable-next-line
-      'FINO GOLF CLUB MATOSINHOS\n'
+      'FINO GOLF CLUB, MATOSINHOS\n'
           // cspell:disable-next-line
           'CONTINENTE BOM DIA, MATOSINHOS\n'
           // cspell:disable-next-line
@@ -81,7 +81,7 @@ class _ImageSourceSamplesState extends State<ImageSourceSamples> {
           // cspell:disable-next-line
           'CASE DAS UTILIDADES, Guimaraes\n'
           // cspell:disable-next-line
-          'EUROLOJA MATOSINHOS, MATOSINHOS\n'
+          'EUROLOJAMATOSINHOS, MATOSINHOS\n'
           // cspell:disable-next-line
           'CORES SABORES BOLHAO, PORTO\n'
           // cspell:disable-next-line

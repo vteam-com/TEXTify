@@ -188,59 +188,44 @@ class Textify {
     Artifact inputMatrix,
   ) {
     final List<ScoreMatch> scores = [];
+
+    // Calculate average score for each character definition
     for (final CharacterDefinition template in templates) {
+      double totalScore = 0;
+      double bestScore = 0;
+      int bestMatrixIndex = 0;
+
+      // Find best match and calculate total score
       for (int i = 0; i < template.matrices.length; i++) {
         final Artifact artifact = template.matrices[i];
-        final ScoreMatch scoreMatch = ScoreMatch(
-          character: template.character,
-          matrixIndex: i,
-          score: hammingDistancePercentageOfTwoArtifacts(
-            inputMatrix,
-            artifact,
-          ),
+        final double score = hammingDistancePercentageOfTwoArtifacts(
+          inputMatrix,
+          artifact,
         );
-        scores.add(scoreMatch);
+
+        totalScore += score;
+
+        if (score > bestScore) {
+          bestScore = score;
+          bestMatrixIndex = i;
+        }
       }
+
+      // Calculate weighted score: 70% best match, 30% average across all templates
+      final double avgScore =
+          template.matrices.isEmpty ? 0 : totalScore / template.matrices.length;
+      final double combinedScore = (bestScore * 0.7) + (avgScore * 0.3);
+
+      scores.add(
+        ScoreMatch(
+          character: template.character,
+          matrixIndex: bestMatrixIndex,
+          score: combinedScore,
+        ),
+      );
     }
 
     scores.sort((a, b) => b.score.compareTo(a.score));
-
-    if (scores.length >= 2) {
-      if (scores[0].score == scores[1].score) {
-        final CharacterDefinition template1 = templates.firstWhere(
-          (t) => t.character == scores[0].character,
-        );
-        final CharacterDefinition template2 = templates.firstWhere(
-          (t) => t.character == scores[1].character,
-        );
-
-        double totalScore1 = 0;
-        double totalScore2 = 0;
-
-        for (final matrix in template1.matrices) {
-          totalScore1 += hammingDistancePercentageOfTwoArtifacts(
-            inputMatrix,
-            matrix,
-          );
-        }
-        totalScore1 /= template1.matrices.length;
-
-        for (final matrix in template2.matrices) {
-          totalScore2 += hammingDistancePercentageOfTwoArtifacts(
-            inputMatrix,
-            matrix,
-          );
-        }
-        totalScore2 /= template2.matrices.length;
-
-        if (totalScore2 > totalScore1) {
-          final temp = scores[0];
-          scores[0] = scores[1];
-          scores[1] = temp;
-        }
-      }
-    }
-
     return scores;
   }
 

@@ -51,10 +51,10 @@ class _HomeScreenState extends State<HomeScreen> {
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
-      backgroundColor: colorScheme.secondaryContainer,
+      backgroundColor: colorScheme.surfaceContainer,
       body: SingleChildScrollView(
         child: Padding(
-          padding: const EdgeInsets.all(10.0),
+          padding: const EdgeInsets.all(20.0),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(13),
             child: ExpansionPanelList(
@@ -66,10 +66,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     case 0:
                       _settings.isExpandedSource = isExpanded;
                     case 1:
-                      _settings.isExpandedOptimized = isExpanded;
-                    case 2:
                       _settings.isExpandedArtifactFound = isExpanded;
-                    case 3:
+                    case 2:
                       _settings.isExpandedResults = isExpanded;
                   }
                 });
@@ -80,6 +78,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 // Panel 1 - Input Source
                 //
                 buildExpansionPanel(
+                  context: context,
                   titleLeft: 'TEXTIFY',
                   titleCenter: 'Source',
                   titleRight: '',
@@ -107,13 +106,14 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
 
                 //
-                // Panel 2 - Input Steps
+                // Panel 2 - Steps
                 //
                 buildExpansionPanel(
+                  context: context,
                   titleLeft: 'Steps',
                   titleCenter: _getDimensionOfImageSource(_imageSource),
                   titleRight: '',
-                  isExpanded: _settings.isExpandedOptimized,
+                  isExpanded: _settings.isExpandedArtifactFound,
                   content: PanelSteps(
                     textify: _textify,
                     imageSource: _imageSource,
@@ -150,9 +150,10 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
 
                 //
-                // Panel 4 - Results / Text
+                // Panel 3 - Results / Text
                 //
                 buildExpansionPanel(
+                  context: context,
                   titleLeft: 'Results',
                   titleCenter: getPercentageText(_textify.textFound),
                   titleRight: '',

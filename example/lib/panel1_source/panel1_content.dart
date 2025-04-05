@@ -33,17 +33,12 @@ class PanelStepContent extends StatelessWidget {
                 padding: const EdgeInsets.all(2),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(8.0),
-                  border: Border.all(
-                    color:
-                        Theme.of(context).colorScheme.secondary.withAlpha(200),
-                  ),
                   gradient: LinearGradient(
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                     colors: [
-                      Colors.orange.shade900.withAlpha(50),
-                      Colors.purple.shade900.withAlpha(50),
-                      Colors.blue.shade900.withAlpha(50),
+                      Colors.grey.shade900.withAlpha(100),
+                      Colors.black.withAlpha(150),
                     ],
                   ),
                 ),
@@ -60,19 +55,23 @@ class PanelStepContent extends StatelessWidget {
 }
 
 ExpansionPanel buildExpansionPanel({
+  required final BuildContext context,
   required final String titleLeft,
   required final String titleCenter,
   required final String titleRight,
   required final bool isExpanded,
   required final Widget content,
 }) {
+  final ColorScheme colorScheme = Theme.of(context).colorScheme;
+
   return ExpansionPanel(
+    backgroundColor: colorScheme.primaryContainer,
     canTapOnHeader: true,
     isExpanded: isExpanded,
     headerBuilder: (final BuildContext context, final bool isExpanded) =>
         buildPanelHeader(titleLeft, titleCenter, titleRight),
     body: Container(
-      color: const Color.fromARGB(255, 0, 24, 36),
+      color: colorScheme.secondaryContainer,
       padding: const EdgeInsets.all(8.0),
       child: isExpanded ? content : SizedBox(),
     ),

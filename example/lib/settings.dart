@@ -3,7 +3,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// Manages the application settings, including user preferences stored in SharedPreferences.
 class Settings {
   bool isExpandedArtifactFound = true;
-  bool isExpandedOptimized = true;
   bool isExpandedResults = true;
   bool isExpandedSource = true;
   bool applyDictionary = false;
@@ -17,7 +16,6 @@ class Settings {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     isExpandedSource = prefs.getBool('expanded_source') ?? true;
     isExpandedArtifactFound = prefs.getBool('expanded_found') ?? true;
-    isExpandedOptimized = prefs.getBool('expanded_contrast') ?? true;
     isExpandedResults = prefs.getBool('expanded_results') ?? true;
     applyDictionary = prefs.getBool('apply_dictionary') ?? false;
   }
@@ -31,7 +29,6 @@ class Settings {
 
     await prefs.setBool('expanded_source', isExpandedSource);
     await prefs.setBool('expanded_found', isExpandedArtifactFound);
-    await prefs.setBool('expanded_contrast', isExpandedOptimized);
     await prefs.setBool('expanded_results', isExpandedResults);
     await prefs.setBool('apply_dictionary', applyDictionary);
   }

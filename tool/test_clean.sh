@@ -1,3 +1,3 @@
 #!/bin/sh
-tools/clean.sh
-tools/test_integration.sh
+tool/clean.sh
+tool/test_integration.sh

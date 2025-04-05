@@ -139,6 +139,7 @@ void main() async {
     final ui.Image uiImage =
         await Textify.loadImageFromAssets('assets/test/input_test_image.png');
     final String text = await instance.getTextFromImage(image: uiImage);
+    expect(instance.duration, greaterThan(0));
 
     // the result are not perfect 90% accuracy, but its trending in the right direction
     expect(instance.count, text.length);

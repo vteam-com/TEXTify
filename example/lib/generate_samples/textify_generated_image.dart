@@ -1,6 +1,6 @@
 import 'dart:ui' as ui;
 
-import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:textify/textify.dart';
 
 class TextifyingImage extends StatefulWidget {
@@ -65,7 +65,7 @@ class _TextifyingImageState extends State<TextifyingImage> {
   Widget build(BuildContext context) {
     if (_isProcessing) {
       return const Center(
-        child: CircularProgressIndicator(),
+        child: CupertinoActivityIndicator(radius: 20.0),
       );
     }
 

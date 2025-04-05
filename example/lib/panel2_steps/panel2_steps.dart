@@ -1,6 +1,7 @@
 import 'dart:math';
 import 'dart:ui' as ui;
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:textify/artifact.dart';
@@ -135,7 +136,7 @@ class _PanelStepsState extends State<PanelSteps> {
 
     if (_isReady == false) {
       return Center(
-        child: CircularProgressIndicator(),
+        child: CupertinoActivityIndicator(radius: 20.0),
       );
     }
 

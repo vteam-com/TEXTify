@@ -52,7 +52,17 @@ class Bands {
     list.add(band);
   }
 
+  /// Determines if two bands are approximately on the same horizontal row.
   ///
+  /// This method checks if two bands should be considered part of the same horizontal line
+  /// by evaluating two criteria:
+  /// 1. The bands must have some vertical overlap
+  /// 2. The vertical distance between their centers must be less than 40% of their average height
+  ///
+  /// [a] The first band to compare
+  /// [b] The second band to compare
+  ///
+  /// Returns `true` if the bands are considered to be on the same horizontal row, `false` otherwise.
   bool areBandAlmostOnTheSameHorizontalRow(Band a, Band b) {
     // They have to at least overlap
     if (a.rectangleAdjusted.intersectVertically(b.rectangleAdjusted)) {

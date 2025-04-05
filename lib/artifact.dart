@@ -1468,7 +1468,7 @@ class Artifact {
   /// The algorithm uses direct array access for performance optimization and
   /// employs a flood fill approach to identify connected regions.
   ///
-  /// [this] is the preprocessed binary image after dilation.
+  /// This is the preprocessed binary image after dilation.
   ///
   /// Returns:
   ///   A list of [IntRect] objects representing the bounding boxes of identified regions.

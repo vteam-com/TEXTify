@@ -462,8 +462,6 @@ class Band {
   ///   [rows]: The height of the space artifact in rows.
   ///   [locationFoundAt]: The position where the space artifact should be placed.
   ///
-  /// The created space artifact has its [characterMatched] property set to a space ' '
-  /// and its location set to the provided [locationFoundAt] coordinates.
   void insertArtifactForSpace({
     required final List<Artifact> artifacts,
     required final int insertAtIndex,
@@ -575,7 +573,16 @@ class Band {
         (count, a) => a.characterMatched == ' ' ? count + 1 : count,
       );
 
+  /// Vertically pads artifacts to match the height of the band.
   ///
+  /// This method ensures all artifacts in the band have the same vertical dimensions
+  /// by adding empty rows at the top and bottom of each artifact's matrix as needed.
+  /// It also adjusts the vertical position of each artifact to align with the band's top edge.
+  ///
+  /// The process involves:
+  /// 1. Calculating the required padding for each artifact
+  /// 2. Adding empty rows to the artifact matrices
+  /// 3. Adjusting the vertical position of artifacts to align with the band
   void padVerticallyArtifactToMatchTheBand() {
     int bandTop = this.rectangleOriginal.top;
     int bandBottom = this.rectangleOriginal.bottom;
@@ -602,6 +609,7 @@ class Band {
     }
   }
 
+  /// Returns a string representation of this Band.
   @override
   String toString() {
     String title =

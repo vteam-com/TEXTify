@@ -166,7 +166,11 @@ class IntRect {
     return IntRect(left + offset.x, top + offset.y, width, height);
   }
 
+  /// Creates a new rectangle translated by the specified amounts.
   ///
+  /// [dx] The amount to translate in the x direction.
+  /// [dy] The amount to translate in the y direction.
+  /// Returns a new [IntRect] with translated coordinates.
   IntRect translate(final int dx, final int dy) {
     return IntRect(left + dx, top + dy, width, height);
   }
@@ -203,6 +207,9 @@ class IntRect {
     return IntRect.fromLTRB(newLeft, newTop, newRight, newBottom);
   }
 
+  /// Returns a string representation of this rectangle.
+  ///
+  /// The string includes the left, top, right, bottom, width, and height values.
   @override
   String toString() =>
       'IntRect(L:$left, T:$top, R:$right B:$bottom W:$width, H:$height)';

@@ -159,7 +159,9 @@ class PaintArtifacts extends CustomPainter {
     for (final Artifact artifact in artifacts) {
       paintMatrix(
         canvas,
-        colors[id % colors.length],
+        artifact.wasPartOfSplit
+            ? Colors.limeAccent
+            : colors[id % colors.length],
         artifact.rectAdjusted.left.toInt(),
         artifact.rectAdjusted.top.toInt(),
         showHistogram ? getHistogramHorizontalArtifact(artifact) : artifact,
@@ -212,7 +214,7 @@ class PaintArtifacts extends CustomPainter {
         color = Colors.red;
       }
       if (artifact.wasPartOfSplit) {
-        color = Colors.lightGreenAccent;
+        color = Colors.white;
       }
 
       paintMatrix(

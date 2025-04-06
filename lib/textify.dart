@@ -263,9 +263,7 @@ class Textify {
 
     this.textFound += linesFound.join('\n');
 
-    if (applyDictionary) {
-      this.textFound = applyDictionaryCorrection(this.textFound);
-    }
+    this.textFound = applyCorrection(this.textFound, applyDictionary);
 
     return textFound.trim();
   }

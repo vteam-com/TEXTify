@@ -1,6 +1,81 @@
 import 'dart:math';
 import 'package:textify/english_words.dart';
 
+/// Utility class to analyze character statistics in text.
+///
+/// This class counts the number of letters and digits in a given text,
+/// which helps determine whether a string is primarily alphabetic or numeric.
+/// Used by text correction functions to make appropriate character substitutions.
+class CharacterStats {
+  /// Construct and inspect the [text]
+  CharacterStats([final String text = '']) {
+    inspect(text);
+  }
+
+  /// The count of letter characters in the analyzed text.
+  int letters = 0;
+
+  /// The count of digit characters in the analyzed text.
+  int digits = 0;
+
+  /// The count of space characters in the analyzed text.
+  int spaces = 0;
+
+  /// The count of upper case characters in the analyzed text.
+  /// Digits are considered uppercase
+  int uppercase = 0;
+
+  /// The count of lower case characters in the analyzed text.
+  int lowercase = 0;
+
+  /// Clear the counters
+  void reset() {
+    letters = 0;
+    digits = 0;
+    spaces = 0;
+  }
+
+  /// Analyzes the [text] and updates letter and digit counts.
+  ///
+  /// Iterates through each character in the input text and
+  /// increments the appropriate counter based on character type.
+  void inspect(final String text) {
+    reset();
+
+    for (final char in text.split('')) {
+      if (isLetter(char)) {
+        letters++;
+        if (isUpperCase(char)) {
+          uppercase++;
+        } else {
+          lowercase++;
+        }
+      } else {
+        uppercase++;
+        if (isDigit(char)) {
+          digits++;
+        }
+      }
+    }
+  }
+
+  /// Returns true if the analyzed text contains more digits than letters.
+  ///
+  /// This method helps determine whether a string should be treated as
+  /// primarily numeric for correction purposes.
+  bool mostlyDigits() {
+    return digits > letters;
+  }
+
+  /// Returns true if the analyzed text contains more uppercase than lowercase letters.
+  ///
+  /// This method helps determine whether a string should be treated as
+  /// primarily uppercase for casing normalization purposes.
+  bool mostlyUppercase() {
+    return letters > 0 && uppercase > lowercase;
+  }
+}
+
 /// Applies dictionary-based correction to the extracted text.
 ///
 /// This function improves recognition accuracy by comparing extracted text
@@ -8,8 +83,9 @@ import 'package:textify/english_words.dart';
 ///
 /// [inputParagraph] is the raw text extracted from the image, which may contain multiple lines.
 /// Returns the corrected text after dictionary-based processing.
-String applyDictionaryCorrection(
+String applyCorrection(
   final String inputParagraph,
+  final bool applyDictionary,
 ) {
   /// Map of commonly confused characters and their possible substitutions.
   /// Keys are characters that might be incorrectly recognized, and values are lists
@@ -27,10 +103,19 @@ String applyDictionaryCorrection(
   final linesOfText = inputParagraph.split('\n');
   final List<String> correctedBlob = [];
 
-  for (final line in linesOfText) {
-    correctedBlob.add(
-      applyDictionaryCorrectionOnSingleSentence(line, correctionLetters),
-    );
+  for (final String sentence in linesOfText) {
+    String correctedSentence = sentenceFixZeroAnO(sentence);
+
+    if (applyDictionary) {
+      correctedBlob.add(
+        applyDictionaryCorrectionOnSingleSentence(
+          correctedSentence,
+          correctionLetters,
+        ),
+      );
+    } else {
+      correctedBlob.add(correctedSentence);
+    }
   }
   return correctedBlob.join('\n');
 }
@@ -43,88 +128,178 @@ String applyDictionaryCorrectionOnSingleSentence(
   final String inputSentence,
   final Map<String, List<String>> correctionLetters,
 ) {
-  String cleanedUpText = inputSentence;
+  final regex =
+      RegExp(r'(\s+|[.,!?;:])'); // Matches spaces or single punctuation marks
+
+  final words = inputSentence
+      .splitMapJoin(
+        regex,
+        onMatch: (m) => '¤${m[0]}¤', // Tag matched pieces
+        onNonMatch: (n) => '¤$n¤', // Tag non-matched parts (i.e., words)
+      )
+      .split('¤')
+      .where((s) => s.isNotEmpty)
+      .toList();
+
+  for (int i = 0; i < words.length; i++) {
+    String word = words[i];
+    if (word.length > 1 &&
+        !['.', ',', '!', '?', ';', ':', ' '].contains(word)) {
+      // No need to process numbers
+      if (!CharacterStats(word).mostlyDigits()) {
+        //
+        // Try direct dictionary match first
+        //
+        if (!englishWords.contains(word.toLowerCase())) {
+          //
+          // Try substituting commonly confused characters
+          //
+          String modifiedWord = word;
+          bool foundMatch = false;
+
+          for (final MapEntry<String, List<String>> entry
+              in correctionLetters.entries) {
+            if (word.contains(entry.key)) {
+              for (final String substitute in entry.value) {
+                final String testWord = word.replaceAll(entry.key, substitute);
+
+                if (englishWords.contains(testWord.toLowerCase())) {
+                  modifiedWord = testWord;
+                  foundMatch = true;
+                  break;
+                }
+              }
+              if (foundMatch) {
+                break;
+              }
+            }
+          }
+
+          if (!foundMatch) {
+            // If no direct match after substitutions, find closest match
+            modifiedWord = findClosesMatchingWordInDictionary(word);
+          }
+
+          words[i] = modifiedWord;
+        }
+      }
+    }
+  }
+
+  return normalizeCasingOfParagraph(words.join(''));
+}
+
+/// Finds the closest matching word in the dictionary for a given word.
+///
+/// This function takes a [foundMatch] boolean indicating if a match was already found
+/// and a [word] string to find a match for. If no match was found, it uses
+/// the Levenshtein distance to find the closest word in the dictionary.
+/// It also handles special cases for plural words ending with 's' or 'S'.
+///
+/// Returns the original word if a match was already found, or the closest matching word
+/// with the original casing preserved for unchanged letters.
+String findClosesMatchingWordInDictionary(
+  String word,
+) {
+  String suggestion = findClosestWord(englishWords, word.toLowerCase());
+  String lastChar = word[word.length - 1];
+  if (lastChar == 's' ||
+      lastChar == 'S' && (word.length - 1 == suggestion.length)) {
+    suggestion += lastChar;
+  }
+  // Preserve original casing for unchanged letters
+  if (word.length == suggestion.length) {
+    String result = '';
+    for (int i = 0; i < word.length; i++) {
+      if (word[i].toLowerCase() == suggestion[i].toLowerCase()) {
+        result += word[i]; // Keep original casing
+      } else {
+        result += suggestion[i]; // Use suggestion's character
+      }
+    }
+    word = result;
+  } else {
+    word = suggestion;
+  }
+  return word;
+}
+
+/// Processes text to correct common OCR errors, focusing on zero/letter 'O' confusion.
+///
+/// This function analyzes each word in the input text to determine whether characters
+/// should be interpreted as digits or letters based on context. It specifically handles
+/// the common OCR confusion between the digit '0' and the letter 'O'.
+///
+/// The function applies two main corrections:
+/// 1. For words that appear to be mostly numeric, it converts letter-like characters to digits
+/// 2. For words that appear to be mostly alphabetic, it converts '0' characters to the letter 'O'
+///
+/// [inputSentence] is the text string to be processed.
+/// Returns the corrected text with appropriate character substitutions and normalized casing.
+String sentenceFixZeroAnO(final String inputSentence) {
+  // Split the input into individual words for processing
   List<String> words = inputSentence.split(' ');
 
   for (int i = 0; i < words.length; i++) {
+    // Remove any newline characters that might be present
     String word = words[i].replaceAll('\n', '');
-    if (word.isEmpty) {
-      continue;
-    }
+    if (word.isNotEmpty) {
+      CharacterStats stats = CharacterStats();
+      stats.inspect(word);
 
-    final String allDigits = digitCorrection(word);
-    if (allDigits.isNotEmpty) {
-      words[i] = allDigits;
-      continue;
-    }
-
-    // Try direct dictionary match first
-    if (englishWords.contains(word.toLowerCase())) {
-      words[i] = applyCasingToDifferingChars(word, word.toLowerCase());
-      continue;
-    }
-
-    // Try substituting commonly confused characters
-    String modifiedWord = word;
-    bool foundMatch = false;
-
-    for (final MapEntry<String, List<String>> entry
-        in correctionLetters.entries) {
-      for (final String substitute in entry.value) {
-        if (word.contains(entry.key)) {
-          String testWord = word.replaceAll(entry.key, substitute);
-
-          if (englishWords.contains(testWord.toLowerCase())) {
-            modifiedWord = testWord;
-            foundMatch = true;
-            break;
-          }
-        }
-      }
-      if (foundMatch) {
-        break;
-      }
-    }
-
-    // If no direct match after substitutions, find closest match
-    if (!foundMatch) {
-      String? suggestion =
-          findClosestWord(englishWords, modifiedWord.toLowerCase());
-      if (suggestion == null) {
-        // If the last letter is an 's' or 'S', remove it and try again to see if there's a hit on the singular version of the word
-        String lastChar = modifiedWord[modifiedWord.length - 1];
-        if (lastChar == 's' || lastChar == 'S') {
-          String withoutLastLetter =
-              modifiedWord.substring(0, modifiedWord.length - 1);
-          suggestion = findClosestWord(
-            englishWords,
-            withoutLastLetter.toLowerCase(),
-          );
-          if (suggestion != null) {
-            suggestion += lastChar;
-          }
-        }
+      if (stats.mostlyDigits()) {
+        words[i] = digitCorrection(word);
       } else {
-        String lastChar = modifiedWord[modifiedWord.length - 1];
-        if (lastChar == 's' ||
-            lastChar == 'S' && (modifiedWord.length - 1 == suggestion.length)) {
-          suggestion += lastChar;
-        }
-        if (modifiedWord.length == suggestion.length) {
-          modifiedWord = suggestion;
-        }
+        // For words that are primarily alphabetic, convert any '0' characters to 'O'/'o'
+        word = replaceBadDigitsKeepCasing(word);
+        words[i] = word;
       }
     }
-
-    words[i] = applyCasingToDifferingChars(word, modifiedWord);
   }
 
-  cleanedUpText = words.join(' ');
-  return normalizeCasing(cleanedUpText);
+  // Rejoin the corrected words into a sentence
+  return words.join(' ');
+}
+
+/// Replaces zeros with the letter 'O' in words that are mostly letters.
+///
+/// This function examines [word] strings and replaces any '0' characters
+/// with 'O' (uppercase) or 'o' (lowercase) based on the casing of surrounding characters.
+/// It only makes this replacement if the word is primarily composed of letters rather than digits.
+///
+/// [word] is the potentially corrected word.
+/// Returns the word with zeros replaced by appropriate letter 'O' if applicable.
+String replaceBadDigitsKeepCasing(
+  final String word,
+) {
+  // If no zeros in the string, return as is
+  if (!word.contains('0')) {
+    return word;
+  }
+
+  // Count uppercase and lowercase letters to determine dominant case
+  int uppercaseCount = 0;
+  int lowercaseCount = 0;
+
+  for (final String char in word.split('')) {
+    if (isLetter(char)) {
+      if (isUpperCase(char)) {
+        uppercaseCount++;
+      } else {
+        lowercaseCount++;
+      }
+    }
+  }
+
+  // Determine which case to use for 'O' replacement
+  final String replacement = (uppercaseCount > lowercaseCount) ? 'O' : 'o';
+
+  // Replace all zeros with the appropriate case of 'O'
+  return word.replaceAll('0', replacement);
 }
 
 /// This function replaces problematic characters in the [input] string with their digit representations,
-/// but only if the word is mostly composed of digits.
+/// but only if the single text is mostly composed of digits.
 String digitCorrection(final String input) {
   const Map<String, String> map = {
     'o': '0',
@@ -135,15 +310,6 @@ String digitCorrection(final String input) {
     'S': '5',
     'B': '8',
   };
-
-  // Calculate the proportion of digits in the input string
-  final int digitCount = input.split('').where((char) => isDigit(char)).length;
-  double digitProportion = digitCount / input.length;
-
-  // Apply the correction only if the string is mostly composed of digits (e.g., > 50%)
-  if (digitProportion <= 0.5) {
-    return ''; // If not mostly digits, return the input as is
-  }
 
   // Otherwise, perform the digit replacement
   String correction = '';
@@ -156,34 +322,29 @@ String digitCorrection(final String input) {
       correction += map[char] ?? char;
     }
   }
-  return correction == input ? '' : correction;
+  return correction;
 }
 
 /// Finds the closest matching word in a [dictionary] for a given input [word].
 ///
 /// This function takes a set of dictionary words and an input word, and returns the
 /// closest matching word from the dictionary based on the Levenshtein distance.
-/// It only considers dictionary words that are of similar length (±1 character) to
-/// the input word, and returns the dictionary word with the minimum Levenshtein
-/// distance, or the longest word with the same minimum distance if there are
-/// multiple candidates.
-String? findClosestWord(
+/// It examines all words in the dictionary and returns the one with the minimum
+/// Levenshtein distance. If multiple words have the same minimum distance, it returns
+/// the longest one among them.
+String findClosestWord(
   final Set<String> dictionary,
   final String word,
 ) {
-  String? closestMatch;
-  int minDistance = 3; // Max edit distance to consider
+  String closestMatch = dictionary.first; // Start with any word from dictionary
+  int minDistance = levenshteinDistance(word, closestMatch.toLowerCase());
 
   for (String dictWord in dictionary) {
-    // Only consider words of similar length (±1 character)
-    if ((dictWord.length - word.length).abs() <= 1) {
-      int distance = levenshteinDistance(word, dictWord.toLowerCase());
-      if (distance < minDistance ||
-          (distance == minDistance &&
-              dictWord.length > (closestMatch?.length ?? 0))) {
-        minDistance = distance;
-        closestMatch = dictWord;
-      }
+    int distance = levenshteinDistance(word, dictWord.toLowerCase());
+    if (distance < minDistance ||
+        (distance == minDistance && dictWord.length > closestMatch.length)) {
+      minDistance = distance;
+      closestMatch = dictWord;
     }
   }
 
@@ -228,52 +389,40 @@ int levenshteinDistance(final String s1, final String s2) {
   return v1[s2.length];
 }
 
-/// Applies the casing of the original string to the corrected string, preserving the casing of unchanged characters.
+/// Processes a sentence and applies appropriate casing rules.
 ///
-/// This function takes two strings, [original] and [corrected], and returns a new string where the casing of the `corrected` string
-/// is modified to match the casing of the `original` string, except for characters that have been changed. The first modified character
-/// is always uppercase, and subsequent modified characters match the casing of the following character in the `original` string, unless
-/// the modified character is the last one, in which case it matches the casing of the previous character in the `original` string.
-String applyCasingToDifferingChars(
-  final String original,
-  final String corrected,
-) {
-  if (original.length != corrected.length) {
-    return corrected;
-  }
-
-  if (original == corrected) {
-    return corrected;
+/// This function takes a sentence string and applies the following rules:
+/// - If most letters are uppercase, converts the entire sentence to uppercase
+/// - Otherwise, capitalizes the first letter and converts the rest to lowercase
+///
+/// Returns the processed sentence with normalized casing.
+String normalizeCasingOfSentence(final String sentence) {
+  if (sentence.isEmpty) {
+    return sentence;
   }
 
   StringBuffer result = StringBuffer();
+  CharacterStats stats = CharacterStats(sentence);
 
-  for (int i = 0; i < corrected.length; i++) {
-    if (original[i].toLowerCase() != corrected[i].toLowerCase()) {
-      if (i == 0) {
-        // First modified character is always uppercase
-        result.write(corrected[i].toUpperCase());
-      } else if (i + 1 < original.length && isUpperCase(original[i + 1])) {
-        // If the following character in the original string is uppercase
-        result.write(corrected[i].toUpperCase());
-      } else if (i == corrected.length - 1) {
-        // Last modified character: Match the casing of the previous character
-        result.write(
-          isUpperCase(original[i - 1])
-              ? corrected[i].toUpperCase()
-              : corrected[i].toLowerCase(),
+  // If most letters in the sentence are uppercase, convert the whole sentence to uppercase
+  if (stats.mostlyUppercase()) {
+    return sentence.toUpperCase();
+  } else {
+    // Find the first letter in the sentence to capitalize
+    int firstLetterIndex = sentence.split('').indexWhere(
+          (char) => isLetter(char),
         );
-      } else {
-        // Otherwise, match the casing of the following character
-        result.write(
-          isUpperCase(original[i + 1])
-              ? corrected[i].toUpperCase()
-              : corrected[i].toLowerCase(),
-        );
-      }
+
+    if (firstLetterIndex != -1) {
+      // Capitalize the first letter and lowercase the rest
+      result.write(
+        sentence.substring(0, firstLetterIndex),
+      );
+      result.write(sentence[firstLetterIndex].toUpperCase());
+      result.write(sentence.substring(firstLetterIndex + 1).toLowerCase());
     } else {
-      // If the character matches, preserve it as is
-      result.write(original[i]);
+      // No letters found, just append the sentence
+      result.write(sentence);
     }
   }
 
@@ -284,16 +433,11 @@ String applyCasingToDifferingChars(
 ///
 /// This function takes a [String] [input] and returns a new string with the casing
 /// normalized. It processes the input by breaking it into sentences, and then
-/// applies the following rules to each sentence:
-///
-/// - If most of the letters in the sentence are uppercase, the entire sentence
-///   is converted to uppercase.
-/// - Otherwise, the first letter of the sentence is capitalized, and the rest
-///   of the sentence is converted to lowercase.
+/// applies casing rules to each sentence.
 ///
 /// The function handles various sentence-ending characters (`.`, `!`, `?`, `\n`)
 /// and preserves any non-letter characters in the input.
-String normalizeCasing(final String input) {
+String normalizeCasingOfParagraph(final String input) {
   if (input.isEmpty) {
     return input;
   }
@@ -303,74 +447,22 @@ String normalizeCasing(final String input) {
 
   StringBuffer result = StringBuffer();
   StringBuffer currentSentence = StringBuffer();
-  int uppercaseCount = 0;
-  int letterCount = 0;
-
-  /// Process the current sentence buffer
-  void processCurrentSentence() {
-    if (currentSentence.isEmpty) {
-      return;
-    }
-
-    String sentence = currentSentence.toString();
-
-    // If most letters in the sentence are uppercase, convert the whole sentence to uppercase
-    if (letterCount > 0 && uppercaseCount / letterCount > 0.5) {
-      result.write(sentence.toUpperCase());
-    } else {
-      // Find the first letter in the sentence to capitalize
-      int firstLetterIndex = sentence.split('').indexWhere(
-            (char) => isLetter(char),
-          ); // Check for letters
-
-      if (firstLetterIndex != -1) {
-        // Capitalize the first letter and lowercase the rest
-        result.write(
-          sentence.substring(0, firstLetterIndex),
-        ); // Non-letter prefix
-        result.write(sentence[firstLetterIndex]);
-        result.write(sentence.substring(firstLetterIndex + 1).toLowerCase());
-      } else {
-        // No letters found, just append the sentence
-        result.write(sentence);
-      }
-    }
-
-    // Clear sentence buffers
-    currentSentence.clear();
-    uppercaseCount = 0;
-    letterCount = 0;
-  }
 
   for (int i = 0; i < input.length; i++) {
     String char = input[i];
+    currentSentence.write(char);
 
-    if (char == '\n') {
-      // Process the current sentence and add the newline
-      processCurrentSentence();
-      result.write('\n');
-    } else {
-      currentSentence.write(char);
-
-      // Update uppercase and letter counts
-      if (char.trim().isNotEmpty) {
-        if (isUpperCase(char)) {
-          uppercaseCount++;
-        }
-        if (isLetter(char)) {
-          letterCount++;
-        }
-      }
-
-      // If the character is a sentence-ending character, process the sentence
-      if (sentenceEndings.contains(char)) {
-        processCurrentSentence();
-      }
+    // If the character is a sentence-ending character, process the sentence
+    if (sentenceEndings.contains(char)) {
+      result.write(normalizeCasingOfSentence(currentSentence.toString()));
+      currentSentence.clear();
     }
   }
 
   // Process any remaining sentence
-  processCurrentSentence();
+  if (currentSentence.isNotEmpty) {
+    result.write(normalizeCasingOfSentence(currentSentence.toString()));
+  }
 
   return result.toString();
 }

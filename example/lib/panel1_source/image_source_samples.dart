@@ -73,13 +73,13 @@ class _ImageSourceSamplesState extends State<ImageSourceSamples> {
           // cspell:disable-next-line
           'REMARKABLE, OSLO\n'
           // cspell:disable-next-line
-          'PING0 DOCE MATOSINHOS, MATOSINHOS\n'
+          'PINGO DOCE MATOSINHOS, MATOSINHOS\n'
           // cspell:disable-next-line
           'CONTINENTE BOM DIA, MATOSINHOS\n'
           // cspell:disable-next-line
           'PAD PORT MATO, MATOSINHOS\n'
           // cspell:disable-next-line
-          'CASE DAS UTILIDADES, Guimaraes\n'
+          'CASA DAS UTILIDADES, Guimaraes\n'
           // cspell:disable-next-line
           'EUROLOJAMATOSINHOS, MATOSINHOS\n'
           // cspell:disable-next-line

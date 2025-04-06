@@ -92,22 +92,22 @@ void main() {
     });
 
     test(
-        'findClosesMatchingWordInDictionary finds closest match and preserves casing',
+        'findClosestMatchingWordInDictionary finds closest match and preserves casing',
         () {
       // Test case 1: No match found, should find closest word
-      String result1 = findClosesMatchingWordInDictionary('appLe');
+      String result1 = findClosestMatchingWordInDictionary('appLe');
       expect(result1, 'appLe'); // Should preserve casing of unchanged letters
 
       // Test case 2: Match already found, should return original word
-      String result2 = findClosesMatchingWordInDictionary('baNana');
+      String result2 = findClosestMatchingWordInDictionary('baNana');
       expect(result2, 'baNana');
 
       // Test case 3: Plural word ending with 's'
-      String result3 = findClosesMatchingWordInDictionary('oranges');
+      String result3 = findClosestMatchingWordInDictionary('oranges');
       expect(result3, 'oranges'); // Should preserve the 's' at the end
 
       // Test case 4: Word with different length than suggestion
-      String result4 = findClosesMatchingWordInDictionary('helloz');
+      String result4 = findClosestMatchingWordInDictionary('helloz');
       expect(result4, 'hello'); // Should handle different length words
     });
   });

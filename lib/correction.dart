@@ -177,7 +177,7 @@ String applyDictionaryCorrectionOnSingleSentence(
 
           if (!foundMatch) {
             // If no direct match after substitutions, find closest match
-            modifiedWord = findClosesMatchingWordInDictionary(word);
+            modifiedWord = findClosestMatchingWordInDictionary(word);
           }
 
           words[i] = modifiedWord;
@@ -191,14 +191,12 @@ String applyDictionaryCorrectionOnSingleSentence(
 
 /// Finds the closest matching word in the dictionary for a given word.
 ///
-/// This function takes a [foundMatch] boolean indicating if a match was already found
-/// and a [word] string to find a match for. If no match was found, it uses
+/// This function takes a [word] string to find a match for and uses
 /// the Levenshtein distance to find the closest word in the dictionary.
 /// It also handles special cases for plural words ending with 's' or 'S'.
 ///
-/// Returns the original word if a match was already found, or the closest matching word
-/// with the original casing preserved for unchanged letters.
-String findClosesMatchingWordInDictionary(
+/// Returns the closest matching word with the original casing preserved for unchanged letters.
+String findClosestMatchingWordInDictionary(
   String word,
 ) {
   String suggestion = findClosestWord(englishWords, word.toLowerCase());

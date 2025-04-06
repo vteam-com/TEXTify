@@ -123,6 +123,28 @@ class IntRect {
     return x >= left && x < right && y >= top && y < bottom;
   }
 
+  /// Checks if the given offset point is contained within this rectangle.
+  ///
+  /// [offset] The offset point to check.
+  /// Returns true if the point is inside the rectangle, false otherwise.
+  bool containsOffset(final IntOffset offset) {
+    return offset.x >= left &&
+        offset.x < right &&
+        offset.y >= top &&
+        offset.y < bottom;
+  }
+
+  /// Checks if another rectangle is completely contained within this rectangle.
+  ///
+  /// [rect] The rectangle to check.
+  /// Returns true if the rectangle is completely inside this rectangle, false otherwise.
+  bool containsRect(final IntRect rect) {
+    return rect.left >= left &&
+        rect.right <= right &&
+        rect.top >= top &&
+        rect.bottom <= bottom;
+  }
+
   /// Checks if this rectangle intersects with another rectangle.
   ///
   /// [other] The other rectangle to check for intersection.

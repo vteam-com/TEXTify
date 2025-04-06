@@ -168,21 +168,6 @@ class Textify {
     );
   }
 
-  /// Identifies the most likely character for a normalized artifact.
-  ///
-  /// [artifact] is the normalized character image.
-  /// [supportedCharacters] optionally limits recognition to specific characters.
-  /// Returns the best matching character or empty string if no match.
-  String getCharacterFromArtifactNormalizedMatrix(
-    final Artifact artifact, [
-    final String supportedCharacters = '',
-  ]) {
-    final List<ScoreMatch> scores =
-        getMatchingScoresOfNormalizedMatrix(artifact, supportedCharacters);
-
-    return scores.isNotEmpty ? scores.first.character : '';
-  }
-
   /// Calculates similarity scores between a matrix and character templates.
   ///
   /// [templates] are the character definitions to compare against.
@@ -244,25 +229,61 @@ class Textify {
     final String supportedCharacters = '',
   }) async {
     this.textFound = '';
-
     final List<String> linesFound = [];
 
     for (final Band band in listOfBands) {
       String line = '';
 
-      for (final Artifact artifact in band.artifacts) {
-        artifact.characterMatched = getCharacterFromArtifactNormalizedMatrix(
-          artifact,
-          supportedCharacters,
-        );
+      // Process each band until no more splits are needed
+      bool needsReprocessing;
+      do {
+        needsReprocessing = false;
 
-        line += artifact.characterMatched;
+        // Use index-based loop to handle list modifications
+        for (int i = 0; i < band.artifacts.length; i++) {
+          final Artifact artifact = band.artifacts[i];
+
+          // Skip artifacts that have already been processed
+          if (artifact.matchingCharacter.isNotEmpty) {
+            continue;
+          }
+
+          final List<ScoreMatch> scores = getMatchingScoresOfNormalizedMatrix(
+            artifact,
+            supportedCharacters,
+          );
+
+          if (scores.isEmpty) {
+            continue;
+          }
+
+          if (scores.first.score < 0.4) {
+            artifact.needsInspection = true;
+            final List<Artifact> artifactsFromColumns =
+                band.splitChunk(artifact);
+
+            if (artifactsFromColumns.isNotEmpty) {
+              band.replaceOneArtifactWithMore(artifact, artifactsFromColumns);
+              needsReprocessing = true;
+              break; // Exit the loop to restart with the new artifacts
+            }
+          }
+
+          artifact.matchingScore = scores.first.score;
+          artifact.matchingCharacter = scores.first.character;
+        }
+      } while (needsReprocessing);
+
+      // Build the final line from processed artifacts
+      band.sortArtifactsLeftToRight();
+      for (final Artifact artifact in band.artifacts) {
+        line += artifact.matchingCharacter;
       }
+
       linesFound.add(line);
     }
 
     this.textFound += linesFound.join('\n');
-
     this.textFound = applyCorrection(this.textFound, applyDictionary);
 
     return textFound.trim();

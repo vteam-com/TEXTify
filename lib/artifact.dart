@@ -1,6 +1,7 @@
 import 'dart:collection';
 import 'dart:math';
 import 'package:flutter/foundation.dart';
+import 'package:textify/correction.dart';
 import 'package:textify/utilities.dart';
 
 /// Represents a 2D grid of boolean values, primarily used for image processing
@@ -71,15 +72,6 @@ class Artifact {
   factory Artifact.fromAsciiWithNewlines(final String input) {
     final List<String> template = input.split('\n');
     final Artifact artifact = Artifact.fromAsciiDefinition(template);
-    return artifact;
-  }
-
-  /// Creates a Matrix from an existing 2D boolean list.
-  ///
-  /// [input] A 2D list of boolean values.
-  factory Artifact.fromBoolMatrix(final List<List<bool>> input) {
-    final Artifact artifact = Artifact(0, 0);
-    artifact.setGridFromBools(input);
     return artifact;
   }
 
@@ -170,13 +162,41 @@ class Artifact {
   }
 
   /// The character that this artifact matches.
-  String characterMatched = '';
+  String matchingCharacter = '';
+
+  /// The score of the match
+  double matchingScore = 0;
 
   /// Tag the artifact as needing more attention during inspection
   bool needsInspection = false;
 
   /// Indicates whether this artifact was created as part of a splitting operation
   bool wasPartOfSplit = false;
+
+  /// Returns a human-readable description of the matching character.
+  ///
+  /// This formats the character with additional context:
+  /// - For letters: Indicates case (upper/lower) and shows uppercase version
+  /// - For digits: Adds "Digit" prefix and special handling for zero
+  /// - For other characters: Simply returns the character in quotes
+  String get matchingCharacterDescription {
+    String description = '"${this.matchingCharacter}"';
+
+    if (isLetter(this.matchingCharacter)) {
+      if (isUpperCase(this.matchingCharacter)) {
+        description = 'Upper case';
+      } else {
+        description = 'Lower case';
+      }
+      description += ' "${this.matchingCharacter.toUpperCase()}"';
+    }
+
+    if (isDigit(this.matchingCharacter)) {
+      description =
+          'Digit "${this.matchingCharacter}"${this.matchingCharacter == '0' ? ' Zero' : ''}';
+    }
+    return description;
+  }
 
   /// Empty the content
   void clear() {
@@ -266,7 +286,7 @@ class Artifact {
   /// Returns a formatted string with artifact details.
   @override
   String toString() {
-    return '"$characterMatched" left:${locationFound.x} top:${locationFound.y} CW:${rectFound.width} CH:${rectFound.height} isEmpty:$isEmpty E:$enclosures LL:$verticalLineLeft LR:$verticalLineRight';
+    return '"$matchingCharacter" left:${locationFound.x} top:${locationFound.y} CW:${rectFound.width} CH:${rectFound.height} isEmpty:$isEmpty E:$enclosures LL:$verticalLineLeft LR:$verticalLineRight';
   }
 
   /// Returns the horizontal histogram of the matrix.
@@ -617,10 +637,9 @@ class Artifact {
   /// it returns a predefined 3x2 matrix of 'false' values.
   ///
   /// The process:
-  /// 1. If the original matrix is empty, return a predefined 3x2 matrix of 'false' values.
-  /// 2. Create a new matrix with dimensions increased by 2 in both rows and columns,
+  /// 1. Create a new matrix with dimensions increased by 2 in both rows and columns,
   ///    initialized with 'false' values.
-  /// 3. Copy the original matrix data into the center of the new matrix, leaving
+  /// 2. Copy the original matrix data into the center of the new matrix, leaving
   ///    the outer border as 'false'.
   ///
   /// Returns:
@@ -631,14 +650,6 @@ class Artifact {
   /// This function is useful for operations that require considering the edges of a matrix,
   /// such as cellular automata or image processing algorithms.
   Artifact _createWrapGridWithFalse() {
-    if (isEmpty) {
-      return Artifact.fromBoolMatrix([
-        [false, false],
-        [false, false],
-        [false, false],
-      ]);
-    }
-
     // Create a new grid with increased dimensions
     final Artifact newGrid = Artifact(cols + 2, rows + 2);
 

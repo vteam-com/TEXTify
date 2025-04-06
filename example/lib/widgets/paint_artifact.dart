@@ -40,17 +40,6 @@ class DisplayArtifact extends StatelessWidget {
             ),
           ),
         ),
-
-        // Artifact details
-        Text(
-          'Position: (${artifact.locationFound.x}, ${artifact.locationFound.y})',
-        ),
-        Text('Size: ${artifact.cols}×${artifact.rows}'),
-        Text('Matched: "${artifact.characterMatched}"'),
-        if (artifact.needsInspection)
-          const Text('Needs Inspection', style: TextStyle(color: Colors.red)),
-        if (artifact.wasPartOfSplit)
-          const Text('Was Split', style: TextStyle(color: Colors.green)),
       ],
     );
   }

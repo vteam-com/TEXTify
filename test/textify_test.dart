@@ -247,15 +247,15 @@ void main() async {
     expect(
       text,
       'FINO GOLF CLUB, MATOSINHOS\n'
-      'CONTINENTE BOM DR, MATOSINHOS\n'
-      'www.AMAZON.* LSlAK28IB, LUXEEOURG\n'
-      'REMAPELE, OSLO\n'
+      'CONTINENTE BOM DIA, MATOSINHOS\n'
+      'www.AMAZON.* LSlAK28IB, LUXEMBOURG\n'
+      'REMAPKABLE, OSLO\n'
       'PINGO DOCE MATOSINHO, MATOSINHOS\n'
-      'CONTINENTE BOM DR, MATOSINHOS\n'
-      'P[ PORT [TO, [TOSINHOS\n'
-      'CASA Dz UTILIDABES, Guimaraes\n'
+      'CONTINENTE BOM DIA, MATOSINHOS\n'
+      'PAB PORT MATO, MATOSINHOS\n'
+      'CASA DAS UTILIDABES, Guimaraes\n'
       'EUROLOJAMATOSINHOS, MATOSINHOS\n'
-      'CORES SABORES BOLBO, PORTO\n'
+      'CORES SABORES BOLHAO, PORTO\n'
       'Tuca Cha E Cafe, PORTO',
     );
   });

@@ -170,13 +170,13 @@ class _PanelStep4ResultsState extends State<PanelStep4Results> {
                 textify: widget.textify,
                 artifact: artifact,
                 characterExpected: expectedCharacter,
-                characterFound: artifact.characterMatched,
+                characterFound: artifact.matchingCharacter,
               ),
             ),
           );
         },
         child: MatchedArtifact(
-          characterFound: artifact.characterMatched,
+          characterFound: artifact.matchingCharacter,
           characterCorrected: characterCorrected,
           characterExpected: expectedCharacter,
           showCorrectionRow: true,

@@ -55,16 +55,48 @@ class _DisplayBandsAndArtifactsState extends State<DisplayBandsAndArtifacts> {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        title: Text('Artifact: ${artifact.characterMatched}'),
+        title: Text('Artifact ${artifact.matchingCharacterDescription}'),
         content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              DisplayArtifact(
-                artifact: artifact,
-              ),
-            ],
+          child: SizedBox(
+            width: 400,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              spacing: 40,
+              children: [
+                DisplayArtifact(
+                  artifact: artifact,
+                ),
+                Column(
+                  spacing: 10,
+                  children: [
+                    // Artifact details
+                    Text(
+                      '"${artifact.matchingCharacter}"',
+                      style: TextStyle(fontSize: 20),
+                    ),
+                    Text(
+                      'Score: ${(artifact.matchingScore * 100).toStringAsFixed(1)}%',
+                      style: TextStyle(fontSize: 20),
+                    ),
+                    Text(
+                      'Position: ${artifact.locationFound.x}, ${artifact.locationFound.y}',
+                    ),
+                    Text('Size: ${artifact.cols} × ${artifact.rows}'),
+                    if (artifact.needsInspection)
+                      const Text(
+                        'Needs Inspection',
+                        style: TextStyle(color: Colors.red),
+                      ),
+                    if (artifact.wasPartOfSplit)
+                      const Text(
+                        'Was Split',
+                        style: TextStyle(color: Colors.green),
+                      ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
         actions: [

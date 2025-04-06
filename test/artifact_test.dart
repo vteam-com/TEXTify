@@ -5,6 +5,17 @@ import 'package:textify/bands.dart';
 import 'package:textify/utilities.dart';
 
 void main() {
+  group('Artifact Tests', () {
+    test('Artifact from ASCII definition', () {
+      final artifact = Artifact(4, 4);
+      expect(artifact.matchingCharacterDescription, '""');
+      artifact.matchingCharacter = 'A';
+      expect(artifact.matchingCharacterDescription, 'Upper case "A"');
+      artifact.matchingCharacter = '0';
+      expect(artifact.matchingCharacterDescription, 'Digit "0" Zero');
+    });
+  });
+
   group('Artifact Merging Tests', () {
     test('Empty Artifact', () {
       final artifact1 = Artifact.fromAsciiDefinition(
@@ -391,7 +402,7 @@ void main() {
         '.#.',
       ]);
 
-      punctuation.characterMatched = '.';
+      punctuation.matchingCharacter = '.';
 
       final resizedPunctuation = punctuation.createNormalizeMatrix(5, 5);
       expect(resizedPunctuation.cols, 5);

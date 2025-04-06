@@ -4,6 +4,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.4.2 : 2025-04-06
+
+### Added
+
+- Exmaple: Popup shoing detail of artifact
+
+### Changed
+
+- Improve character matching by matrix splitting when character matching score is low
+
 ## 0.4.1 : 2025-04-05
 
 ### Changed

@@ -85,7 +85,7 @@ class Band {
   String getText() {
     String text = '';
 
-    artifacts.forEach((a) => text += a.characterMatched);
+    artifacts.forEach((a) => text += a.matchingCharacter);
     return text;
   }
 
@@ -472,7 +472,7 @@ class Band {
     final Artifact artifactSpace = Artifact.fromMatrix(
       Artifact(cols, rows),
     );
-    artifactSpace.characterMatched = ' ';
+    artifactSpace.matchingCharacter = ' ';
     artifactSpace.locationFound = locationFoundAt;
     artifacts.insert(insertAtIndex, artifactSpace);
   }
@@ -570,7 +570,7 @@ class Band {
   ///   An integer representing the total number of space characters.
   int get spacesCount => artifacts.fold(
         0,
-        (count, a) => a.characterMatched == ' ' ? count + 1 : count,
+        (count, a) => a.matchingCharacter == ' ' ? count + 1 : count,
       );
 
   /// Vertically pads artifacts to match the height of the band.

@@ -17,7 +17,7 @@ void main() {
       // Add an empty artifact (aka Space)
       //
       band.artifacts.add(Artifact(8, 16));
-      band.artifacts.last.characterMatched = ' ';
+      band.artifacts.last.matchingCharacter = ' ';
       expect(band.toString(), '[1] Avg(W:8, H:16 G:-1) S[1]');
     });
 

@@ -248,14 +248,14 @@ void main() async {
       text,
       'FINO GOLF CLUB, MATOSINHOS\n'
       'CONTINENTE BOM DR, MATOSINHOS\n'
-      'www.AMAZON.* LSlAK28IB, LUXEMBOURG\n'
-      'REMAPKABLE, OSLO\n'
+      'www.AMAZON.* LSlAK28IB, LUXEEOURG\n'
+      'REMAPELE, OSLO\n'
       'PINGO DOCE MATOSINHO, MATOSINHOS\n'
       'CONTINENTE BOM DR, MATOSINHOS\n'
-      'PAB PORT MATO, MATOSINHOS\n'
-      'CASA DAS UTILIDABES, Guimaraes\n'
+      'P[ PORT [TO, [TOSINHOS\n'
+      'CASA Dz UTILIDABES, Guimaraes\n'
       'EUROLOJAMATOSINHOS, MATOSINHOS\n'
-      'CORES SABORES BOLHAO, PORTO\n'
+      'CORES SABORES BOLBO, PORTO\n'
       'Tuca Cha E Cafe, PORTO',
     );
   });

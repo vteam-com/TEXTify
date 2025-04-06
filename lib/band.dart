@@ -268,7 +268,7 @@ class Band {
 
     // Calculate threshold based on number of artifacts
     // With fewer artifacts, we need a higher threshold to avoid false positives
-    double thresholdMultiplier = 2.0;
+    double thresholdMultiplier = 2.5;
     if (artifacts.length <= 3) {
       thresholdMultiplier = 1.5; // More conservative for small sets
     }

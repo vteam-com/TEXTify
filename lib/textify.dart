@@ -311,10 +311,6 @@ class Textify {
       return matchPercentage >= percentageNeeded;
     }).toList();
 
-    if (qualifiedTemplates.isEmpty) {
-      qualifiedTemplates = characterDefinitions.definitions;
-    }
-
     final Artifact resizedArtifact =
         artifact.createNormalizeMatrix(templateWidth, templateHeight);
 

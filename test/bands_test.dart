@@ -12,6 +12,13 @@ void main() {
       bands.mergeBandsHorizontally();
       expect(bands.length, 1);
       expect(band.toString(), '[0] Avg(W:0, H:0 G:-1)');
+
+      //
+      // Add an empty artifact (aka Space)
+      //
+      band.artifacts.add(Artifact(8, 16));
+      band.artifacts.last.characterMatched = ' ';
+      expect(band.toString(), '[1] Avg(W:8, H:16 G:-1) S[1]');
     });
 
     test('merges multiple empty bands in sequence', () {
@@ -118,6 +125,30 @@ void main() {
       expect(bands.list[1], band1);
     });
 
+    group('sortVerticallyThenHorizontally', () {
+      test('sorts bands horizontally when on same vertical line', () {
+        // Create bands with same vertical position but different horizontal positions
+        final band1 = Band();
+        final artifact1 = Artifact(10, 10);
+        artifact1.setBothLocation(IntOffset(30, 20)); // x=30
+        band1.addArtifact(artifact1);
+
+        final band2 = Band();
+        final artifact2 = Artifact(10, 10);
+        artifact2.setBothLocation(IntOffset(10, 20)); // x=10, same y as band1
+        band2.addArtifact(artifact2);
+
+        final bands = [band1, band2];
+
+        // Sort the bands
+        Bands.sortVerticallyThenHorizontally(bands, threshold: 5.0);
+
+        // Verify bands are sorted by x-coordinate when y is within threshold
+        expect(bands[0], band2); // band2 should come first (x=10)
+        expect(bands[1], band1); // band1 should come second (x=30)
+      });
+    });
+
     test('maintains order for bands at exact same position', () {
       final band1 = Band();
       final artifact1 = Artifact(20, 20);
@@ -175,6 +206,43 @@ void main() {
         '.##',
         '###',
       ]);
+    });
+
+    test('getWideChunks handles two artifacts with similar widths', () {
+      final Band band = Band();
+
+      // Create two artifacts with similar widths
+      final Artifact artifact1 = Artifact(10, 5);
+      artifact1.setBothLocation(IntOffset(0, 0));
+
+      final Artifact artifact2 = Artifact(10, 5);
+      artifact2.setBothLocation(IntOffset(20, 0));
+
+      band.addArtifact(artifact1);
+      band.addArtifact(artifact2);
+
+      // Test the special case for 2 artifacts with similar widths
+      final List<Artifact> wideChunks = band.getWideChunks();
+
+      // Should return empty list since width ratio is between 0.7 and 1.3
+      expect(wideChunks.isEmpty, true);
+
+      // Now test with dissimilar widths
+      band.artifacts.clear();
+      final Artifact artifact3 = Artifact(10, 5);
+      artifact3.setBothLocation(IntOffset(0, 0));
+
+      final Artifact artifact4 = Artifact(50, 5); // Much wider
+      artifact4.setBothLocation(IntOffset(15, 0));
+
+      band.addArtifact(artifact3);
+      band.addArtifact(artifact4);
+
+      final List<Artifact> wideChunks2 = band.getWideChunks();
+
+      // Should identify the wider artifact
+      expect(wideChunks2.length, 1);
+      expect(wideChunks2[0], artifact4);
     });
 
     test('returns empty list when artifact cannot be split', () {

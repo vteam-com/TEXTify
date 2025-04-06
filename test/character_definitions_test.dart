@@ -1,5 +1,4 @@
 import 'dart:convert';
-
 import 'package:flutter_test/flutter_test.dart';
 import 'package:textify/artifact.dart';
 import 'package:textify/character_definitions.dart';
@@ -93,6 +92,78 @@ void main() {
       expect(decoded['templates'], isA<List>());
       expect(decoded['templates'].length, 1);
       expect(decoded['templates'][0]['character'], 'X');
+    });
+
+    test('loadDefinitions throws exception on failure', () async {
+      final definitions = CharacterDefinitions();
+
+      // Mock the asset bundle to throw an error
+      TestWidgetsFlutterBinding.ensureInitialized();
+      // Attempt to load definitions and expect an exception
+      expect(
+        () => definitions.loadDefinitions('invalid/path.json'),
+        throwsA(
+          isA<Exception>().having(
+            (e) => e.toString(),
+            'message',
+            contains('Failed to load character definitions'),
+          ),
+        ),
+      );
+    });
+
+    test(
+        'upsertTemplate adds new matrix to existing definition when font is new',
+        () {
+      final definitions = CharacterDefinitions();
+      // Create a character definition with an empty matrices list
+      final charDef = CharacterDefinition(
+        character: 'A',
+        matrices: [], // Explicitly initialize with an empty list
+      );
+      definitions.addDefinition(charDef);
+
+      final artifact1 = Artifact(5, 5);
+      final result1 = definitions.upsertTemplate('Arial', 'A', artifact1);
+
+      // Should return false as we're updating an existing definition
+      expect(result1, false);
+      // Should have added the matrix to the existing definition
+      expect(definitions.getDefinition('A')!.matrices.length, 1);
+      expect(definitions.getDefinition('A')!.matrices.first, artifact1);
+      expect(definitions.getDefinition('A')!.matrices.first.font, 'Arial');
+
+      // Add a second matrix with a different font
+      final artifact2 = Artifact(6, 6);
+      final result2 = definitions.upsertTemplate('Roboto', 'A', artifact2);
+
+      // Should return false as we're updating an existing definition
+      expect(result2, false);
+      // Should have added the second matrix to the existing definition
+      expect(definitions.getDefinition('A')!.matrices.length, 2);
+      expect(definitions.getDefinition('A')!.matrices[1], artifact2);
+      expect(definitions.getDefinition('A')!.matrices[1].font, 'Roboto');
+    });
+
+    test('getMatrix returns correct matrix at specified index', () {
+      final definitions = CharacterDefinitions();
+      final artifact1 = Artifact(5, 5);
+      final artifact2 = Artifact(6, 6);
+
+      final charDef = CharacterDefinition(
+        character: 'A',
+        matrices: [artifact1, artifact2],
+      );
+
+      definitions.addDefinition(charDef);
+
+      // Test retrieving the first matrix
+      final result1 = definitions.getMatrix('A', 0);
+      expect(result1, artifact1);
+
+      // Test retrieving the second matrix
+      final result2 = definitions.getMatrix('A', 1);
+      expect(result2, artifact2);
     });
   });
 

@@ -270,7 +270,7 @@ class Band {
     // With fewer artifacts, we need a higher threshold to avoid false positives
     double thresholdMultiplier = 2.0;
     if (artifacts.length <= 3) {
-      thresholdMultiplier = 2.5; // More conservative for small sets
+      thresholdMultiplier = 1.5; // More conservative for small sets
     }
 
     final double thresholdWidth = this.averageWidth * thresholdMultiplier;

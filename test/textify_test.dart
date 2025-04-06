@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:textify/band.dart';
 import 'package:textify/character_definition.dart';
 import 'package:textify/correction.dart';
+import 'package:textify/score_match.dart';
 
 import 'package:textify/textify.dart';
 import 'package:textify/utilities.dart';
@@ -280,6 +281,40 @@ void main() async {
     expect(digitCorrection('0123456789'), '0123456789');
     expect(digitCorrection('O123456789'), '0123456789');
     expect(digitCorrection('ol23456789'), '0123456789');
+  });
+
+  test('getMatchingScoresOfNormalizedMatrix filters by supportedCharacters',
+      () async {
+    final Textify instance = await Textify().init(
+      pathToAssetsDefinition: 'assets/matrices.json',
+    );
+
+    // Create a simple artifact
+    final Artifact testArtifact = Artifact.fromAsciiDefinition([
+      '###',
+      '# #',
+      '###',
+    ]);
+
+    // Test with empty supportedCharacters (should return all possible matches)
+    final List<ScoreMatch> allMatches =
+        instance.getMatchingScoresOfNormalizedMatrix(testArtifact);
+    expect(allMatches.isNotEmpty, true);
+
+    // Test with specific supportedCharacters
+    final String specificChars = 'ABC';
+    final List<ScoreMatch> filteredMatches = instance
+        .getMatchingScoresOfNormalizedMatrix(testArtifact, specificChars);
+
+    // Verify all returned characters are in the supported list
+    for (final match in filteredMatches) {
+      expect(specificChars.contains(match.character), true);
+    }
+
+    // Verify characters not in supported list are excluded
+    final Set<String> returnedChars =
+        filteredMatches.map((m) => m.character).toSet();
+    expect(returnedChars.every((char) => specificChars.contains(char)), true);
   });
 }
 

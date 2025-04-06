@@ -171,21 +171,37 @@ List<Point<int>> floodFill(
   // Mark start point as visited and add to queue
   visitedData[startIndex] = 1;
   queue.add(startIndex);
+  connectedPoints.add(Point(startX, startY));
 
-  // Direction offsets for adjacent pixels
-  const List<int> rowOffsets = [0, 0, -1, 1]; // Row adjustments
-  const List<int> colOffsets = [-1, 1, 0, 0]; // Column adjustments
+  // Direction offsets for adjacent pixels (including diagonals)
+  const List<int> rowOffsets = [
+    -1,
+    -1,
+    -1,
+    0,
+    0,
+    1,
+    1,
+    1,
+  ]; // Row adjustments
+  const List<int> colOffsets = [
+    -1,
+    0,
+    1,
+    -1,
+    1,
+    -1,
+    0,
+    1,
+  ]; // Column adjustments
 
   while (queue.isNotEmpty) {
     final int currentIndex = queue.removeFirst();
     final int x = currentIndex % width;
     final int y = currentIndex ~/ width;
 
-    // Add current point to result
-    connectedPoints.add(Point(x, y));
-
-    // Check all four directions
-    for (int i = 0; i < 4; i++) {
+    // Check all eight directions (including diagonals)
+    for (int i = 0; i < 8; i++) {
       final int nx = x + colOffsets[i];
       final int ny = y + rowOffsets[i];
 
@@ -200,6 +216,7 @@ List<Point<int>> floodFill(
       if (pixelData[neighborIndex] == 1 && visitedData[neighborIndex] == 0) {
         visitedData[neighborIndex] = 1;
         queue.add(neighborIndex);
+        connectedPoints.add(Point(nx, ny));
       }
     }
   }

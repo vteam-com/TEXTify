@@ -1,7 +1,15 @@
+/// This library is part of the Textify package.
+///
+/// It provides classes and utilities for managing character definitions
+/// used in optical character recognition (OCR) processes.
+library;
+
 import 'dart:convert';
 import 'package:flutter/services.dart';
 import 'package:textify/artifact.dart';
 import 'package:textify/character_definition.dart';
+
+/// Exports
 export 'package:textify/character_definition.dart';
 
 /// Manages a collection of character definitions used for text processing.
@@ -10,6 +18,9 @@ export 'package:textify/character_definition.dart';
 /// definitions, which are used to represent the visual appearance of characters
 /// in different fonts or styles.
 class CharacterDefinitions {
+  /// Creates a new instance of CharacterDefinitions.
+  CharacterDefinitions();
+
   /// The list of character definitions.
   List<CharacterDefinition> _definitions = [];
 
@@ -52,7 +63,7 @@ class CharacterDefinitions {
     }
   }
 
-  /// Returns a list of all supported characters.
+  /// Returns a ```List<String>``` of all supported characters.
   List<String> get supportedCharacters {
     return letterUpperCase +
         letterLowerCase +

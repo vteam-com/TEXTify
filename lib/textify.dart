@@ -1,3 +1,7 @@
+/// This library is part of the Textify package.
+/// Provides the main interface for text extraction from images.
+library;
+
 import 'dart:async';
 import 'dart:ui' as ui;
 import 'package:flutter/widgets.dart';
@@ -14,6 +18,9 @@ import 'package:textify/utilities.dart';
 /// organize them into bands, and extract the text content. It is optimized for
 /// clean computer-generated documents with standard fonts and good contrast.
 class Textify {
+  /// Creates a new instance of Textify.
+  Textify();
+
   /// Stores definitions of characters for matching.
   final CharacterDefinitions characterDefinitions = CharacterDefinitions();
 

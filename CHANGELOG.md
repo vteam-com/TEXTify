@@ -4,11 +4,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.4.3 : 2025-04-07
+
+### Added
+
+- more API Documentation, PANA is now reporting 100% documentation coverage.
+
 ## 0.4.2 : 2025-04-06
 
 ### Added
 
-- Exmaple: Popup shoing detail of artifact
+- Example: Popup shoing detail of artifact
+- 100% code coverage form tests
 
 ### Changed
 

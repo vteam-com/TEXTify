@@ -1,3 +1,7 @@
+/// This library is part of the Textify package.
+/// Provides integer-based rectangle implementation for image processing operations.
+library;
+
 import 'dart:math';
 
 import 'package:textify/int_offset.dart';

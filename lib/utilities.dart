@@ -1,3 +1,7 @@
+/// This library is part of the Textify package.
+/// Collection of utility functions for image processing and text extraction.
+library;
+
 import 'dart:collection';
 import 'dart:math';
 import 'dart:typed_data';
@@ -5,7 +9,7 @@ import 'dart:ui';
 import 'package:textify/band.dart';
 import 'package:textify/int_rect.dart';
 
-// Exports
+/// Exports
 export 'package:textify/int_rect.dart';
 
 /// Converts a color image to a binary (black and white) image.

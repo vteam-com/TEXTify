@@ -1,3 +1,7 @@
+/// This library is part of the Textify package.
+/// Contains a set of common English words used for dictionary-based text correction.
+library;
+
 /// Most common english words
 Set<String> englishWords = {
   'ability',

@@ -1,3 +1,7 @@
+/// This library is part of the Textify package.
+/// Provides functionality for managing collections of text bands identified in images.
+library;
+
 import 'package:textify/band.dart';
 import 'package:textify/utilities.dart';
 

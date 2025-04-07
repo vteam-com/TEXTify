@@ -1,3 +1,7 @@
+/// This library is part of the Textify package.
+/// Provides integer-based offset implementation for image processing operations.
+library;
+
 /// A 2D offset with integer coordinates.
 ///
 /// This class represents a point in a 2D coordinate system using integer values.

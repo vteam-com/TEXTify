@@ -1,3 +1,7 @@
+/// This library is part of the Textify package.
+/// It provides character definition functionality for OCR processing.
+library;
+
 import 'dart:convert';
 
 import 'package:textify/artifact.dart';
@@ -157,5 +161,12 @@ class CharacterDefinition {
   ///
   /// Returns a String containing a JSON representation of the CharacterDefinition.
   /// This method uses [toJson] to create a map and then encodes it to a JSON string.
+  ///
+  /// Example:
+  /// ```dart
+  /// final charDef = CharacterDefinition(character: 'A', isLetter: true);
+  /// final jsonString = charDef.toJsonString();
+  /// print(jsonString); // Prints the JSON representation as a string
+  /// ```
   String toJsonString() => jsonEncode(toJson());
 }

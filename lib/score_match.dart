@@ -1,3 +1,8 @@
+/// This library is part of the Textify package.
+/// It contains the ScoreMatch class used to track evaluation scores
+/// when matching artifacts against character definition templates.
+library;
+
 /// Keep track of evaluation score of Artifacts against CharacterDefinition templates
 class ScoreMatch {
   /// Constructs a [ScoreMatch] object with the provided [character], [matrixIndex], and [score].

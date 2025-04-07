@@ -1,3 +1,7 @@
+/// This library is part of the Textify package.
+/// Provides Band implementation for organizing and processing Artifacts in horizontal strips.
+library;
+
 import 'dart:math';
 
 import 'package:flutter/widgets.dart';

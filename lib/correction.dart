@@ -1,3 +1,8 @@
+/// This library is part of the Textify package.
+/// Provides text correction utilities for improving OCR results through dictionary matching
+/// and character substitution algorithms.
+library;
+
 import 'dart:math';
 import 'package:textify/english_words.dart';
 

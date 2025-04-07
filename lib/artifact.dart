@@ -1,3 +1,8 @@
+/// This library is part of the Textify package.
+/// Provides the Artifact class for representing and manipulating 2D grids of boolean values.
+/// The resulting output of Textify is a list of Artifacts.
+library;
+
 import 'dart:collection';
 import 'dart:math';
 import 'package:flutter/foundation.dart';

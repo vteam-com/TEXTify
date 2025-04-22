@@ -11,7 +11,7 @@ dependencies:
     sdk: flutter
   intl:
   path_provider: ^2.1.5
-  pasteboard: ^0.3.0
+  pasteboard: ^0.4.0
   flutter_colorpicker: ^1.1.0
   shared_preferences: ^2.5.3
   textify:

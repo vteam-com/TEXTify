@@ -4,6 +4,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.4.4 : 2025-04-22
+
+### Updated
+
+- add more English words
+- Example: update package [pasteboard: ^0.4.0]
+
 ## 0.4.3 : 2025-04-07
 
 ### Added

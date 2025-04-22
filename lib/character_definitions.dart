@@ -63,7 +63,15 @@ class CharacterDefinitions {
     }
   }
 
-  /// Returns a ```List<String>``` of all supported characters.
+  /// Returns a list of all characters supported by the current definitions.
+  ///
+  /// This method combines uppercase letters, lowercase letters, digits,
+  /// punctuation marks, and other special characters into a single list.
+  /// It's useful for determining which characters can be recognized by
+  /// the OCR system with the current loaded definitions.
+  ///
+  /// Returns:
+  ///   A ```[List<String>]``` containing all supported characters.
   List<String> get supportedCharacters {
     return letterUpperCase +
         letterLowerCase +

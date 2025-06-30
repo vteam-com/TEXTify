@@ -40,10 +40,18 @@ class Artifact {
   /// Matrix copy = Matrix.fromMatrix(original);
   /// ```
   factory Artifact.fromMatrix(final Artifact value) {
-    final Artifact artifact = Artifact(0, 0);
-    artifact.setGrid(value._matrix, value.cols);
+    // Create a new Artifact instance with the same dimensions as the source.
+    final Artifact artifact = Artifact(value.cols, value.rows);
+    // Deep copy the matrix data.
+    artifact._matrix = Uint8List.fromList(value._matrix);
+    // Copy other relevant properties.
     artifact.locationFound = value.locationFound;
     artifact.locationAdjusted = value.locationAdjusted;
+    artifact.matchingCharacter = value.matchingCharacter;
+    artifact.matchingScore = value.matchingScore;
+    artifact.needsInspection = value.needsInspection;
+    artifact.wasPartOfSplit = value.wasPartOfSplit;
+    artifact.font = value.font;
     return artifact;
   }
 

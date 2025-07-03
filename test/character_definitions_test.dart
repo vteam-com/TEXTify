@@ -58,12 +58,18 @@ void main() {
       expect(definitions.getDefinition('X')!.matrices.first.font, 'Arial');
 
       // insert a fake character
-      final bool result2 =
-          definitions.upsertTemplate('Courier', '😭', artifact);
+      final bool result2 = definitions.upsertTemplate(
+        'Courier',
+        '😭',
+        artifact,
+      );
       expect(result2, true);
       // Again
-      final bool result3 =
-          definitions.upsertTemplate('Courier', '😭', artifact);
+      final bool result3 = definitions.upsertTemplate(
+        'Courier',
+        '😭',
+        artifact,
+      );
       expect(result3, false);
     });
 
@@ -113,37 +119,38 @@ void main() {
     });
 
     test(
-        'upsertTemplate adds new matrix to existing definition when font is new',
-        () {
-      final definitions = CharacterDefinitions();
-      // Create a character definition with an empty matrices list
-      final charDef = CharacterDefinition(
-        character: 'A',
-        matrices: [], // Explicitly initialize with an empty list
-      );
-      definitions.addDefinition(charDef);
+      'upsertTemplate adds new matrix to existing definition when font is new',
+      () {
+        final definitions = CharacterDefinitions();
+        // Create a character definition with an empty matrices list
+        final charDef = CharacterDefinition(
+          character: 'A',
+          matrices: [], // Explicitly initialize with an empty list
+        );
+        definitions.addDefinition(charDef);
 
-      final artifact1 = Artifact(5, 5);
-      final result1 = definitions.upsertTemplate('Arial', 'A', artifact1);
+        final artifact1 = Artifact(5, 5);
+        final result1 = definitions.upsertTemplate('Arial', 'A', artifact1);
 
-      // Should return false as we're updating an existing definition
-      expect(result1, false);
-      // Should have added the matrix to the existing definition
-      expect(definitions.getDefinition('A')!.matrices.length, 1);
-      expect(definitions.getDefinition('A')!.matrices.first, artifact1);
-      expect(definitions.getDefinition('A')!.matrices.first.font, 'Arial');
+        // Should return false as we're updating an existing definition
+        expect(result1, false);
+        // Should have added the matrix to the existing definition
+        expect(definitions.getDefinition('A')!.matrices.length, 1);
+        expect(definitions.getDefinition('A')!.matrices.first, artifact1);
+        expect(definitions.getDefinition('A')!.matrices.first.font, 'Arial');
 
-      // Add a second matrix with a different font
-      final artifact2 = Artifact(6, 6);
-      final result2 = definitions.upsertTemplate('Roboto', 'A', artifact2);
+        // Add a second matrix with a different font
+        final artifact2 = Artifact(6, 6);
+        final result2 = definitions.upsertTemplate('Roboto', 'A', artifact2);
 
-      // Should return false as we're updating an existing definition
-      expect(result2, false);
-      // Should have added the second matrix to the existing definition
-      expect(definitions.getDefinition('A')!.matrices.length, 2);
-      expect(definitions.getDefinition('A')!.matrices[1], artifact2);
-      expect(definitions.getDefinition('A')!.matrices[1].font, 'Roboto');
-    });
+        // Should return false as we're updating an existing definition
+        expect(result2, false);
+        // Should have added the second matrix to the existing definition
+        expect(definitions.getDefinition('A')!.matrices.length, 2);
+        expect(definitions.getDefinition('A')!.matrices[1], artifact2);
+        expect(definitions.getDefinition('A')!.matrices[1].font, 'Roboto');
+      },
+    );
 
     test('getMatrix returns correct matrix at specified index', () {
       final definitions = CharacterDefinitions();
@@ -207,10 +214,7 @@ void main() {
     });
 
     test('toJson serializes correctly', () {
-      final charDef = CharacterDefinition(
-        character: 'C',
-        isPunctuation: true,
-      );
+      final charDef = CharacterDefinition(character: 'C', isPunctuation: true);
 
       final json = charDef.toJson();
 

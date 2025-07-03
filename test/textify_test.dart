@@ -45,14 +45,10 @@ void main() async {
     // No englosure;
     for (final String char in charactersWithNoEnclosures) {
       final String reason = 'Characer > "$char"';
-      final CharacterDefinition? definition =
-          instance.characterDefinitions.getDefinition(char);
+      final CharacterDefinition? definition = instance.characterDefinitions
+          .getDefinition(char);
 
-      expect(
-        definition,
-        isNotNull,
-        reason: reason,
-      );
+      expect(definition, isNotNull, reason: reason);
 
       expect(
         instance.characterDefinitions.getDefinition(char)!.enclosures,
@@ -137,8 +133,9 @@ void main() async {
   });
 
   test('Convert image to text', () async {
-    final ui.Image uiImage =
-        await Textify.loadImageFromAssets('assets/test/input_test_image.png');
+    final ui.Image uiImage = await Textify.loadImageFromAssets(
+      'assets/test/input_test_image.png',
+    );
     instance.applyDictionary = false;
     final String text = await instance.getTextFromImage(image: uiImage);
     expect(instance.duration, greaterThan(0));
@@ -162,8 +159,9 @@ void main() async {
 
     final ui.Image imageBlackAndWhite = await imageToBlackOnWhite(uiImage);
 
-    final Artifact imageAsArtifact =
-        await artifactFromImage(imageBlackAndWhite);
+    final Artifact imageAsArtifact = await artifactFromImage(
+      imageBlackAndWhite,
+    );
 
     instance.applyDictionary = false;
 
@@ -283,45 +281,45 @@ void main() async {
     expect(digitCorrection('ol23456789'), '0123456789');
   });
 
-  test('getMatchingScoresOfNormalizedMatrix filters by supportedCharacters',
-      () async {
-    final Textify instance = await Textify().init(
-      pathToAssetsDefinition: 'assets/matrices.json',
-    );
+  test(
+    'getMatchingScoresOfNormalizedMatrix filters by supportedCharacters',
+    () async {
+      final Textify instance = await Textify().init(
+        pathToAssetsDefinition: 'assets/matrices.json',
+      );
 
-    // Create a simple artifact
-    final Artifact testArtifact = Artifact.fromAsciiDefinition([
-      '###',
-      '# #',
-      '###',
-    ]);
+      // Create a simple artifact
+      final Artifact testArtifact = Artifact.fromAsciiDefinition([
+        '###',
+        '# #',
+        '###',
+      ]);
 
-    // Test with empty supportedCharacters (should return all possible matches)
-    final List<ScoreMatch> allMatches =
-        instance.getMatchingScoresOfNormalizedMatrix(testArtifact);
-    expect(allMatches.isNotEmpty, true);
+      // Test with empty supportedCharacters (should return all possible matches)
+      final List<ScoreMatch> allMatches = instance
+          .getMatchingScoresOfNormalizedMatrix(testArtifact);
+      expect(allMatches.isNotEmpty, true);
 
-    // Test with specific supportedCharacters
-    final String specificChars = 'ABC';
-    final List<ScoreMatch> filteredMatches = instance
-        .getMatchingScoresOfNormalizedMatrix(testArtifact, specificChars);
+      // Test with specific supportedCharacters
+      const String specificChars = 'ABC';
+      final List<ScoreMatch> filteredMatches = instance
+          .getMatchingScoresOfNormalizedMatrix(testArtifact, specificChars);
 
-    // Verify all returned characters are in the supported list
-    for (final match in filteredMatches) {
-      expect(specificChars.contains(match.character), true);
-    }
+      // Verify all returned characters are in the supported list
+      for (final match in filteredMatches) {
+        expect(specificChars.contains(match.character), true);
+      }
 
-    // Verify characters not in supported list are excluded
-    final Set<String> returnedChars =
-        filteredMatches.map((m) => m.character).toSet();
-    expect(returnedChars.every((char) => specificChars.contains(char)), true);
-  });
+      // Verify characters not in supported list are excluded
+      final Set<String> returnedChars = filteredMatches
+          .map((m) => m.character)
+          .toSet();
+      expect(returnedChars.every((char) => specificChars.contains(char)), true);
+    },
+  );
 }
 
-Future<void> myExpectWord(
-  final String input,
-  final String expected,
-) async {
+Future<void> myExpectWord(final String input, final String expected) async {
   expect(
     applyCorrection(input, true),
     equals(expected),

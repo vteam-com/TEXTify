@@ -11,15 +11,17 @@ import '../example/lib/generate_samples/generate_image.dart';
 
 Future<void> loadTestFont() async {
   // Load Roboto font
-  final ByteData robotoFontData =
-      await rootBundle.load('assets/fonts/Roboto-Regular.ttf');
+  final ByteData robotoFontData = await rootBundle.load(
+    'assets/fonts/Roboto-Regular.ttf',
+  );
   final FontLoader robotoFontLoader = FontLoader('Roboto')
     ..addFont(Future.value(robotoFontData));
   await robotoFontLoader.load();
 
   // Load Courier font
-  final ByteData courierFontData =
-      await rootBundle.load('assets/fonts/CourierPrime-Regular.ttf');
+  final ByteData courierFontData = await rootBundle.load(
+    'assets/fonts/CourierPrime-Regular.ttf',
+  );
   final FontLoader courierFontLoader = FontLoader('Courier')
     ..addFont(Future.value(courierFontData));
   await courierFontLoader.load();
@@ -60,18 +62,19 @@ void main() async {
       expect(textResults, '');
     });
 
-    final String inputText = 'Quip,\nWord me';
+    const String inputText = 'Quip,\nWord me';
 
     test('One line text with Font: Courier', () async {
       await testWidthFont(
         textify: textify,
         text: inputText,
-        result: 'Quip ,\n'
+        result:
+            'Quip ,\n'
             'Word me',
         fontFamily: 'Courier',
         imageWidth: 130,
         imageHeight: 60,
-        finalExpectedRect: Rect.fromLTRB(11.0, 7.0, 52.0, 23.0),
+        finalExpectedRect: const Rect.fromLTRB(11.0, 7.0, 52.0, 23.0),
         printResuls: false,
       );
     });
@@ -80,12 +83,13 @@ void main() async {
       await testWidthFont(
         textify: textify,
         text: inputText,
-        result: 'Quip,\n'
+        result:
+            'Quip,\n'
             'Word me',
         fontFamily: 'Roboto',
         imageWidth: 200,
         imageHeight: 60,
-        finalExpectedRect: Rect.fromLTRB(11, 8, 126, 26),
+        finalExpectedRect: const Rect.fromLTRB(11, 8, 126, 26),
         printResuls: false,
       );
     });
@@ -127,16 +131,11 @@ Future<void> testWidthFont({
     text: text,
     fontFamily: fontFamily,
     fontSize: 24,
-    offset: Offset(10, 5),
+    offset: const Offset(10, 5),
   );
 
   // Run test on a image
-  await testFromImage(
-    textify,
-    image,
-    result,
-    printResuls: printResuls,
-  );
+  await testFromImage(textify, image, result, printResuls: printResuls);
 }
 
 Future<void> testFromImage(
@@ -157,8 +156,9 @@ Future<void> testFromImage(
   //
   // To Matrix
   //
-  final Artifact matrixSourceImage =
-      await artifactFromImage(imageBlackAndWhite);
+  final Artifact matrixSourceImage = await artifactFromImage(
+    imageBlackAndWhite,
+  );
   expect(matrixSourceImage.cols, image.width);
   expect(matrixSourceImage.rows, image.height);
   printMatrix(matrixSourceImage, printResuls);
@@ -182,15 +182,16 @@ Future<void> testFromImage(
   //
   final List<IntRect> regions = imageAsMatrixDilated.findSubRegions();
 
-  Bands bands =
-      Bands.getBandsOfArtifacts(matrixSourceImage, regions, innerSplit);
+  Bands bands = Bands.getBandsOfArtifacts(
+    matrixSourceImage,
+    regions,
+    innerSplit,
+  );
 
   final stringInAllBands1 = bands.getText();
   expect(stringInAllBands1.trim(), isEmpty);
 
-  String resultingText = await textify.getTextInBands(
-    listOfBands: bands.list,
-  );
+  String resultingText = await textify.getTextInBands(listOfBands: bands.list);
   final stringInAllBands2 = bands.getText();
   expect(stringInAllBands2, isNotEmpty);
 

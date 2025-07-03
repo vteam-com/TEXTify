@@ -21,10 +21,10 @@ void main() async {
       final List<Point<int>> points = floodFill(binaryPixels, visited, 1, 1);
 
       expect(points.length, 9);
-      expect(points.contains(Point(1, 1)), true);
-      expect(points.contains(Point(2, 2)), true);
-      expect(points.contains(Point(3, 3)), true);
-      expect(points.contains(Point(0, 0)), false);
+      expect(points.contains(const Point(1, 1)), true);
+      expect(points.contains(const Point(2, 2)), true);
+      expect(points.contains(const Point(3, 3)), true);
+      expect(points.contains(const Point(0, 0)), false);
     });
 
     test('Flood fill with disconnected regions', () {

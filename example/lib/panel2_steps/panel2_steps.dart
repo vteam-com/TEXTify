@@ -178,57 +178,56 @@ class _PanelStepsState extends State<PanelSteps> {
   }
 
   void updateImages() {
-    debouncer.run(() {
-      if (!mounted) {
-        return;
-      }
-
+    debouncer.run(() async {
       if (widget.imageSource == null) {
-        setState(() {
-          _isReady = true;
-          _regions = [];
-          _regionsHistograms = [];
-          _imageBW = null;
-          _imageDilated = null;
-        });
+        if (mounted) {
+          setState(() {
+            _isReady = true;
+            _regions = [];
+            _regionsHistograms = [];
+            _imageBW = null;
+            _imageDilated = null;
+          });
+        }
         return;
       }
 
       //
       // Task 1 - Convert to B&W
       //
-      imageToBlackOnWhite(widget.imageSource!).then((final ui.Image imageBW) {
-        //
-        // Task 2 - Convert ot Binary Matrix
-        //
-        artifactFromImage(imageBW).then((final Artifact binaryImage) {
-          final Artifact dilatedMatrix = dilateArtifact(
-            matrixImage: binaryImage,
-            kernelSize: widget.kernelSizeDilate,
-          );
+      final ui.Image imageBW = await imageToBlackOnWhite(widget.imageSource!);
 
-          //
-          // Task 3 - Dilated
-          //
-          imageFromMatrix(dilatedMatrix).then((imageDilated) {
-            //
-            // Task 4 - Find Regions
-            //
-            _regions = dilatedMatrix.findSubRegions();
+      //
+      // Task 2 - Convert ot Binary Matrix
+      //
+      final Artifact binaryImage = await artifactFromImage(imageBW);
+      final Artifact dilatedMatrix = dilateArtifact(
+        matrixImage: binaryImage,
+        kernelSize: widget.kernelSizeDilate,
+      );
 
-            //
-            // Task 5 - Histograms
-            //
-            _regionsHistograms = getHistogramOfRegions(binaryImage, _regions);
-            _imageBW = imageBW;
-            _imageDilated = imageDilated;
+      //
+      // Task 3 - Dilated
+      //
+      final imageDilated = await imageFromMatrix(dilatedMatrix);
 
-            setState(() {
-              _isReady = true;
-            });
-          });
+      //
+      // Task 4 - Find Regions
+      //
+      _regions = dilatedMatrix.findSubRegions();
+
+      //
+      // Task 5 - Histograms
+      //
+      _regionsHistograms = getHistogramOfRegions(binaryImage, _regions);
+      _imageBW = imageBW;
+      _imageDilated = imageDilated;
+
+      if (mounted) {
+        setState(() {
+          _isReady = true;
         });
-      });
+      }
     });
   }
 

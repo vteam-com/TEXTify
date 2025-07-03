@@ -40,7 +40,7 @@ void main() {
       // BAND 1 LEFT
       final Band band1 = Band();
       final Artifact artifact1 = Artifact(20, 20);
-      artifact1.setBothLocation(IntOffset(10, 10));
+      artifact1.setBothLocation(const IntOffset(10, 10));
       artifact1.setGridFromBools([
         [true, false, true],
         [true, false, true],
@@ -50,7 +50,7 @@ void main() {
       // BAND 2 RIGHT
       final Band band2 = Band();
       final Artifact artifact2 = Artifact(20, 20);
-      artifact2.setBothLocation(IntOffset(14, 10));
+      artifact2.setBothLocation(const IntOffset(14, 10));
       artifact2.setGridFromBools([
         [true, false, true],
         [true, false, true],
@@ -62,10 +62,7 @@ void main() {
       bands.mergeBandsHorizontally();
 
       expect(bands.length, 1);
-      expect(
-        bands.list.first.artifacts.length,
-        2,
-      );
+      expect(bands.list.first.artifacts.length, 2);
       expect(band1.toString(), '[2] Avg(W:2, H:2 G:1)');
       expect(band2.toString(), '[1] Avg(W:3, H:2 G:-1)');
     });
@@ -73,12 +70,12 @@ void main() {
     test('does not merge bands with large horizontal gap', () {
       final Band band1 = Band();
       final Artifact artifact1 = Artifact(20, 20);
-      artifact1.setBothLocation(IntOffset(10, 10));
+      artifact1.setBothLocation(const IntOffset(10, 10));
       band1.addArtifact(artifact1);
 
       final Band band2 = Band();
       final Artifact artifact2 = Artifact(20, 20);
-      artifact2.setBothLocation(IntOffset(500, 10));
+      artifact2.setBothLocation(const IntOffset(500, 10));
       band2.addArtifact(artifact2);
 
       final Bands bands = Bands([band1, band2]);
@@ -92,12 +89,12 @@ void main() {
     test('sorts bands by vertical position first', () {
       final band1 = Band();
       final artifact1 = Artifact(20, 20);
-      artifact1.setBothLocation(IntOffset(10, 20));
+      artifact1.setBothLocation(const IntOffset(10, 20));
       band1.addArtifact(artifact1);
 
       final band2 = Band();
       final artifact2 = Artifact(20, 20);
-      artifact2.setBothLocation(IntOffset(5, 10));
+      artifact2.setBothLocation(const IntOffset(5, 10));
       band2.addArtifact(artifact2);
 
       final bands = Bands([band1, band2]);
@@ -110,12 +107,12 @@ void main() {
     test('sorts bands horizontally when at same vertical position', () {
       final band1 = Band();
       final artifact1 = Artifact(20, 20);
-      artifact1.setBothLocation(IntOffset(20, 10));
+      artifact1.setBothLocation(const IntOffset(20, 10));
       band1.addArtifact(artifact1);
 
       final band2 = Band();
       final artifact2 = Artifact(20, 20);
-      artifact2.setBothLocation(IntOffset(10, 10));
+      artifact2.setBothLocation(const IntOffset(10, 10));
       band2.addArtifact(artifact2);
 
       final bands = Bands([band1, band2]);
@@ -130,12 +127,14 @@ void main() {
         // Create bands with same vertical position but different horizontal positions
         final band1 = Band();
         final artifact1 = Artifact(10, 10);
-        artifact1.setBothLocation(IntOffset(30, 20)); // x=30
+        artifact1.setBothLocation(const IntOffset(30, 20)); // x=30
         band1.addArtifact(artifact1);
 
         final band2 = Band();
         final artifact2 = Artifact(10, 10);
-        artifact2.setBothLocation(IntOffset(10, 20)); // x=10, same y as band1
+        artifact2.setBothLocation(
+          const IntOffset(10, 20),
+        ); // x=10, same y as band1
         band2.addArtifact(artifact2);
 
         final bands = [band1, band2];
@@ -152,12 +151,12 @@ void main() {
     test('maintains order for bands at exact same position', () {
       final band1 = Band();
       final artifact1 = Artifact(20, 20);
-      artifact1.setBothLocation(IntOffset(10, 10));
+      artifact1.setBothLocation(const IntOffset(10, 10));
       band1.addArtifact(artifact1);
 
       final band2 = Band();
       final artifact2 = Artifact(20, 20);
-      artifact2.setBothLocation(IntOffset(10, 10));
+      artifact2.setBothLocation(const IntOffset(10, 10));
       band2.addArtifact(artifact2);
 
       final bands = Bands([band1, band2]);
@@ -193,19 +192,9 @@ void main() {
 
       // Verify the artifact was split correctly
       expect(result.length, 2);
-      expect(result[0].gridToStrings(), [
-        '##.',
-        '##.',
-        '##.',
-        '###',
-      ]);
+      expect(result[0].gridToStrings(), ['##.', '##.', '##.', '###']);
 
-      expect(result[1].gridToStrings(), [
-        '.##',
-        '.##',
-        '.##',
-        '###',
-      ]);
+      expect(result[1].gridToStrings(), ['.##', '.##', '.##', '###']);
     });
 
     test('getWideChunks handles two artifacts with similar widths', () {
@@ -213,10 +202,10 @@ void main() {
 
       // Create two artifacts with similar widths
       final Artifact artifact1 = Artifact(10, 5);
-      artifact1.setBothLocation(IntOffset(0, 0));
+      artifact1.setBothLocation(const IntOffset(0, 0));
 
       final Artifact artifact2 = Artifact(10, 5);
-      artifact2.setBothLocation(IntOffset(20, 0));
+      artifact2.setBothLocation(const IntOffset(20, 0));
 
       band.addArtifact(artifact1);
       band.addArtifact(artifact2);
@@ -230,10 +219,10 @@ void main() {
       // Now test with dissimilar widths
       band.artifacts.clear();
       final Artifact artifact3 = Artifact(10, 5);
-      artifact3.setBothLocation(IntOffset(0, 0));
+      artifact3.setBothLocation(const IntOffset(0, 0));
 
       final Artifact artifact4 = Artifact(50, 5); // Much wider
-      artifact4.setBothLocation(IntOffset(15, 0));
+      artifact4.setBothLocation(const IntOffset(15, 0));
 
       band.addArtifact(artifact3);
       band.addArtifact(artifact4);
@@ -269,7 +258,7 @@ void main() {
 
       // Create an artifact representing three characters with gaps between them
       final Artifact artifact = Artifact.fromAsciiWithNewlines(
-          '''..........##################################.......................................................................#################################...........................................######################################..........................................................###############################################################........................................
+        '''..........##################################.......................................................................#################################...........................................######################################..........................................................###############################################################........................................
 .........####################################....................................................................#####################################........................................#########################################......................................................######################################################################...................................
 .........####################################....................................................................#####################################........................................#########################################......................................................#########################################################################................................
 .........#####################################..................................................................######################################.......................................##########################################......................................................##############################################################################...........................
@@ -380,7 +369,8 @@ void main() {
 #############################################.........................##################........................###################################################################################..............................................#############################################################################################.............................###########################
 #############################################.........................#################.........................###################################################################################..............................................#############################################################################################..............................##########################
 #############################################..........................################.........................###################################################################################..............................................#############################################################################################..............................##########################
-#############################################..........................###############..........................###################################################################################..............................................#############################################################################################...............................#########################''');
+#############################################..........................###############..........................###################################################################################..............................................#############################################################################################...............................#########################''',
+      );
 
       band.addArtifact(artifact);
 

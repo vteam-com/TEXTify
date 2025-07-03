@@ -4,6 +4,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.4.5 : 2025-07-03
+
+### Updated
+
+- Dart: 3.8.1
+- Flutter: 3.32.0
+- flutter_lints: ^6.0.0
+
 ## 0.4.4 : 2025-04-22
 
 ### Updated

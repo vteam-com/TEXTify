@@ -108,8 +108,9 @@ class Textify {
   }) async {
     final ui.Image imageBlackAndWhite = await imageToBlackOnWhite(image);
 
-    final Artifact imageAsArtifact =
-        await artifactFromImage(imageBlackAndWhite);
+    final Artifact imageAsArtifact = await artifactFromImage(
+      imageBlackAndWhite,
+    );
 
     return await getTextFromMatrix(
       imageAsMatrix: imageAsArtifact,
@@ -154,13 +155,14 @@ class Textify {
   /// 1. Dilates the image to connect nearby pixels using an adaptive kernel size
   /// 2. Identifies text regions from the dilated image
   /// 3. Groups the regions into horizontal bands of text
-  void extractBandsAndArtifacts(
-    final Artifact matrixSourceImage,
-  ) {
+  void extractBandsAndArtifacts(final Artifact matrixSourceImage) {
     clear();
 
-    int kernelSize =
-        computeKernelSize(matrixSourceImage.cols, matrixSourceImage.rows, 0.02);
+    int kernelSize = computeKernelSize(
+      matrixSourceImage.cols,
+      matrixSourceImage.rows,
+      0.02,
+    );
     final Artifact dilatedImage = dilateArtifact(
       matrixImage: matrixSourceImage,
       kernelSize: kernelSize,
@@ -209,8 +211,9 @@ class Textify {
       }
 
       // Calculate weighted score: 70% best match, 30% average across all templates
-      final double avgScore =
-          template.matrices.isEmpty ? 0 : totalScore / template.matrices.length;
+      final double avgScore = template.matrices.isEmpty
+          ? 0
+          : totalScore / template.matrices.length;
       final double combinedScore = (bestScore * 0.7) + (avgScore * 0.3);
 
       scores.add(
@@ -266,8 +269,9 @@ class Textify {
 
           if (scores.first.score < 0.4) {
             artifact.needsInspection = true;
-            final List<Artifact> artifactsFromColumns =
-                band.splitChunk(artifact);
+            final List<Artifact> artifactsFromColumns = band.splitChunk(
+              artifact,
+            );
 
             if (artifactsFromColumns.isNotEmpty) {
               band.replaceOneArtifactWithMore(artifact, artifactsFromColumns);
@@ -316,34 +320,39 @@ class Textify {
     List<CharacterDefinition> qualifiedTemplates = characterDefinitions
         .definitions
         .where((final CharacterDefinition template) {
-      if (supportedCharacters.isNotEmpty &&
-          !supportedCharacters.contains(template.character)) {
-        return false;
-      }
+          if (supportedCharacters.isNotEmpty &&
+              !supportedCharacters.contains(template.character)) {
+            return false;
+          }
 
-      int matchingChecks = 0;
-      if (numberOfEnclosure == template.enclosures) {
-        matchingChecks++;
-      }
-      if (punctuation == template.isPunctuation) {
-        matchingChecks++;
-      }
-      if (hasVerticalLineOnTheLeftSide == template.lineLeft) {
-        matchingChecks++;
-      }
-      if (hasVerticalLineOnTheRightSide == template.lineRight) {
-        matchingChecks++;
-      }
+          int matchingChecks = 0;
+          if (numberOfEnclosure == template.enclosures) {
+            matchingChecks++;
+          }
+          if (punctuation == template.isPunctuation) {
+            matchingChecks++;
+          }
+          if (hasVerticalLineOnTheLeftSide == template.lineLeft) {
+            matchingChecks++;
+          }
+          if (hasVerticalLineOnTheRightSide == template.lineRight) {
+            matchingChecks++;
+          }
 
-      final double matchPercentage = matchingChecks / totalChecks;
-      return matchPercentage >= percentageNeeded;
-    }).toList();
+          final double matchPercentage = matchingChecks / totalChecks;
+          return matchPercentage >= percentageNeeded;
+        })
+        .toList();
 
-    final Artifact resizedArtifact =
-        artifact.createNormalizeMatrix(templateWidth, templateHeight);
+    final Artifact resizedArtifact = artifact.createNormalizeMatrix(
+      templateWidth,
+      templateHeight,
+    );
 
-    final List<ScoreMatch> scores =
-        _getDistanceScores(qualifiedTemplates, resizedArtifact);
+    final List<ScoreMatch> scores = _getDistanceScores(
+      qualifiedTemplates,
+      resizedArtifact,
+    );
 
     scores.sort((a, b) => b.score.compareTo(a.score));
     return scores;
@@ -356,7 +365,9 @@ class Textify {
   static Future<ui.Image> loadImageFromAssets(String assetPath) async {
     final assetImage = AssetImage(assetPath);
     final completer = Completer<ui.Image>();
-    assetImage.resolve(ImageConfiguration.empty).addListener(
+    assetImage
+        .resolve(ImageConfiguration.empty)
+        .addListener(
           ImageStreamListener((info, _) => completer.complete(info.image)),
         );
     return completer.future;

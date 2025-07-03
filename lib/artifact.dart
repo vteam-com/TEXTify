@@ -108,16 +108,10 @@ class Artifact {
   ///
   /// [pixels] A Uint8List representing pixel data.
   /// [width] The width of the image.
-  factory Artifact.fromUint8List(
-    final Uint8List pixels,
-    final int width,
-  ) {
-    return Artifact.fromFlatListOfBool(
-      [
-        for (int i = 0; i < pixels.length; i += 4) pixels[i] == 0,
-      ],
-      width,
-    );
+  factory Artifact.fromUint8List(final Uint8List pixels, final int width) {
+    return Artifact.fromFlatListOfBool([
+      for (int i = 0; i < pixels.length; i += 4) pixels[i] == 0,
+    ], width);
   }
 
   /// Creates a Matrix from a flat list of boolean values.
@@ -227,14 +221,8 @@ class Artifact {
   /// - [forCode]: Whether the output is intended for code representation. Defaults to false.
   ///
   /// Returns a formatted string representation of the matrix.
-  String toText({
-    final String onChar = '#',
-    final bool forCode = false,
-  }) {
-    return this.gridToString(
-      forCode: forCode,
-      onChar: onChar,
-    );
+  String toText({final String onChar = '#', final bool forCode = false}) {
+    return this.gridToString(forCode: forCode, onChar: onChar);
   }
 
   /// Prints the grid to the debug console.
@@ -338,26 +326,18 @@ class Artifact {
   Uint8List get matrix => _matrix;
 
   /// the location of this matrix.
-  IntOffset locationFound = IntOffset();
+  IntOffset locationFound = const IntOffset();
 
   /// the rectangle location of this matrix.
-  IntRect get rectFound => IntRect.fromLTWH(
-        locationFound.x,
-        locationFound.y,
-        cols,
-        rows,
-      );
+  IntRect get rectFound =>
+      IntRect.fromLTWH(locationFound.x, locationFound.y, cols, rows);
 
   /// the location moved to
-  IntOffset locationAdjusted = IntOffset();
+  IntOffset locationAdjusted = const IntOffset();
 
   /// the rectangle location of this matrix.
-  IntRect get rectAdjusted => IntRect.fromLTWH(
-        locationAdjusted.x,
-        locationAdjusted.y,
-        cols,
-        rows,
-      );
+  IntRect get rectAdjusted =>
+      IntRect.fromLTWH(locationAdjusted.x, locationAdjusted.y, cols, rows);
 
   /// The number of enclosure found
   int _enclosures = -1;
@@ -541,9 +521,9 @@ class Artifact {
     } else {
       // Resize
       return trim()._createWrapGridWithFalse()._createResizedGrid(
-            desiredWidth,
-            desiredHeight,
-          );
+        desiredWidth,
+        desiredHeight,
+      );
     }
   }
 
@@ -709,9 +689,7 @@ class Artifact {
   ///   image, the out-of-bounds areas in the resulting sub-grid will be false.
   /// - The method uses integer coordinates, so any fractional values in the
   ///   rect will be truncated.
-  Artifact extractSubGrid({
-    required final IntRect rect,
-  }) {
+  Artifact extractSubGrid({required final IntRect rect}) {
     final int startX = rect.left.toInt();
     final int startY = rect.top.toInt();
     final int subImageWidth = rect.width.toInt();
@@ -731,8 +709,9 @@ class Artifact {
     }
 
     subImagePixels.locationFound = rect.shift(this.rectFound.topLeft).topLeft;
-    subImagePixels.locationAdjusted =
-        rect.shift(this.rectAdjusted.topLeft).topLeft;
+    subImagePixels.locationAdjusted = rect
+        .shift(this.rectAdjusted.topLeft)
+        .topLeft;
 
     return subImagePixels;
   }
@@ -775,12 +754,7 @@ class Artifact {
     if (maxX == -1 || maxY == -1) {
       return IntRect();
     } else {
-      return IntRect.fromLTRB(
-        minX,
-        minY,
-        (maxX + 1),
-        (maxY + 1),
-      );
+      return IntRect.fromLTRB(minX, minY, (maxX + 1), (maxY + 1));
     }
   }
 
@@ -1094,8 +1068,9 @@ class Artifact {
     list.sort((a, b) {
       // If the vertical difference is within the threshold, treat them as the same row
       if ((a.center.y - b.center.y).abs() <= threshold) {
-        return a.center.x
-            .compareTo(b.center.x); // Sort by X-axis if on the same line
+        return a.center.x.compareTo(
+          b.center.x,
+        ); // Sort by X-axis if on the same line
       }
       return a.center.y.compareTo(b.center.y); // Otherwise, sort by Y-axis
     });
@@ -1260,8 +1235,8 @@ class Artifact {
     final Artifact visited = Artifact(matrix.cols, matrix.rows);
 
     // We only consider lines that are more than 40% of the character's height
-    final int minVerticalLine =
-        (matrix.rows * _thresholdLinePercentage).toInt();
+    final int minVerticalLine = (matrix.rows * _thresholdLinePercentage)
+        .toInt();
 
     // Iterate over the matrix from left to right
     for (int x = 0; x < matrix.cols; x++) {
@@ -1308,8 +1283,8 @@ class Artifact {
     final Artifact visited = Artifact(matrix.cols, matrix.rows);
 
     // We only consider lines that are more than 40% of the character's height
-    final int minVerticalLine =
-        (matrix.rows * _thresholdLinePercentage).toInt();
+    final int minVerticalLine = (matrix.rows * _thresholdLinePercentage)
+        .toInt();
 
     // Iterate over the matrix from right to left
     for (int x = matrix.cols - 1; x >= 0; x--) {
@@ -1441,11 +1416,7 @@ class Artifact {
   ///
   /// Returns:
   /// A boolean value indicating whether the left side of the potential vertical line is valid (true) or not (false).
-  bool _validLeftSideLeft(
-    final Artifact m,
-    final int x,
-    final int y,
-  ) {
+  bool _validLeftSideLeft(final Artifact m, final int x, final int y) {
     if (x - 1 < 0) {
       return true;
     }
@@ -1469,11 +1440,7 @@ class Artifact {
   ///
   /// Returns:
   /// A boolean value indicating whether the right side of the potential vertical line is valid (true) or not (false).
-  bool _validLeftSideRight(
-    final Artifact m,
-    final int x,
-    final int y,
-  ) {
+  bool _validLeftSideRight(final Artifact m, final int x, final int y) {
     if (x + 1 >= m.cols) {
       return true;
     }
@@ -1503,10 +1470,7 @@ class Artifact {
     List<IntRect> regions = [];
 
     // Create a matrix to track visited pixels
-    final Artifact visited = Artifact(
-      this.cols,
-      this.rows,
-    );
+    final Artifact visited = Artifact(this.cols, this.rows);
 
     final int width = this.cols;
     final int height = this.rows;
@@ -1521,12 +1485,7 @@ class Artifact {
         // Check if pixel is on and not visited using direct array access
         if (visitedData[index] == 0 && imageData[index] == 1) {
           // Find region bounds directly without storing all points
-          final IntRect rect = floodFillToRect(
-            this,
-            visited,
-            x,
-            y,
-          );
+          final IntRect rect = floodFillToRect(this, visited, x, y);
 
           if (rect.width > 0 && rect.height > 0) {
             regions.add(rect);

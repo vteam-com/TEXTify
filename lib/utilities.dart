@@ -121,8 +121,9 @@ int computeAdaptiveThreshold(Uint8List pixels, int width, int height) {
 /// A [Future] that resolves to a [Uint8List] containing the raw RGBA data of the image.
 /// If the input [image] is null or conversion fails, returns an empty [Uint8List].
 Future<Uint8List> imageToUint8List(final Image image) async {
-  final ByteData? data =
-      await image.toByteData(format: ImageByteFormat.rawRgba);
+  final ByteData? data = await image.toByteData(
+    format: ImageByteFormat.rawRgba,
+  );
   return data?.buffer.asUint8List() ?? Uint8List(0);
 }
 
@@ -178,16 +179,7 @@ List<Point<int>> floodFill(
   connectedPoints.add(Point(startX, startY));
 
   // Direction offsets for adjacent pixels (including diagonals)
-  const List<int> rowOffsets = [
-    -1,
-    -1,
-    -1,
-    0,
-    0,
-    1,
-    1,
-    1,
-  ]; // Row adjustments
+  const List<int> rowOffsets = [-1, -1, -1, 0, 0, 1, 1, 1]; // Row adjustments
   const List<int> colOffsets = [
     -1,
     0,
@@ -313,12 +305,7 @@ IntRect floodFillToRect(
   final int regionWidth = maxX - minX + 1;
   final int regionHeight = maxY - minY + 1;
 
-  return IntRect.fromLTWH(
-    minX,
-    minY,
-    regionWidth,
-    regionHeight,
-  );
+  return IntRect.fromLTWH(minX, minY, regionWidth, regionHeight);
 }
 
 /// Computes the appropriate kernel size for dilation based on image dimensions.
@@ -506,8 +493,9 @@ List<int> artifactValleysOffsets(final Artifact artifact) {
   final List<int> peaksAndValleys = artifact.getHistogramHorizontal();
 
   // Check if all columns have identical values
-  final bool allIdentical =
-      peaksAndValleys.every((value) => value == peaksAndValleys[0]);
+  final bool allIdentical = peaksAndValleys.every(
+    (value) => value == peaksAndValleys[0],
+  );
   if (allIdentical) {
     // no valleys
     return [];
@@ -623,8 +611,9 @@ List<Artifact> splitArtifactByColumns(
   // Handle middle segments and last segment
   for (int i = 0; i < offsets.length; i++) {
     int columnStart = offsets[i];
-    int columnEnd =
-        (i < offsets.length - 1) ? offsets[i + 1] : artifactToSplit.cols;
+    int columnEnd = (i < offsets.length - 1)
+        ? offsets[i + 1]
+        : artifactToSplit.cols;
 
     // Skip if this segment has no width
     if (columnEnd <= columnStart) {

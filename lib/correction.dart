@@ -133,8 +133,9 @@ String applyDictionaryCorrectionOnSingleSentence(
   final String inputSentence,
   final Map<String, List<String>> correctionLetters,
 ) {
-  final regex =
-      RegExp(r'(\s+|[.,!?;:])'); // Matches spaces or single punctuation marks
+  final regex = RegExp(
+    r'(\s+|[.,!?;:])',
+  ); // Matches spaces or single punctuation marks
 
   final words = inputSentence
       .splitMapJoin(
@@ -201,9 +202,7 @@ String applyDictionaryCorrectionOnSingleSentence(
 /// It also handles special cases for plural words ending with 's' or 'S'.
 ///
 /// Returns the closest matching word with the original casing preserved for unchanged letters.
-String findClosestMatchingWordInDictionary(
-  String word,
-) {
+String findClosestMatchingWordInDictionary(String word) {
   String suggestion = findClosestWord(englishWords, word.toLowerCase());
   String lastChar = word[word.length - 1];
   if (lastChar == 's' ||
@@ -272,9 +271,7 @@ String sentenceFixZeroAnO(final String inputSentence) {
 ///
 /// [word] is the potentially corrected word.
 /// Returns the word with zeros replaced by appropriate letter 'O' if applicable.
-String replaceBadDigitsKeepCasing(
-  final String word,
-) {
+String replaceBadDigitsKeepCasing(final String word) {
   // If no zeros in the string, return as is
   if (!word.contains('0')) {
     return word;
@@ -335,10 +332,7 @@ String digitCorrection(final String input) {
 /// It examines all words in the dictionary and returns the one with the minimum
 /// Levenshtein distance. If multiple words have the same minimum distance, it returns
 /// the longest one among them.
-String findClosestWord(
-  final Set<String> dictionary,
-  final String word,
-) {
+String findClosestWord(final Set<String> dictionary, final String word) {
   String closestMatch = dictionary.first; // Start with any word from dictionary
   int minDistance = levenshteinDistance(word, closestMatch.toLowerCase());
 
@@ -412,15 +406,13 @@ String normalizeCasingOfSentence(final String sentence) {
     return sentence.toUpperCase();
   } else {
     // Find the first letter in the sentence to capitalize
-    int firstLetterIndex = sentence.split('').indexWhere(
-          (char) => isLetter(char),
-        );
+    int firstLetterIndex = sentence
+        .split('')
+        .indexWhere((char) => isLetter(char));
 
     if (firstLetterIndex != -1) {
       // Capitalize the first letter and lowercase the rest
-      result.write(
-        sentence.substring(0, firstLetterIndex),
-      );
+      result.write(sentence.substring(0, firstLetterIndex));
       result.write(sentence[firstLetterIndex].toUpperCase());
       result.write(sentence.substring(firstLetterIndex + 1).toLowerCase());
     } else {

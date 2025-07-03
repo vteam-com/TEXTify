@@ -40,10 +40,7 @@ void main() {
 
       stats.inspect('l23O');
       expect(stats.mostlyDigits(), false);
-      expect(
-        digitCorrection('l23O'),
-        '1230',
-      );
+      expect(digitCorrection('l23O'), '1230');
     });
 
     test('applyCorrection with dictionary disabled', () {
@@ -92,23 +89,24 @@ void main() {
     });
 
     test(
-        'findClosestMatchingWordInDictionary finds closest match and preserves casing',
-        () {
-      // Test case 1: No match found, should find closest word
-      String result1 = findClosestMatchingWordInDictionary('appLe');
-      expect(result1, 'appLe'); // Should preserve casing of unchanged letters
+      'findClosestMatchingWordInDictionary finds closest match and preserves casing',
+      () {
+        // Test case 1: No match found, should find closest word
+        String result1 = findClosestMatchingWordInDictionary('appLe');
+        expect(result1, 'appLe'); // Should preserve casing of unchanged letters
 
-      // Test case 2: Match already found, should return original word
-      String result2 = findClosestMatchingWordInDictionary('baNana');
-      expect(result2, 'baNana');
+        // Test case 2: Match already found, should return original word
+        String result2 = findClosestMatchingWordInDictionary('baNana');
+        expect(result2, 'baNana');
 
-      // Test case 3: Plural word ending with 's'
-      String result3 = findClosestMatchingWordInDictionary('oranges');
-      expect(result3, 'oranges'); // Should preserve the 's' at the end
+        // Test case 3: Plural word ending with 's'
+        String result3 = findClosestMatchingWordInDictionary('oranges');
+        expect(result3, 'oranges'); // Should preserve the 's' at the end
 
-      // Test case 4: Word with different length than suggestion
-      String result4 = findClosestMatchingWordInDictionary('helloz');
-      expect(result4, 'hello'); // Should handle different length words
-    });
+        // Test case 4: Word with different length than suggestion
+        String result4 = findClosestMatchingWordInDictionary('helloz');
+        expect(result4, 'hello'); // Should handle different length words
+      },
+    );
   });
 }

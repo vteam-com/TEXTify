@@ -175,7 +175,8 @@ class Bands {
     final int horizontalDistance =
         bandEast.rectangleAdjusted.left - bandWest.rectangleAdjusted.right;
 
-    final int avgHeightOfBothBands = (bandEast.rectangleAdjusted.height +
+    final int avgHeightOfBothBands =
+        (bandEast.rectangleAdjusted.height +
             bandWest.rectangleAdjusted.height) ~/
         2;
 
@@ -200,12 +201,15 @@ class Bands {
   /// Uses the center points of the original rectangles for comparison.
   void sortTopLeftToBottomRight() {
     list.sort(
-      (a, b) => (a.rectangleOriginal.center.y
-                  .compareTo(b.rectangleOriginal.center.y) !=
+      (a, b) =>
+          (a.rectangleOriginal.center.y.compareTo(
+                b.rectangleOriginal.center.y,
+              ) !=
               0)
           ? a.rectangleOriginal.center.y.compareTo(b.rectangleOriginal.center.y)
-          : a.rectangleOriginal.center.x
-              .compareTo(b.rectangleOriginal.center.x),
+          : a.rectangleOriginal.center.x.compareTo(
+              b.rectangleOriginal.center.x,
+            ),
     );
   }
 
@@ -304,11 +308,9 @@ class Bands {
   /// Each band's text is separated by a newline character.
   String getText() {
     String text = '';
-    list.forEach(
-      (final Band band) {
-        text += band.getText();
-      },
-    );
+    list.forEach((final Band band) {
+      text += band.getText();
+    });
     return text;
   }
 }

@@ -18,11 +18,7 @@ void main() {
 
   group('Artifact Merging Tests', () {
     test('Empty Artifact', () {
-      final artifact1 = Artifact.fromAsciiDefinition(
-        [
-          '#',
-        ],
-      );
+      final artifact1 = Artifact.fromAsciiDefinition(['#']);
       expect(artifact1.isEmpty, false);
       expect(artifact1.isNotEmpty, true);
       expect(
@@ -47,21 +43,9 @@ void main() {
     });
 
     test('Merging 2 overlapping artifacts', () {
-      final artifact1 = Artifact.fromAsciiDefinition(
-        [
-          '#..',
-          '..#',
-          '#..',
-        ],
-      );
+      final artifact1 = Artifact.fromAsciiDefinition(['#..', '..#', '#..']);
 
-      final artifact2 = Artifact.fromAsciiDefinition(
-        [
-          '..#',
-          '#..',
-          '..#',
-        ],
-      );
+      final artifact2 = Artifact.fromAsciiDefinition(['..#', '#..', '..#']);
 
       artifact1.mergeArtifact(artifact2);
 
@@ -69,92 +53,71 @@ void main() {
     });
 
     test('Real test', () {
-      final artifact1 = Artifact.fromAsciiDefinition(
-        [
-          '..............',
-          '..............',
-          '..............',
-          '..............',
-          '..............',
-          '..............',
-          '#############.',
-          '..###.......#.',
-          '..###.........',
-          '..###.........',
-          '..###.........',
-          '..###......#..',
-          '..###......#..',
-          '..###......#..',
-          '..##########..',
-          '..###.....##..',
-          '..###......#..',
-          '..###.........',
-          '..###.........',
-          '..###.........',
-          '..###.........',
-          '..###........#',
-          '..###.......##',
-          '##############',
-        ],
-      );
-      artifact1.locationFound = IntOffset(10, 0);
+      final artifact1 = Artifact.fromAsciiDefinition([
+        '..............',
+        '..............',
+        '..............',
+        '..............',
+        '..............',
+        '..............',
+        '#############.',
+        '..###.......#.',
+        '..###.........',
+        '..###.........',
+        '..###.........',
+        '..###......#..',
+        '..###......#..',
+        '..###......#..',
+        '..##########..',
+        '..###.....##..',
+        '..###......#..',
+        '..###.........',
+        '..###.........',
+        '..###.........',
+        '..###.........',
+        '..###........#',
+        '..###.......##',
+        '##############',
+      ]);
+      artifact1.locationFound = const IntOffset(10, 0);
 
-      final artifact2 = Artifact.fromAsciiDefinition(
-        [
-          '..',
-          '..',
-          '..',
-          '..',
-          '..',
-          '..',
-          '..',
-          '..',
-          '#.',
-          '#.',
-          '..',
-          '..',
-          '..',
-          '..',
-          '..',
-          '..',
-          '..',
-          '..',
-          '..',
-          '.#',
-          '..',
-          '..',
-          '..',
-          '..',
-        ],
-      );
-      artifact2.locationFound = IntOffset(23, 0);
+      final artifact2 = Artifact.fromAsciiDefinition([
+        '..',
+        '..',
+        '..',
+        '..',
+        '..',
+        '..',
+        '..',
+        '..',
+        '#.',
+        '#.',
+        '..',
+        '..',
+        '..',
+        '..',
+        '..',
+        '..',
+        '..',
+        '..',
+        '..',
+        '.#',
+        '..',
+        '..',
+        '..',
+        '..',
+      ]);
+      artifact2.locationFound = const IntOffset(23, 0);
 
       artifact1.mergeArtifact(artifact2);
     });
 
     test('Merging overlapping artifacts in a Band', () {
-      final artifact1 = Artifact.fromAsciiDefinition(
-        [
-          '#..',
-          '..#',
-          '#..',
-        ],
-      );
+      final artifact1 = Artifact.fromAsciiDefinition(['#..', '..#', '#..']);
 
-      final artifact2 = Artifact.fromAsciiDefinition(
-        [
-          '..#',
-          '#..',
-          '..#',
-        ],
-      );
+      final artifact2 = Artifact.fromAsciiDefinition(['..#', '#..', '..#']);
 
-      final artifact3 = Artifact.fromAsciiDefinition(
-        [
-          '..',
-          '.#',
-        ],
-      );
+      final artifact3 = Artifact.fromAsciiDefinition(['..', '.#']);
 
       Band band = Band();
       band.addArtifact(artifact1);
@@ -169,22 +132,10 @@ void main() {
     });
 
     test('Not Merging two non-overlapping artifacts', () {
-      final artifact1 = Artifact.fromAsciiDefinition(
-        [
-          '#..',
-          '..#',
-          '#..',
-        ],
-      );
+      final artifact1 = Artifact.fromAsciiDefinition(['#..', '..#', '#..']);
 
-      final artifact2 = Artifact.fromAsciiDefinition(
-        [
-          '..#',
-          '#..',
-          '..#',
-        ],
-      );
-      artifact2.locationFound = IntOffset(30, 30);
+      final artifact2 = Artifact.fromAsciiDefinition(['..#', '#..', '..#']);
+      artifact2.locationFound = const IntOffset(30, 30);
 
       Band band = Band();
       band.addArtifact(artifact1);
@@ -199,81 +150,39 @@ void main() {
 
   group('Artifact Padding Tests', () {
     test('Padding top and bottom with zeros', () {
-      final artifact = Artifact.fromAsciiDefinition(
-        [
-          '#.#',
-          '.#.',
-          '#.#',
-        ],
-      );
+      final artifact = Artifact.fromAsciiDefinition(['#.#', '.#.', '#.#']);
 
       artifact.padTopBottom(paddingTop: 0, paddingBottom: 0);
 
-      expect(artifact.gridToStrings(), [
-        '#.#',
-        '.#.',
-        '#.#',
-      ]);
+      expect(artifact.gridToStrings(), ['#.#', '.#.', '#.#']);
     });
 
     test('Padding with zero top padding', () {
-      final artifact = Artifact.fromAsciiDefinition(
-        [
-          '#.#',
-          '.#.',
-        ],
-      );
+      final artifact = Artifact.fromAsciiDefinition(['#.#', '.#.']);
 
       artifact.padTopBottom(paddingTop: 0, paddingBottom: 2);
 
-      expect(artifact.gridToStrings(), [
-        '#.#',
-        '.#.',
-        '...',
-        '...',
-      ]);
+      expect(artifact.gridToStrings(), ['#.#', '.#.', '...', '...']);
     });
 
     test('Padding with zero bottom padding', () {
-      final artifact = Artifact.fromAsciiDefinition(
-        [
-          '#.#',
-          '.#.',
-        ],
-      );
+      final artifact = Artifact.fromAsciiDefinition(['#.#', '.#.']);
 
       artifact.padTopBottom(paddingTop: 2, paddingBottom: 0);
 
-      expect(artifact.gridToStrings(), [
-        '...',
-        '...',
-        '#.#',
-        '.#.',
-      ]);
+      expect(artifact.gridToStrings(), ['...', '...', '#.#', '.#.']);
     });
 
     test('Padding single row artifact', () {
-      final artifact = Artifact.fromAsciiDefinition(
-        [
-          '#.#',
-        ],
-      );
+      final artifact = Artifact.fromAsciiDefinition(['#.#']);
 
       artifact.padTopBottom(paddingTop: 1, paddingBottom: 1);
 
-      expect(artifact.gridToStrings(), [
-        '...',
-        '#.#',
-        '...',
-      ]);
+      expect(artifact.gridToStrings(), ['...', '#.#', '...']);
     });
 
     test('Padding with large values', () {
-      final artifact = Artifact.fromAsciiDefinition(
-        [
-          '#',
-        ],
-      );
+      final artifact = Artifact.fromAsciiDefinition(['#']);
 
       artifact.padTopBottom(paddingTop: 100, paddingBottom: 100);
 
@@ -362,61 +271,41 @@ void main() {
   group('Artifact Normalization Tests', () {
     test('createNormalizeMatrix resizes artifact correctly', () {
       // Create a test artifact
-      final artifact = Artifact.fromAsciiDefinition([
-        '##..',
-        '.##.',
-        '..##',
-      ]);
+      final artifact = Artifact.fromAsciiDefinition(['##..', '.##.', '..##']);
 
       // Test resizing to larger dimensions
       final resizedLarger = artifact.createNormalizeMatrix(6, 5);
       expect(resizedLarger.cols, 6);
       expect(resizedLarger.rows, 5);
-      expect(
-        resizedLarger.gridToStrings(),
-        [
-          '......',
-          '.##...',
-          '..##..',
-          '...##.',
-          '......',
-        ],
-      );
+      expect(resizedLarger.gridToStrings(), [
+        '......',
+        '.##...',
+        '..##..',
+        '...##.',
+        '......',
+      ]);
 
       // Test resizing to smaller dimensions
       final resizedSmaller = artifact.createNormalizeMatrix(2, 2);
       expect(resizedSmaller.cols, 2);
       expect(resizedSmaller.rows, 2);
-      expect(
-        resizedSmaller.gridToStrings(),
-        [
-          '##',
-          '##',
-        ],
-      );
+      expect(resizedSmaller.gridToStrings(), ['##', '##']);
 
       // Test with punctuation
-      final punctuation = Artifact.fromAsciiDefinition([
-        '.#.',
-        '###',
-        '.#.',
-      ]);
+      final punctuation = Artifact.fromAsciiDefinition(['.#.', '###', '.#.']);
 
       punctuation.matchingCharacter = '.';
 
       final resizedPunctuation = punctuation.createNormalizeMatrix(5, 5);
       expect(resizedPunctuation.cols, 5);
       expect(resizedPunctuation.rows, 5);
-      expect(
-        resizedPunctuation.gridToStrings(),
-        [
-          '.....',
-          '..#..',
-          '.###.',
-          '..#..',
-          '.....',
-        ],
-      );
+      expect(resizedPunctuation.gridToStrings(), [
+        '.....',
+        '..#..',
+        '.###.',
+        '..#..',
+        '.....',
+      ]);
     });
   });
 

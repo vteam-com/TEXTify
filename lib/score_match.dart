@@ -9,11 +9,7 @@ class ScoreMatch {
   ///
   /// The [character] represents the matched character, the [matrixIndex] is the index of the
   /// matching template matrices, and the [score] is the final score in percentage (0..1).
-  ScoreMatch({
-    this.character = '',
-    this.matrixIndex = -1,
-    this.score = 0.0,
-  });
+  ScoreMatch({this.character = '', this.matrixIndex = -1, this.score = 0.0});
 
   /// Character matched
   final String character;

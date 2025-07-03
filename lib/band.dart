@@ -44,11 +44,7 @@ class Band {
     //
     // IntOffset their locations found
     //
-    offsetArtifacts(
-      artifactsFound,
-      offset.x.toInt(),
-      offset.y.toInt(),
-    );
+    offsetArtifacts(artifactsFound, offset.x.toInt(), offset.y.toInt());
 
     //
     // Band
@@ -56,8 +52,9 @@ class Band {
     final Band newBand = Band();
 
     // sort horizontally
-    artifactsFound
-        .sort((a, b) => a.locationFound.x.compareTo(b.locationFound.x));
+    artifactsFound.sort(
+      (a, b) => a.locationFound.x.compareTo(b.locationFound.x),
+    );
 
     for (final Artifact artifact in artifactsFound) {
       if (artifact.discardableContent() == false) {
@@ -305,8 +302,9 @@ class Band {
 
     // First, sort artifacts by their horizontal position
     final List<Artifact> sortedArtifacts = List.from(artifacts);
-    sortedArtifacts
-        .sort((a, b) => a.rectFound.left.compareTo(b.rectFound.left));
+    sortedArtifacts.sort(
+      (a, b) => a.rectFound.left.compareTo(b.rectFound.left),
+    );
 
     // Create a working copy of the artifacts list
     final List<Artifact> workingArtifacts = List.from(sortedArtifacts);
@@ -473,9 +471,7 @@ class Band {
     required final int rows,
     required final IntOffset locationFoundAt,
   }) {
-    final Artifact artifactSpace = Artifact.fromMatrix(
-      Artifact(cols, rows),
-    );
+    final Artifact artifactSpace = Artifact.fromMatrix(Artifact(cols, rows));
     artifactSpace.matchingCharacter = ' ';
     artifactSpace.locationFound = locationFoundAt;
     artifacts.insert(insertAtIndex, artifactSpace);
@@ -553,8 +549,9 @@ class Band {
     int maxY = artifacts.first.rectFound.bottom;
 
     for (final Artifact artifact in artifacts) {
-      final IntRect rect =
-          useAdjustedRect ? artifact.rectAdjusted : artifact.rectFound;
+      final IntRect rect = useAdjustedRect
+          ? artifact.rectAdjusted
+          : artifact.rectFound;
       minX = min(minX, rect.left);
       minY = min(minY, rect.top);
       maxX = max(maxX, rect.right);
@@ -573,9 +570,9 @@ class Band {
   /// Returns:
   ///   An integer representing the total number of space characters.
   int get spacesCount => artifacts.fold(
-        0,
-        (count, a) => a.matchingCharacter == ' ' ? count + 1 : count,
-      );
+    0,
+    (count, a) => a.matchingCharacter == ' ' ? count + 1 : count,
+  );
 
   /// Vertically pads artifacts to match the height of the band.
   ///

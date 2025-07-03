@@ -45,8 +45,9 @@ class CharacterDefinitions {
   void fromJsonString(final String jsonString) {
     final dynamic jsonObject = jsonDecode(jsonString);
     final List<dynamic> jsonList = jsonObject['templates'];
-    _definitions =
-        jsonList.map((json) => CharacterDefinition.fromJson(json)).toList();
+    _definitions = jsonList
+        .map((json) => CharacterDefinition.fromJson(json))
+        .toList();
   }
 
   /// Retrieves a specific character definition.
@@ -98,10 +99,7 @@ class CharacterDefinitions {
   ///   - The matricesIndex is negative.
   ///   - The matricesIndex is out of bounds for the character's matrices.
   ///
-  Artifact getMatrix(
-    final String character,
-    final int matricesIndex,
-  ) {
+  Artifact getMatrix(final String character, final int matricesIndex) {
     final CharacterDefinition? definition = getDefinition(character);
     if (definition == null ||
         matricesIndex < 0 ||
@@ -189,8 +187,9 @@ class CharacterDefinitions {
       _definitions.add(newDefinition);
       return true;
     } else {
-      final int existingMatrixIndex =
-          found.matrices.indexWhere((final Artifact m) => m.font == font);
+      final int existingMatrixIndex = found.matrices.indexWhere(
+        (final Artifact m) => m.font == font,
+      );
 
       if (existingMatrixIndex == -1) {
         found.matrices.add(matrix);
@@ -263,18 +262,7 @@ const List<String> letterLowerCase = [
 ];
 
 /// All Characters representing Digits
-const List<String> digits = [
-  '0',
-  '1',
-  '2',
-  '3',
-  '4',
-  '5',
-  '6',
-  '7',
-  '8',
-  '9',
-];
+const List<String> digits = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
 
 /// All Characters representing punctuation
 const List<String> punctuationMarks = [

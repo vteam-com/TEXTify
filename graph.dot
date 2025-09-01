@@ -4,6 +4,7 @@ digraph "" {
   edge [penwidth=1.3];
   "/test/textify_test.dart" [label="textify_test"];
   "/test/bands_test.dart" [label="bands_test"];
+  "/test/correction_test.dart" [label="correction_test"];
   "/test/rectangle_test.dart" [label="rectangle_test"];
   "/test/artifact_test.dart" [label="artifact_test"];
   "/test/utilitites_test.dart" [label="utilitites_test"];
@@ -27,6 +28,7 @@ digraph "" {
       label="test";
       "/test/textify_test.dart";
       "/test/bands_test.dart";
+      "/test/correction_test.dart";
       "/test/rectangle_test.dart";
       "/test/artifact_test.dart";
       "/test/utilitites_test.dart";
@@ -52,10 +54,12 @@ digraph "" {
   "/test/textify_test.dart" -> "/lib/band.dart";
   "/test/textify_test.dart" -> "/lib/character_definition.dart";
   "/test/textify_test.dart" -> "/lib/correction.dart";
+  "/test/textify_test.dart" -> "/lib/score_match.dart";
   "/test/textify_test.dart" -> "/lib/textify.dart";
   "/test/textify_test.dart" -> "/lib/utilities.dart";
   "/test/bands_test.dart" -> "/lib/bands.dart";
   "/test/bands_test.dart" -> "/lib/int_offset.dart";
+  "/test/correction_test.dart" -> "/lib/correction.dart";
   "/test/rectangle_test.dart" -> "/lib/int_rect.dart";
   "/test/artifact_test.dart" -> "/lib/bands.dart";
   "/test/artifact_test.dart" -> "/lib/utilities.dart";
@@ -69,6 +73,7 @@ digraph "" {
   "/lib/band.dart" -> "/lib/artifact.dart";
   "/lib/band.dart" -> "/lib/utilities.dart";
   "/lib/band.dart" -> "/lib/artifact.dart" [style=dashed];
+  "/lib/artifact.dart" -> "/lib/correction.dart";
   "/lib/artifact.dart" -> "/lib/utilities.dart";
   "/lib/character_definition.dart" -> "/lib/artifact.dart";
   "/lib/int_rect.dart" -> "/lib/int_offset.dart";

@@ -139,7 +139,7 @@ TEXTify is currently designed to work with the English language only. While it m
 
 ![Call Graph](graph.svg)
 
-*How to generate the above graph. Run these commands on macOS .*
+How to generate the above graph. Run these commands on macOS
 
 ```bash
 dart pub global activate lakos

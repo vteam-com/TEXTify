@@ -13,7 +13,7 @@ class Panel2Toolbar extends StatefulWidget {
     required this.showRegions,
     required this.onShowRegionsChanged,
     //
-    // attempToExtractWideArtifacts
+    // attempt To Extract Wide Artifacts
     //
     required this.tryToExtractWideArtifacts,
     required this.onTryToExtractWideArtifactsChanged,
@@ -103,7 +103,7 @@ class _Panel2ToolbarState extends State<Panel2Toolbar>
               OutlinedButton(
                 onPressed: () {
                   widget.transformationController.value =
-                      widget.transformationController.value.scaled(1 / 1.5);
+                      widget.transformationController.value * (1 / 1.5);
                 },
                 child: const Text('-'),
               ),
@@ -111,7 +111,7 @@ class _Panel2ToolbarState extends State<Panel2Toolbar>
               OutlinedButton(
                 onPressed: () {
                   widget.transformationController.value =
-                      widget.transformationController.value.scaled(1.5);
+                      widget.transformationController.value * 1.5;
                 },
                 child: const Text('+'),
               ),

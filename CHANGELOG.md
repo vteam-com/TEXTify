@@ -4,6 +4,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.4.6 : 2025-08-31
+
+### Updated
+
+- Dart: 3.9.0
+- Flutter: 3.35.2
+
 ## 0.4.5 : 2025-07-03
 
 ### Updated

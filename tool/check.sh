@@ -1,4 +1,8 @@
 #!/bin/sh
+echo --- Pub Get
+flutter pub get
+flutter pub upgrade
+
 echo --- Analyze
 
 dart analyze 

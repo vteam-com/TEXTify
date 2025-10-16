@@ -421,9 +421,9 @@ Future<Image> createImageFromPixels(
 /// - [x]: The horizontal offset to apply.
 /// - [y]: The vertical offset to apply.
 void offsetArtifacts(final List<Artifact> matrices, final int x, final int y) {
-  matrices.forEach(
-    (matrix) => matrix.locationFound = matrix.locationFound.translate(x, y),
-  );
+  for (final Artifact matrix in matrices) {
+    matrix.locationFound = matrix.locationFound.translate(x, y);
+  }
 }
 
 /// Creates a [Artifact] from a [Image].

@@ -258,9 +258,9 @@ class Bands {
     // additional clean up of the artifacts in each band
     for (final Band band in bandsFound.list) {
       // Start by matching adjusted location to the location found
-      band.artifacts.forEach((a) {
+      for (final a in band.artifacts) {
         a.locationAdjusted = IntOffset(a.locationFound.x, a.locationFound.y);
-      });
+      }
 
       band.sortArtifactsLeftToRight();
     }
@@ -308,9 +308,9 @@ class Bands {
   /// Each band's text is separated by a newline character.
   String getText() {
     String text = '';
-    list.forEach((final Band band) {
+    for (final Band band in list) {
       text += band.getText();
-    });
+    }
     return text;
   }
 }

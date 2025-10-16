@@ -86,7 +86,9 @@ class Band {
   String getText() {
     String text = '';
 
-    artifacts.forEach((a) => text += a.matchingCharacter);
+    for (final Artifact a in artifacts) {
+      text += a.matchingCharacter;
+    }
     return text;
   }
 

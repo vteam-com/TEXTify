@@ -187,28 +187,28 @@ class Artifact {
   /// - For digits: Adds "Digit" prefix and special handling for zero
   /// - For other characters: Simply returns the character in quotes
   String get matchingCharacterDescription {
-    String description = '"${this.matchingCharacter}"';
+    String description = '"$matchingCharacter"';
 
-    if (isLetter(this.matchingCharacter)) {
-      if (isUpperCase(this.matchingCharacter)) {
+    if (isLetter(matchingCharacter)) {
+      if (isUpperCase(matchingCharacter)) {
         description = 'Upper case';
       } else {
         description = 'Lower case';
       }
-      description += ' "${this.matchingCharacter.toUpperCase()}"';
+      description += ' "${matchingCharacter.toUpperCase()}"';
     }
 
-    if (isDigit(this.matchingCharacter)) {
+    if (isDigit(matchingCharacter)) {
       description =
-          'Digit "${this.matchingCharacter}"${this.matchingCharacter == '0' ? ' Zero' : ''}';
+          'Digit "$matchingCharacter"${matchingCharacter == '0' ? ' Zero' : ''}';
     }
     return description;
   }
 
   /// Empty the content
   void clear() {
-    this.cols = 0;
-    this._matrix = Uint8List(0);
+    cols = 0;
+    _matrix = Uint8List(0);
   }
 
   /// Converts the matrix to a text representation.
@@ -222,7 +222,7 @@ class Artifact {
   ///
   /// Returns a formatted string representation of the matrix.
   String toText({final String onChar = '#', final bool forCode = false}) {
-    return this.gridToString(forCode: forCode, onChar: onChar);
+    return gridToString(forCode: forCode, onChar: onChar);
   }
 
   /// Prints the grid to the debug console.
@@ -230,7 +230,7 @@ class Artifact {
   /// This method is useful for debugging purposes, allowing visual inspection
   /// of the matrix structure in the console output.
   void debugPrintGrid() {
-    debugPrint('${this.toText()}\n');
+    debugPrint('${toText()}\n');
   }
 
   /// Merges the current artifact with another artifact.
@@ -251,10 +251,10 @@ class Artifact {
   void mergeArtifact(final Artifact toMerge) {
     // Create a new rectangle that encompasses both artifacts
     final IntRect newRect = IntRect.fromLTRB(
-      min(this.rectFound.left, toMerge.rectFound.left),
-      min(this.rectFound.top, toMerge.rectFound.top),
-      max(this.rectFound.right, toMerge.rectFound.right),
-      max(this.rectFound.bottom, toMerge.rectFound.bottom),
+      min(rectFound.left, toMerge.rectFound.left),
+      min(rectFound.top, toMerge.rectFound.top),
+      max(rectFound.right, toMerge.rectFound.right),
+      max(rectFound.bottom, toMerge.rectFound.bottom),
     );
 
     // Create a new grid that can fit both artifacts
@@ -264,8 +264,8 @@ class Artifact {
     copyArtifactGrid(
       this,
       newGrid,
-      (this.rectFound.left - newRect.left),
-      (this.rectFound.top - newRect.top),
+      (rectFound.left - newRect.left),
+      (rectFound.top - newRect.top),
     );
 
     copyArtifactGrid(
@@ -276,7 +276,7 @@ class Artifact {
     );
 
     // Update this artifact with the merged data
-    this.setGrid(newGrid._matrix, newGrid.cols);
+    setGrid(newGrid._matrix, newGrid.cols);
   }
 
   /// Returns a string representation of this artifact.
@@ -297,10 +297,10 @@ class Artifact {
   /// index corresponds to a column, and the value at that index
   /// represents the count of `true` values in that column.
   List<int> getHistogramHorizontal() {
-    final List<int> histogram = List.filled(this.cols, 0);
-    for (int x = 0; x < this.cols; x++) {
-      for (int y = 0; y < this.rows; y++) {
-        if (this.cellGet(x, y)) {
+    final List<int> histogram = List.filled(cols, 0);
+    for (int x = 0; x < cols; x++) {
+      for (int y = 0; y < rows; y++) {
+        if (cellGet(x, y)) {
           histogram[x]++;
         }
       }
@@ -315,7 +315,7 @@ class Artifact {
   int cols = 0;
 
   /// The number of rows in the matrix.
-  int get rows => _matrix.isEmpty ? 0 : _matrix.length ~/ this.cols;
+  int get rows => _matrix.isEmpty ? 0 : _matrix.length ~/ cols;
 
   /// The 2D list representing the boolean grid.
   /// Each outer list represents a row, and each inner list represents a column.
@@ -388,7 +388,7 @@ class Artifact {
   ///
   /// Returns true if the artifact can be discarded, false otherwise.
   bool discardableContent() {
-    return this.area <= 2 || isConsideredLine();
+    return area <= 2 || isConsideredLine();
   }
 
   /// Returns the vertical histogram of the matrix.
@@ -398,10 +398,10 @@ class Artifact {
   /// index corresponds to a row, and the value at that index
   /// represents the count of `true` values in that row.
   List<int> getHistogramVertical() {
-    final List<int> histogram = List.filled(this.rows, 0);
-    for (int y = 0; y < this.rows; y++) {
-      for (int x = 0; x < this.cols; x++) {
-        if (this.cellGet(x, y)) {
+    final List<int> histogram = List.filled(rows, 0);
+    for (int y = 0; y < rows; y++) {
+      for (int x = 0; x < cols; x++) {
+        if (cellGet(x, y)) {
           histogram[y]++;
         }
       }
@@ -608,19 +608,18 @@ class Artifact {
     required final int paddingTop,
     required final int paddingBottom,
   }) {
-    final int newRows = this.rows + paddingTop + paddingBottom;
-    final Uint8List newMatrix = Uint8List(newRows * this.cols);
+    final int newRows = rows + paddingTop + paddingBottom;
+    final Uint8List newMatrix = Uint8List(newRows * cols);
 
     // Copy old matrix into the new padded matrix
-    for (int y = 0; y < this.rows; y++) {
-      for (int x = 0; x < this.cols; x++) {
-        newMatrix[(y + paddingTop) * this.cols + x] =
-            this._matrix[y * this.cols + x];
+    for (int y = 0; y < rows; y++) {
+      for (int x = 0; x < cols; x++) {
+        newMatrix[(y + paddingTop) * cols + x] = _matrix[y * cols + x];
       }
     }
 
     // Replace old matrix
-    this._matrix = newMatrix;
+    _matrix = newMatrix;
   }
 
   /// Creates a new Matrix with a false border wrapping around the original matrix.
@@ -702,16 +701,14 @@ class Artifact {
         final int sourceX = startX + x;
         final int sourceY = startY + y;
 
-        if (sourceX < this.cols && sourceY < this.rows) {
-          subImagePixels.cellSet(x, y, this.cellGet(sourceX, sourceY));
+        if (sourceX < cols && sourceY < rows) {
+          subImagePixels.cellSet(x, y, cellGet(sourceX, sourceY));
         }
       }
     }
 
-    subImagePixels.locationFound = rect.shift(this.rectFound.topLeft).topLeft;
-    subImagePixels.locationAdjusted = rect
-        .shift(this.rectAdjusted.topLeft)
-        .topLeft;
+    subImagePixels.locationFound = rect.shift(rectFound.topLeft).topLeft;
+    subImagePixels.locationAdjusted = rect.shift(rectAdjusted.topLeft).topLeft;
 
     return subImagePixels;
   }
@@ -880,7 +877,7 @@ class Artifact {
   ///   [grid] (```Uint8List```): The 2D list of boolean values representing the grid.
   void setGrid(final Uint8List grid, final int cols) {
     if (grid.isEmpty) {
-      this.clear();
+      clear();
       return;
     }
     this.cols = cols;
@@ -900,7 +897,7 @@ class Artifact {
   /// If the input grid is empty or has no rows, the Matrix is cleared.
   void setGridFromBools(final List<List<bool>> input) {
     if (input.isEmpty || input[0].isEmpty) {
-      this.clear();
+      clear();
       return;
     }
     cols = input[0].length;
@@ -911,7 +908,7 @@ class Artifact {
     // Copy the input data into the flattened array
     for (int y = 0; y < rows; y++) {
       for (int x = 0; x < cols; x++) {
-        this.cellSet(x, y, input[y][x]);
+        cellSet(x, y, input[y][x]);
       }
     }
   }
@@ -1470,11 +1467,11 @@ class Artifact {
     List<IntRect> regions = [];
 
     // Create a matrix to track visited pixels
-    final Artifact visited = Artifact(this.cols, this.rows);
+    final Artifact visited = Artifact(cols, rows);
 
-    final int width = this.cols;
-    final int height = this.rows;
-    final Uint8List imageData = this.matrix;
+    final int width = cols;
+    final int height = rows;
+    final Uint8List imageData = matrix;
     final Uint8List visitedData = visited.matrix;
 
     // Scan through each pixel - use direct array access
@@ -1520,13 +1517,13 @@ class Artifact {
     List<Artifact> regions = [];
 
     // Create a matrix to track visited pixels
-    final Artifact visited = Artifact(this.cols, this.rows);
+    final Artifact visited = Artifact(cols, rows);
 
     // Scan through each pixel
-    for (int y = 0; y < this.rows; y++) {
-      for (int x = 0; x < this.cols; x++) {
+    for (int y = 0; y < rows; y++) {
+      for (int x = 0; x < cols; x++) {
         // If pixel is on and not visited, flood fill from this point
-        if (!visited.cellGet(x, y) && this.cellGet(x, y)) {
+        if (!visited.cellGet(x, y) && cellGet(x, y)) {
           // Get connected points using flood fill
           final List<Point<int>> connectedPoints = floodFill(
             this,

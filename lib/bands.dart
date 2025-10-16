@@ -42,7 +42,7 @@ class Bands {
   int get totalArtifacts {
     int countCharacters = 0;
 
-    for (final band in this.list) {
+    for (final band in list) {
       countCharacters += band.artifacts.length;
       countCharacters += 1; // For NewLine '\n'
     }

@@ -137,7 +137,7 @@ class Textify {
     extractBandsAndArtifacts(imageAsMatrix);
 
     String result = await getTextInBands(
-      listOfBands: this.bands.list,
+      listOfBands: bands.list,
       supportedCharacters: supportedCharacters,
     );
 
@@ -168,12 +168,12 @@ class Textify {
       kernelSize: kernelSize,
     );
 
-    this.regionsFromDilated = dilatedImage.findSubRegions();
+    regionsFromDilated = dilatedImage.findSubRegions();
 
-    this.bands = Bands.getBandsOfArtifacts(
+    bands = Bands.getBandsOfArtifacts(
       matrixSourceImage,
-      this.regionsFromDilated,
-      this.innerSplit,
+      regionsFromDilated,
+      innerSplit,
     );
   }
 
@@ -238,7 +238,7 @@ class Textify {
     required final List<Band> listOfBands,
     final String supportedCharacters = '',
   }) async {
-    this.textFound = '';
+    textFound = '';
     final List<String> linesFound = [];
 
     for (final Band band in listOfBands) {
@@ -294,8 +294,8 @@ class Textify {
       linesFound.add(line);
     }
 
-    this.textFound += linesFound.join('\n');
-    this.textFound = applyCorrection(this.textFound, applyDictionary);
+    textFound += linesFound.join('\n');
+    textFound = applyCorrection(textFound, applyDictionary);
 
     return textFound.trim();
   }

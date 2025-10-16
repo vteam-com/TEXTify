@@ -181,7 +181,7 @@ class Band {
   /// can affect the overall layout and dimensions of the band.
   void addArtifact(final Artifact artifact) {
     // reset the cached rectangle each time an artifact is added or removed
-    this.artifacts.add(artifact);
+    artifacts.add(artifact);
     clearStats();
   }
 
@@ -211,7 +211,7 @@ class Band {
 
     for (final Artifact artifactToSplit in listToInspect) {
       final List<Artifact> artifactsFromColumns = splitChunk(artifactToSplit);
-      this.replaceOneArtifactWithMore(artifactToSplit, artifactsFromColumns);
+      replaceOneArtifactWithMore(artifactToSplit, artifactsFromColumns);
     }
   }
 
@@ -274,9 +274,9 @@ class Band {
       thresholdMultiplier = 1.5; // More conservative for small sets
     }
 
-    final double thresholdWidth = this.averageWidth * thresholdMultiplier;
+    final double thresholdWidth = averageWidth * thresholdMultiplier;
 
-    for (final Artifact artifact in this.artifacts) {
+    for (final Artifact artifact in artifacts) {
       artifact.needsInspection = artifact.cols > thresholdWidth;
       if (artifact.needsInspection) {
         listToInspect.add(artifact);
@@ -329,7 +329,7 @@ class Band {
       mergedArtifacts.add(current);
     }
 
-    this.artifacts = mergedArtifacts;
+    artifacts = mergedArtifacts;
   }
 
   /// Determines if two artifacts should be merged based on their spatial relationship.
@@ -383,9 +383,9 @@ class Band {
     final Artifact artifactToReplace,
     final List<Artifact> artifactsToInsert,
   ) {
-    int index = this.artifacts.indexOf(artifactToReplace);
-    this.artifacts.removeAt(index);
-    this.artifacts.insertAll(index, artifactsToInsert);
+    int index = artifacts.indexOf(artifactToReplace);
+    artifacts.removeAt(index);
+    artifacts.insertAll(index, artifactsToInsert);
     clearStats();
   }
 
@@ -402,7 +402,7 @@ class Band {
   ///
   /// The threshold is set at 50% of the average width of artifacts in the band.
   void identifySpacesInBand() {
-    this.updateStatistics();
+    updateStatistics();
 
     if (artifacts.isEmpty || artifacts.length <= 1) {
       return;
@@ -491,7 +491,7 @@ class Band {
   /// This method modifies the positions of all artifacts in the band to create
   /// a left-aligned, properly spaced arrangement.
   void packArtifactLeftToRight() {
-    int left = this.rectangleOriginal.left;
+    int left = rectangleOriginal.left;
     int top = artifacts.first.locationFound.y;
 
     for (final Artifact artifact in artifacts) {
@@ -514,7 +514,7 @@ class Band {
   /// value may become outdated. In such cases, consider adding a method
   /// to invalidate the cache when necessary.
   IntRect get rectangleOriginal {
-    return getBoundingBox(this.artifacts, useAdjustedRect: false);
+    return getBoundingBox(artifacts, useAdjustedRect: false);
   }
 
   /// The bounding rectangle that encompasses all artifacts in the band.
@@ -522,7 +522,7 @@ class Band {
   /// This property calculates the smallest rectangle that contains all artifacts,
   /// adjusted for any transformations.
   IntRect get rectangleAdjusted {
-    return getBoundingBox(this.artifacts, useAdjustedRect: true);
+    return getBoundingBox(artifacts, useAdjustedRect: true);
   }
 
   /// Calculates the bounding rectangle that encloses a list of artifacts.
@@ -585,8 +585,8 @@ class Band {
   /// 2. Adding empty rows to the artifact matrices
   /// 3. Adjusting the vertical position of artifacts to align with the band
   void padVerticallyArtifactToMatchTheBand() {
-    int bandTop = this.rectangleOriginal.top;
-    int bandBottom = this.rectangleOriginal.bottom;
+    int bandTop = rectangleOriginal.top;
+    int bandBottom = rectangleOriginal.bottom;
 
     for (final Artifact artifact in artifacts) {
       // Calculate how many rows to pad at the top
@@ -614,7 +614,7 @@ class Band {
   @override
   String toString() {
     String title =
-        '[${this.artifacts.length}] Avg(W:${this.averageWidth.toStringAsFixed(0)}, H:${this.rectangleAdjusted.height} G:${this.averageKerning.toStringAsFixed(0)})';
+        '[${artifacts.length}] Avg(W:${averageWidth.toStringAsFixed(0)}, H:${rectangleAdjusted.height} G:${averageKerning.toStringAsFixed(0)})';
 
     if (spacesCount > 0) {
       title += ' S[$spacesCount]';

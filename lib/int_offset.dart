@@ -70,5 +70,5 @@ class IntOffset {
   /// * [dy] - The amount to translate in the y direction
   ///
   /// Returns a new offset with coordinates shifted by the given amounts.
-  IntOffset translate(int dx, int dy) => IntOffset(this.x + dx, this.y + dy);
+  IntOffset translate(int dx, int dy) => IntOffset(x + dx, y + dy);
 }

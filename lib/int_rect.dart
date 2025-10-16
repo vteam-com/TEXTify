@@ -176,7 +176,7 @@ class IntRect {
   /// [other] The other rectangle to check for horizontal intersection.
   /// Returns true if the rectangles overlap horizontally, false otherwise.
   bool intersectHorizontal(final IntRect other) {
-    if (other.left >= this.right || other.right <= this.left) {
+    if (other.left >= right || other.right <= left) {
       // off sides
       return false;
     }

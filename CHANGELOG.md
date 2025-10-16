@@ -4,6 +4,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.4.6 : 2025-10-16
+
+### Updated
+
+- Dart: 3.9.2
+- Flutter: 3.35.6
+
+### Changed
+- remove all "this."
+- deprecated ".scale()"
+
 ## 0.4.5 : 2025-07-03
 
 ### Updated

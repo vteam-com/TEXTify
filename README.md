@@ -42,20 +42,24 @@ Here is an example of how to use TEXTify:
 ``` dart
 import 'package:textify/textify.dart';
 
-// load your image
-ui.Image inputImage = await loadImage('scan.png');
+// Load your image (example using flutter's rootBundle)
+final ByteData imageData = await rootBundle.load('assets/scan.png');
+final ui.Codec codec = await ui.instantiateImageCodec(imageData.buffer.asUint8List());
+final ui.FrameInfo frameInfo = await codec.getNextFrame();
+final ui.Image inputImage = frameInfo.image;
 
-// instentiate TEXTify once
-Textify textify = await Textify().init();
+// Instantiate TEXTify once with configuration
+final textify = Textify(
+  config: TextifyConfig(
+    applyDictionaryCorrection: true, // Enable dictionary correction
+  ),
+);
+await textify.init();
 
-// Optionally apply English dictionary word correction
-textify.applyDictionary = true;
-
-// extract text from the image
-String extractedText = await textify.getTextFromImage(image: inputImage);
+// Extract text from the image
+final String extractedText = await textify.getTextFromImage(image: inputImage);
 
 print(extractedText);
-
 ```
 
 ## Configuration
@@ -199,14 +203,6 @@ TEXTify is currently designed to work with the English language only. While it m
 ## Components
 
 ![Call Graph](graph.svg)
-
-*How to generate the above graph. Run these commands on macOS .*
-
-```bash
-dart pub global activate lakos
-brew install graphviz
-./tools/graph.sh
-```
 
 Please contribute and report issues on the GitHub repository.
 <https://github.com/vteam-com/textify>

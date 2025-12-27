@@ -4,10 +4,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:textify/band.dart';
 import 'package:textify/character_definition.dart';
 import 'package:textify/correction.dart';
-import 'package:textify/score_match.dart';
-
+import 'package:textify/models/score_match.dart';
 import 'package:textify/textify.dart';
-import 'package:textify/utilities.dart';
+import 'package:textify/models/textify_config.dart';
+import 'package:textify/image_helpers.dart';
 
 void printMatrix(final Artifact matrix) {
   // ignore: avoid_print
@@ -19,15 +19,14 @@ void printMatrix(final Artifact matrix) {
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  final Textify instance = await Textify().init(
-    pathToAssetsDefinition: 'assets/matrices.json',
-  );
+  // Initialize character definitions
+  await Textify().init(pathToAssetsDefinition: 'assets/matrices.json');
 
   final List<String> supportedCharacters =
-      instance.characterDefinitions.supportedCharacters;
+      Textify.characterDefinitions.supportedCharacters;
 
   test('Character Definitions', () async {
-    expect(instance.characterDefinitions.count, 90);
+    expect(Textify.characterDefinitions.count, 90);
 
     expect(
       supportedCharacters.join(),
@@ -45,103 +44,106 @@ void main() async {
     // No englosure;
     for (final String char in charactersWithNoEnclosures) {
       final String reason = 'Characer > "$char"';
-      final CharacterDefinition? definition = instance.characterDefinitions
+      final CharacterDefinition? definition = Textify.characterDefinitions
           .getDefinition(char);
 
       expect(definition, isNotNull, reason: reason);
 
       expect(
-        instance.characterDefinitions.getDefinition(char)!.enclosures,
+        Textify.characterDefinitions.getDefinition(char)!.enclosures,
         0,
         reason: reason,
       );
     }
 
     // Enclosures
-    expect(instance.characterDefinitions.getDefinition('A')!.enclosures, 1);
-    expect(instance.characterDefinitions.getDefinition('B')!.enclosures, 2);
-    expect(instance.characterDefinitions.getDefinition('D')!.enclosures, 1);
-    expect(instance.characterDefinitions.getDefinition('O')!.enclosures, 1);
-    expect(instance.characterDefinitions.getDefinition('P')!.enclosures, 1);
-    expect(instance.characterDefinitions.getDefinition('Q')!.enclosures, 1);
-    expect(instance.characterDefinitions.getDefinition('a')!.enclosures, 1);
-    expect(instance.characterDefinitions.getDefinition('b')!.enclosures, 1);
-    expect(instance.characterDefinitions.getDefinition('d')!.enclosures, 1);
-    expect(instance.characterDefinitions.getDefinition('e')!.enclosures, 1);
-    expect(instance.characterDefinitions.getDefinition('g')!.enclosures, 1);
-    expect(instance.characterDefinitions.getDefinition('o')!.enclosures, 1);
-    expect(instance.characterDefinitions.getDefinition('p')!.enclosures, 1);
-    expect(instance.characterDefinitions.getDefinition('q')!.enclosures, 1);
-    expect(instance.characterDefinitions.getDefinition('0')!.enclosures, 1);
-    expect(instance.characterDefinitions.getDefinition('4')!.enclosures, 1);
-    expect(instance.characterDefinitions.getDefinition('6')!.enclosures, 1);
-    expect(instance.characterDefinitions.getDefinition('8')!.enclosures, 2);
-    expect(instance.characterDefinitions.getDefinition('9')!.enclosures, 1);
+    expect(Textify.characterDefinitions.getDefinition('A')!.enclosures, 1);
+    expect(Textify.characterDefinitions.getDefinition('B')!.enclosures, 2);
+    expect(Textify.characterDefinitions.getDefinition('D')!.enclosures, 1);
+    expect(Textify.characterDefinitions.getDefinition('O')!.enclosures, 1);
+    expect(Textify.characterDefinitions.getDefinition('P')!.enclosures, 1);
+    expect(Textify.characterDefinitions.getDefinition('Q')!.enclosures, 1);
+    expect(Textify.characterDefinitions.getDefinition('a')!.enclosures, 1);
+    expect(Textify.characterDefinitions.getDefinition('b')!.enclosures, 1);
+    expect(Textify.characterDefinitions.getDefinition('d')!.enclosures, 1);
+    expect(Textify.characterDefinitions.getDefinition('e')!.enclosures, 1);
+    expect(Textify.characterDefinitions.getDefinition('g')!.enclosures, 1);
+    expect(Textify.characterDefinitions.getDefinition('o')!.enclosures, 1);
+    expect(Textify.characterDefinitions.getDefinition('p')!.enclosures, 1);
+    expect(Textify.characterDefinitions.getDefinition('q')!.enclosures, 1);
+    expect(Textify.characterDefinitions.getDefinition('0')!.enclosures, 1);
+    expect(Textify.characterDefinitions.getDefinition('4')!.enclosures, 1);
+    expect(Textify.characterDefinitions.getDefinition('6')!.enclosures, 1);
+    expect(Textify.characterDefinitions.getDefinition('8')!.enclosures, 2);
+    expect(Textify.characterDefinitions.getDefinition('9')!.enclosures, 1);
   });
 
   test('Character Definitions Lines Left', () async {
-    expect(instance.characterDefinitions.getDefinition('B')!.lineLeft, true);
-    expect(instance.characterDefinitions.getDefinition('D')!.lineLeft, true);
-    expect(instance.characterDefinitions.getDefinition('E')!.lineLeft, true);
-    expect(instance.characterDefinitions.getDefinition('F')!.lineLeft, true);
-    expect(instance.characterDefinitions.getDefinition('H')!.lineLeft, true);
-    expect(instance.characterDefinitions.getDefinition('I')!.lineLeft, true);
-    expect(instance.characterDefinitions.getDefinition('J')!.lineLeft, true);
-    expect(instance.characterDefinitions.getDefinition('K')!.lineLeft, true);
-    expect(instance.characterDefinitions.getDefinition('L')!.lineLeft, true);
-    expect(instance.characterDefinitions.getDefinition('M')!.lineLeft, true);
-    expect(instance.characterDefinitions.getDefinition('N')!.lineLeft, true);
-    expect(instance.characterDefinitions.getDefinition('P')!.lineLeft, true);
-    expect(instance.characterDefinitions.getDefinition('R')!.lineLeft, true);
-    expect(instance.characterDefinitions.getDefinition('T')!.lineLeft, true);
-    expect(instance.characterDefinitions.getDefinition('U')!.lineLeft, true);
+    expect(Textify.characterDefinitions.getDefinition('B')!.lineLeft, true);
+    expect(Textify.characterDefinitions.getDefinition('D')!.lineLeft, true);
+    expect(Textify.characterDefinitions.getDefinition('E')!.lineLeft, true);
+    expect(Textify.characterDefinitions.getDefinition('F')!.lineLeft, true);
+    expect(Textify.characterDefinitions.getDefinition('H')!.lineLeft, true);
+    expect(Textify.characterDefinitions.getDefinition('I')!.lineLeft, true);
+    expect(Textify.characterDefinitions.getDefinition('J')!.lineLeft, true);
+    expect(Textify.characterDefinitions.getDefinition('K')!.lineLeft, true);
+    expect(Textify.characterDefinitions.getDefinition('L')!.lineLeft, true);
+    expect(Textify.characterDefinitions.getDefinition('M')!.lineLeft, true);
+    expect(Textify.characterDefinitions.getDefinition('N')!.lineLeft, true);
+    expect(Textify.characterDefinitions.getDefinition('P')!.lineLeft, true);
+    expect(Textify.characterDefinitions.getDefinition('R')!.lineLeft, true);
+    expect(Textify.characterDefinitions.getDefinition('T')!.lineLeft, true);
+    expect(Textify.characterDefinitions.getDefinition('U')!.lineLeft, true);
 
-    expect(instance.characterDefinitions.getDefinition('b')!.lineLeft, true);
-    expect(instance.characterDefinitions.getDefinition('h')!.lineLeft, true);
-    expect(instance.characterDefinitions.getDefinition('i')!.lineLeft, true);
-    expect(instance.characterDefinitions.getDefinition('k')!.lineLeft, true);
-    expect(instance.characterDefinitions.getDefinition('l')!.lineLeft, true);
-    expect(instance.characterDefinitions.getDefinition('m')!.lineLeft, true);
-    expect(instance.characterDefinitions.getDefinition('n')!.lineLeft, true);
-    expect(instance.characterDefinitions.getDefinition('p')!.lineLeft, true);
-    expect(instance.characterDefinitions.getDefinition('r')!.lineLeft, true);
-    expect(instance.characterDefinitions.getDefinition('u')!.lineLeft, true);
+    expect(Textify.characterDefinitions.getDefinition('b')!.lineLeft, true);
+    expect(Textify.characterDefinitions.getDefinition('h')!.lineLeft, true);
+    expect(Textify.characterDefinitions.getDefinition('i')!.lineLeft, true);
+    expect(Textify.characterDefinitions.getDefinition('k')!.lineLeft, true);
+    expect(Textify.characterDefinitions.getDefinition('l')!.lineLeft, true);
+    expect(Textify.characterDefinitions.getDefinition('m')!.lineLeft, true);
+    expect(Textify.characterDefinitions.getDefinition('n')!.lineLeft, true);
+    expect(Textify.characterDefinitions.getDefinition('p')!.lineLeft, true);
+    expect(Textify.characterDefinitions.getDefinition('r')!.lineLeft, true);
+    expect(Textify.characterDefinitions.getDefinition('u')!.lineLeft, true);
 
-    expect(instance.characterDefinitions.getDefinition('f')!.lineLeft, false);
-    expect(instance.characterDefinitions.getDefinition('t')!.lineLeft, false);
+    expect(Textify.characterDefinitions.getDefinition('f')!.lineLeft, false);
+    expect(Textify.characterDefinitions.getDefinition('t')!.lineLeft, false);
   });
 
   test('Character Definitions Lines Right', () async {
-    expect(instance.characterDefinitions.getDefinition('H')!.lineRight, true);
-    expect(instance.characterDefinitions.getDefinition('I')!.lineRight, true);
-    expect(instance.characterDefinitions.getDefinition('J')!.lineRight, true);
-    expect(instance.characterDefinitions.getDefinition('L')!.lineRight, true);
-    expect(instance.characterDefinitions.getDefinition('M')!.lineRight, true);
-    expect(instance.characterDefinitions.getDefinition('N')!.lineRight, true);
-    expect(instance.characterDefinitions.getDefinition('T')!.lineRight, true);
-    expect(instance.characterDefinitions.getDefinition('U')!.lineRight, true);
+    expect(Textify.characterDefinitions.getDefinition('H')!.lineRight, true);
+    expect(Textify.characterDefinitions.getDefinition('I')!.lineRight, true);
+    expect(Textify.characterDefinitions.getDefinition('J')!.lineRight, true);
+    expect(Textify.characterDefinitions.getDefinition('L')!.lineRight, true);
+    expect(Textify.characterDefinitions.getDefinition('M')!.lineRight, true);
+    expect(Textify.characterDefinitions.getDefinition('N')!.lineRight, true);
+    expect(Textify.characterDefinitions.getDefinition('T')!.lineRight, true);
+    expect(Textify.characterDefinitions.getDefinition('U')!.lineRight, true);
 
-    expect(instance.characterDefinitions.getDefinition('d')!.lineRight, true);
-    expect(instance.characterDefinitions.getDefinition('i')!.lineRight, true);
-    expect(instance.characterDefinitions.getDefinition('j')!.lineRight, true);
-    expect(instance.characterDefinitions.getDefinition('l')!.lineRight, true);
-    expect(instance.characterDefinitions.getDefinition('m')!.lineRight, true);
-    expect(instance.characterDefinitions.getDefinition('n')!.lineRight, true);
-    expect(instance.characterDefinitions.getDefinition('q')!.lineRight, true);
-    expect(instance.characterDefinitions.getDefinition('t')!.lineRight, true);
-    expect(instance.characterDefinitions.getDefinition('u')!.lineRight, true);
+    expect(Textify.characterDefinitions.getDefinition('d')!.lineRight, true);
+    expect(Textify.characterDefinitions.getDefinition('i')!.lineRight, true);
+    expect(Textify.characterDefinitions.getDefinition('j')!.lineRight, true);
+    expect(Textify.characterDefinitions.getDefinition('l')!.lineRight, true);
+    expect(Textify.characterDefinitions.getDefinition('m')!.lineRight, true);
+    expect(Textify.characterDefinitions.getDefinition('n')!.lineRight, true);
+    expect(Textify.characterDefinitions.getDefinition('q')!.lineRight, true);
+    expect(Textify.characterDefinitions.getDefinition('t')!.lineRight, true);
+    expect(Textify.characterDefinitions.getDefinition('u')!.lineRight, true);
   });
 
   test('Convert image to text', () async {
     final ui.Image uiImage = await Textify.loadImageFromAssets(
       'assets/test/input_test_image.png',
     );
-    instance.applyDictionary = false;
-    final String text = await instance.getTextFromImage(image: uiImage);
-    expect(instance.duration, greaterThan(0));
+    final Textify testInstance = Textify(
+      config: const TextifyConfig(applyDictionaryCorrection: false),
+    );
+    await testInstance.init(pathToAssetsDefinition: 'assets/matrices.json');
+    final String text = await testInstance.getTextFromImage(image: uiImage);
+    expect(testInstance.duration, greaterThan(0));
 
     // the result are not perfect 90% accuracy, but its trending in the right direction
-    expect(instance.count, text.length);
+    expect(testInstance.count, text.length);
 
     expect(
       text,
@@ -159,22 +161,26 @@ void main() async {
 
     final ui.Image imageBlackAndWhite = await imageToBlackOnWhite(uiImage);
 
-    final Artifact imageAsArtifact = await artifactFromImage(
+    final Artifact imageAsArtifact = await Artifact.artifactFromImage(
       imageBlackAndWhite,
     );
 
-    instance.applyDictionary = false;
+    final Textify testInstance = Textify(
+      config: const TextifyConfig(
+        applyDictionaryCorrection: false,
+        attemptCharacterSplitting: false,
+      ),
+    );
+    await testInstance.init(pathToAssetsDefinition: 'assets/matrices.json');
 
     //
     // First test withtout the [Inner-splitting]
     //
     {
-      instance.innerSplit = false;
+      testInstance.extractBandsAndArtifacts(imageAsArtifact);
+      expect(testInstance.bands.list.length, 1);
 
-      instance.extractBandsAndArtifacts(imageAsArtifact);
-      expect(instance.bands.list.length, 1);
-
-      final Band band = instance.bands.list.first;
+      final Band band = testInstance.bands.list.first;
       //
       //  R E MARKAB L E
       //
@@ -190,7 +196,7 @@ void main() async {
       // Chunk MARKAB
       {
         final chunk1 = suspectedChunks[0];
-        final List<int> valleys = artifactValleysOffsets(chunk1);
+        final List<int> valleys = Artifact.artifactValleysOffsets(chunk1);
         expect(valleys.length, 5, reason: '$valleys\n');
 
         final List<Artifact> subArtifactsOfChunk1 = band.splitChunk(chunk1);
@@ -224,11 +230,18 @@ void main() async {
       testExpectation(band.artifacts[08], 092); // L
       testExpectation(band.artifacts[09], 098); // E
 
-      final String text = await instance.getTextInBands(listOfBands: [band]);
+      final String text = await testInstance.getTextInBands(
+        listOfBands: [band],
+      );
       expect(text, 'REMAPKAB[E'); // some comlexity with the space
 
-      instance.applyDictionary = true;
-      final String text2 = await instance.getTextInBands(listOfBands: [band]);
+      final Textify dictInstance = Textify(
+        config: const TextifyConfig(applyDictionaryCorrection: true),
+      );
+      await dictInstance.init(pathToAssetsDefinition: 'assets/matrices.json');
+      final String text2 = await dictInstance.getTextInBands(
+        listOfBands: [band],
+      );
       expect(text2, 'REMARKABLE');
     }
   });
@@ -237,9 +250,14 @@ void main() async {
     final ui.Image uiImage = await Textify.loadImageFromAssets(
       'assets/test/bank_statement_test.png',
     );
-    instance.innerSplit = true;
-    instance.applyDictionary = false;
-    final String text = await instance.getTextFromImage(image: uiImage);
+    final Textify bankInstance = Textify(
+      config: const TextifyConfig(
+        attemptCharacterSplitting: true,
+        applyDictionaryCorrection: false,
+      ),
+    );
+    await bankInstance.init(pathToAssetsDefinition: 'assets/matrices.json');
+    final String text = await bankInstance.getTextFromImage(image: uiImage);
 
     // the result are not perfect 90% accuracy, but its trending in the right direction
     expect(

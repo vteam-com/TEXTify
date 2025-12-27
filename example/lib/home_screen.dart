@@ -1,6 +1,7 @@
 import 'dart:math';
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
+import 'package:textify/models/textify_config.dart';
 import 'package:textify/textify.dart';
 import 'package:textify_dashboard/panel1_source/debounce.dart';
 
@@ -20,7 +21,8 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  final Textify _textify = Textify();
+  late Textify _textify;
+  late TextifyConfig _config;
 
   Debouncer debouncer = Debouncer(const Duration(milliseconds: 1000));
 
@@ -37,6 +39,9 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
+
+    _config = const TextifyConfig();
+    _textify = Textify(config: _config);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _textify.init().then((_) {
@@ -118,22 +123,29 @@ class _HomeScreenState extends State<HomeScreen> {
                     textify: _textify,
                     imageSource: _imageSource,
                     regions: _textify.regionsFromDilated,
-                    tryToExtractWideArtifacts: _textify.innerSplit,
+                    tryToExtractWideArtifacts:
+                        _textify.config.attemptCharacterSplitting,
                     onInnerSplitChanged: (bool value) {
                       setState(
                         () {
-                          _textify.innerSplit = value;
+                          _config = _config.copyWith(
+                            attemptCharacterSplitting: value,
+                          );
+                          _textify = Textify(config: _config);
                           _debouceStartConvertImageToText();
                         },
                       );
                     },
-                    kernelSizeDilate: _textify.dilatingSize,
+                    kernelSizeDilate: _textify.config.dilationSize,
                     displayChoicesChanged: (
                       final int sizeDilate,
                     ) {
                       setState(
                         () {
-                          _textify.dilatingSize = max(0, sizeDilate);
+                          _config = _config.copyWith(
+                            dilationSize: max(0, sizeDilate),
+                          );
+                          _textify = Textify(config: _config);
                           _debouceStartConvertImageToText();
                         },
                       );
@@ -141,7 +153,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     onReset: () {
                       // Reset
                       setState(() {
-                        _textify.dilatingSize = 22;
+                        _config = _config.copyWith(dilationSize: 22);
+                        _textify = Textify(config: _config);
                         centerViewers();
                       });
                     },
@@ -165,6 +178,10 @@ class _HomeScreenState extends State<HomeScreen> {
                     settings: _settings,
                     onSettingsChanged: () {
                       setState(() {
+                        _config = _config.copyWith(
+                          applyDictionaryCorrection: _settings.applyDictionary,
+                        );
+                        _textify = Textify(config: _config);
                         _debouceStartConvertImageToText();
                       });
                     },
@@ -199,7 +216,10 @@ class _HomeScreenState extends State<HomeScreen> {
   void _clearState() {
     if (mounted) {
       setState(() {
-        _textify.applyDictionary = _settings.applyDictionary;
+        _config = _config.copyWith(
+          applyDictionaryCorrection: _settings.applyDictionary,
+        );
+        _textify = Textify(config: _config);
         _textify.textFound = '';
       });
     }

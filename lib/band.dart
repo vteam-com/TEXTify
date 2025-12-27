@@ -6,7 +6,7 @@ import 'dart:math';
 
 import 'package:flutter/widgets.dart';
 import 'package:textify/artifact.dart';
-import 'package:textify/utilities.dart';
+import 'package:textify/image_helpers.dart';
 
 export 'package:textify/artifact.dart';
 
@@ -44,7 +44,11 @@ class Band {
     //
     // IntOffset their locations found
     //
-    offsetArtifacts(artifactsFound, offset.x.toInt(), offset.y.toInt());
+    Artifact.offsetArtifacts(
+      artifactsFound,
+      offset.x.toInt(),
+      offset.y.toInt(),
+    );
 
     //
     // Band
@@ -226,14 +230,14 @@ class Band {
   /// Returns a list of new artifacts created from the split.
   List<Artifact> splitChunk(Artifact artifactToSplit) {
     // Get columns where to split the artifact
-    List<int> splitColumns = artifactValleysOffsets(artifactToSplit);
+    List<int> splitColumns = Artifact.artifactValleysOffsets(artifactToSplit);
 
     // If no split columns found, return empty list
     if (splitColumns.isEmpty) {
       return [];
     }
 
-    List<Artifact> artifactsFromColumns = splitArtifactByColumns(
+    List<Artifact> artifactsFromColumns = Artifact.splitArtifactByColumns(
       artifactToSplit,
       splitColumns,
     );

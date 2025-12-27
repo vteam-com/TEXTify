@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:textify/int_rect.dart';
+import 'package:textify/models/int_rect.dart';
 
 void main() {
   group('IntOffset', () {

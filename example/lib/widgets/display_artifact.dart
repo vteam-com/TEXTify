@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:textify/band.dart';
-import 'package:textify/int_rect.dart';
+import 'package:textify/models/int_rect.dart';
 import 'package:textify/textify.dart';
 import 'package:textify_dashboard/generate_samples/generate_image.dart';
 import 'package:textify_dashboard/widgets/image_viewer.dart';

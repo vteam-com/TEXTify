@@ -4,7 +4,12 @@
 
 All notable changes to this project will be documented in this file.
 
-## 0.4.8 : 2025-12-27
+## 0.5.0 : 2025-12-27
+
+### Breaking Changes
+
+- Refactored Textify class to use TextifyConfig exclusively for configuration
+- **Removed deprecated setters from Textify class**: `applyDictionary`, `excludeLongLines`, `dilatingSize`, and `innerSplit`. Use `TextifyConfig` instead when creating Textify instances.
 
 ### Updated
 

@@ -1,5 +1,5 @@
 <?xml version="1.0" standalone="no"?>
-<svg width="935" height="550" xmlns="http://www.w3.org/2000/svg" font-family="Arial, Helvetica, sans-serif">
+<svg width="970" height="700" xmlns="http://www.w3.org/2000/svg" font-family="Arial, Helvetica, sans-serif">
   <style>
     .layerRectangle {
       stroke: black;
@@ -115,181 +115,170 @@
   </defs>
   <rect width="100%" height="100%" fill="white"/>
   <g id='Node_lib'>
-    <rect x="4" y="4" width="927" height="542" rx="2" ry="2" class="nodeFolder"/>
+    <rect x="4" y="4" width="962" height="692" rx="2" ry="2" class="nodeFolder"/>
     <g id='Node_textify.dart'>
-      <rect x="171.5" y="39" width="292" height="72" rx="8" ry="8" class="nodeFile"/>
-    </g>
-    <g id='Node_int_rect.dart'>
-      <rect x="471.5" y="39" width="292" height="72" rx="8" ry="8" class="nodeFile"/>
+      <rect x="339" y="39" width="292" height="72" rx="8" ry="8" class="nodeFile"/>
     </g>
     <g id='Node_bands.dart'>
-      <rect x="171.5" y="119" width="292" height="72" rx="8" ry="8" class="nodeFile"/>
+      <rect x="189" y="119" width="292" height="72" rx="8" ry="8" class="nodeFile"/>
     </g>
     <g id='Node_character_definitions.dart'>
-      <rect x="471.5" y="119" width="292" height="72" rx="8" ry="8" class="nodeFile"/>
+      <rect x="489" y="119" width="292" height="72" rx="8" ry="8" class="nodeFile"/>
     </g>
     <g id='Node_band.dart'>
-      <rect x="171.5" y="199" width="292" height="72" rx="8" ry="8" class="nodeFile"/>
+      <rect x="189" y="199" width="292" height="72" rx="8" ry="8" class="nodeFile"/>
     </g>
     <g id='Node_character_definition.dart'>
-      <rect x="471.5" y="199" width="292" height="72" rx="8" ry="8" class="nodeFile"/>
+      <rect x="489" y="199" width="292" height="72" rx="8" ry="8" class="nodeFile"/>
     </g>
     <g id='Node_artifact.dart'>
-      <rect x="321.5" y="279" width="292" height="72" rx="8" ry="8" class="nodeFile"/>
+      <rect x="339" y="279" width="292" height="72" rx="8" ry="8" class="nodeFile"/>
     </g>
-    <g id='Node_utilities.dart'>
-      <rect x="171.5" y="359" width="292" height="72" rx="8" ry="8" class="nodeFile"/>
+    <g id='Node_image_helpers.dart'>
+      <rect x="189" y="359" width="292" height="72" rx="8" ry="8" class="nodeFile"/>
     </g>
     <g id='Node_correction.dart'>
-      <rect x="471.5" y="359" width="292" height="72" rx="8" ry="8" class="nodeFile"/>
+      <rect x="489" y="359" width="292" height="72" rx="8" ry="8" class="nodeFile"/>
     </g>
-    <g id='Node_int_offset.dart'>
-      <rect x="21.5" y="439" width="292" height="72" rx="8" ry="8" class="nodeFile"/>
-    </g>
-    <g id='Node_english_words.dart'>
-      <rect x="321.5" y="439" width="292" height="72" rx="8" ry="8" class="nodeFile"/>
-    </g>
-    <g id='Node_score_match.dart'>
-      <rect x="621.5" y="439" width="292" height="72" rx="8" ry="8" class="nodeFile"/>
+    <g id='Node_models'>
+      <rect x="21.5" y="439" width="927" height="222" rx="2" ry="2" class="nodeFolder"/>
+      <g id='Node_int_rect.dart'>
+        <rect x="189" y="474" width="292" height="72" rx="8" ry="8" class="nodeFile"/>
+      </g>
+      <g id='Node_textify_config.dart'>
+        <rect x="489" y="474" width="292" height="72" rx="8" ry="8" class="nodeFile"/>
+      </g>
+      <g id='Node_int_offset.dart'>
+        <rect x="39" y="554" width="292" height="72" rx="8" ry="8" class="nodeFile"/>
+      </g>
+      <g id='Node_english_words.dart'>
+        <rect x="339" y="554" width="292" height="72" rx="8" ry="8" class="nodeFile"/>
+      </g>
+      <g id='Node_score_match.dart'>
+        <rect x="639" y="554" width="292" height="72" rx="8" ry="8" class="nodeFile"/>
+      </g>
     </g>
   </g>
   <g id='Edges'>
-    <path d="M597.5 335 C 607.5 355,477.5 355, 487.5 375" fill="none" class="line">
+    <path d="M615 335 C 625 355,495 355, 505 375" fill="none" class="line">
       <title>artifact.dart
 ⬇
 correction.dart</title>
     </path>
-    <path d="M597.5 335 C 607.5 355,177.5 355, 187.5 375" fill="none" class="line">
+    <path d="M615 335 C 625 355,195 355, 205 375" fill="none" class="line">
       <title>artifact.dart
 ⬇
-utilities.dart</title>
+image_helpers.dart</title>
     </path>
-    <path d="M447.5 255 C 457.5 275,327.5 275, 337.5 295" fill="none" class="line">
+    <path d="M465 255 C 475 275,345 275, 355 295" fill="none" class="line">
       <title>band.dart
 ⬇
 artifact.dart</title>
     </path>
-    <path d="M447.5 255 C 457.5 315,177.5 315, 187.5 375" fill="none" class="lineRed">
+    <path d="M465 255 C 475 315,195 315, 205 375" fill="none" class="line">
       <title>band.dart
 ⬇
-utilities.dart</title>
+image_helpers.dart</title>
     </path>
-    <path d="M447.5 175 C 457.5 195,177.5 195, 187.5 215" fill="none" class="line">
+    <path d="M465 175 C 475 195,195 195, 205 215" fill="none" class="line">
       <title>bands.dart
 ⬇
 band.dart</title>
     </path>
-    <path d="M447.5 175 C 457.5 275,177.5 275, 187.5 375" fill="none" class="line">
+    <path d="M465 175 C 475 275,195 275, 205 375" fill="none" class="line">
       <title>bands.dart
 ⬇
-utilities.dart</title>
+image_helpers.dart</title>
     </path>
-    <path d="M747.5 255 C 757.5 275,327.5 275, 337.5 295" fill="none" class="line">
+    <path d="M765 255 C 775 275,345 275, 355 295" fill="none" class="line">
       <title>character_definition.dart
 ⬇
 artifact.dart</title>
     </path>
-    <path d="M747.5 175 C 757.5 235,327.5 235, 337.5 295" fill="none" class="line">
+    <path d="M765 175 C 775 235,345 235, 355 295" fill="none" class="line">
       <title>character_definitions.dart
 ⬇
 artifact.dart</title>
     </path>
-    <path d="M747.5 175 C 757.5 195,477.5 195, 487.5 215" fill="none" class="line">
+    <path d="M765 175 C 775 195,495 195, 505 215" fill="none" class="line">
       <title>character_definitions.dart
 ⬇
 character_definition.dart</title>
     </path>
-    <path d="M747.5 415 C 757.5 435,327.5 435, 337.5 455" fill="none" class="line">
+    <path d="M765 415 C 775 492,345 493, 355 570" fill="none" class="line">
       <title>correction.dart
 ⬇
 english_words.dart</title>
     </path>
-    <path d="M747.5 95 C 759.5 275,25.5 275, 37.5 455" fill="none" class="line">
+    <path d="M465 415 C 475 452,195 453, 205 490" fill="none" class="line">
+      <title>image_helpers.dart
+⬇
+int_rect.dart</title>
+    </path>
+    <path d="M465 530 C 475 550,45 550, 55 570" fill="none" class="line">
       <title>int_rect.dart
 ⬇
 int_offset.dart</title>
     </path>
-    <path d="M447.5 95 C 457.5 115,177.5 115, 187.5 135" fill="none" class="line">
+    <path d="M615 95 C 625 115,195 115, 205 135" fill="none" class="line">
       <title>textify.dart
 ⬇
 bands.dart</title>
     </path>
-    <path d="M447.5 95 C 457.5 115,477.5 115, 487.5 135" fill="none" class="line">
+    <path d="M615 95 C 625 115,495 115, 505 135" fill="none" class="line">
       <title>textify.dart
 ⬇
 character_definitions.dart</title>
     </path>
-    <path d="M447.5 95 C 457.5 235,477.5 235, 487.5 375" fill="none" class="line">
+    <path d="M615 95 C 625 235,495 235, 505 375" fill="none" class="line">
       <title>textify.dart
 ⬇
 correction.dart</title>
     </path>
-    <path d="M447.5 95 C 459.5 275,625.5 275, 637.5 455" fill="none" class="line">
+    <path d="M615 95 C 625 235,195 235, 205 375" fill="none" class="line">
+      <title>textify.dart
+⬇
+image_helpers.dart</title>
+    </path>
+    <path d="M615 95 C 630 332,640 333, 655 570" fill="none" class="line">
       <title>textify.dart
 ⬇
 score_match.dart</title>
     </path>
-    <path d="M447.5 95 C 457.5 235,177.5 235, 187.5 375" fill="none" class="line">
+    <path d="M615 95 C 628 292,492 293, 505 490" fill="none" class="line">
       <title>textify.dart
 ⬇
-utilities.dart</title>
-    </path>
-    <path d="M447.5 415 C 457.5 315,177.5 315, 187.5 215" fill="none" class="lineRed">
-      <title>utilities.dart
-⬇
-band.dart</title>
-    </path>
-    <path d="M447.5 415 C 459.5 235,475.5 235, 487.5 55" fill="none" class="lineOrange">
-      <title>utilities.dart
-⬇
-int_rect.dart</title>
+textify_config.dart</title>
     </path>
   </g>
   <g id='Counters_lib'>
     <g id='Counters_textify.dart'>
       <g>
-        <circle cx="447.5" cy="95" r="10" fill="green"/>
-        <text x="447.5" y="95" fill="white" font-size="10" text-anchor="middle" dominant-baseline="central">5</text>
+        <circle cx="615" cy="95" r="10" fill="green"/>
+        <text x="615" y="95" fill="white" font-size="10" text-anchor="middle" dominant-baseline="central">6</text>
         <title>textify.dart
 ⬇
 1 lib/bands.dart
 2 lib/character_definitions.dart
 3 lib/correction.dart
-4 lib/score_match.dart
-5 lib/utilities.dart</title>
-      </g>
-    </g>
-    <g id='Counters_int_rect.dart'>
-      <g>
-        <circle cx="747.5" cy="95" r="10" fill="green"/>
-        <text x="747.5" y="95" fill="white" font-size="10" text-anchor="middle" dominant-baseline="central">2</text>
-        <title>int_rect.dart
-⬇
-1 lib/int_offset.dart
-2 lib/int_offset.dart</title>
-      </g>
-      <g>
-        <circle cx="487.5" cy="55" r="10" fill="blue"/>
-        <text x="487.5" y="55" fill="white" font-size="10" text-anchor="middle" dominant-baseline="central">2</text>
-        <title>1 lib/utilities.dart
-2 lib/utilities.dart
-⬇
-int_rect.dart</title>
+4 lib/image_helpers.dart
+5 lib/models/score_match.dart
+6 lib/models/textify_config.dart</title>
       </g>
     </g>
     <g id='Counters_bands.dart'>
       <g>
-        <circle cx="447.5" cy="175" r="10" fill="green"/>
-        <text x="447.5" y="175" fill="white" font-size="10" text-anchor="middle" dominant-baseline="central">3</text>
+        <circle cx="465" cy="175" r="10" fill="green"/>
+        <text x="465" y="175" fill="white" font-size="10" text-anchor="middle" dominant-baseline="central">3</text>
         <title>bands.dart
 ⬇
 1 lib/band.dart
 2 lib/band.dart
-3 lib/utilities.dart</title>
+3 lib/image_helpers.dart</title>
       </g>
       <g>
-        <circle cx="187.5" cy="135" r="10" fill="blue"/>
-        <text x="187.5" y="135" fill="white" font-size="10" text-anchor="middle" dominant-baseline="central">1</text>
+        <circle cx="205" cy="135" r="10" fill="blue"/>
+        <text x="205" y="135" fill="white" font-size="10" text-anchor="middle" dominant-baseline="central">1</text>
         <title>1 lib/textify.dart
 ⬇
 bands.dart</title>
@@ -297,8 +286,8 @@ bands.dart</title>
     </g>
     <g id='Counters_character_definitions.dart'>
       <g>
-        <circle cx="747.5" cy="175" r="10" fill="green"/>
-        <text x="747.5" y="175" fill="white" font-size="10" text-anchor="middle" dominant-baseline="central">3</text>
+        <circle cx="765" cy="175" r="10" fill="green"/>
+        <text x="765" y="175" fill="white" font-size="10" text-anchor="middle" dominant-baseline="central">3</text>
         <title>character_definitions.dart
 ⬇
 1 lib/artifact.dart
@@ -306,8 +295,8 @@ bands.dart</title>
 3 lib/character_definition.dart</title>
       </g>
       <g>
-        <circle cx="487.5" cy="135" r="10" fill="blue"/>
-        <text x="487.5" y="135" fill="white" font-size="10" text-anchor="middle" dominant-baseline="central">1</text>
+        <circle cx="505" cy="135" r="10" fill="blue"/>
+        <text x="505" y="135" fill="white" font-size="10" text-anchor="middle" dominant-baseline="central">1</text>
         <title>1 lib/textify.dart
 ⬇
 character_definitions.dart</title>
@@ -315,35 +304,34 @@ character_definitions.dart</title>
     </g>
     <g id='Counters_band.dart'>
       <g>
-        <circle cx="447.5" cy="255" r="10" fill="green"/>
-        <text x="447.5" y="255" fill="white" font-size="10" text-anchor="middle" dominant-baseline="central">3</text>
+        <circle cx="465" cy="255" r="10" fill="green"/>
+        <text x="465" y="255" fill="white" font-size="10" text-anchor="middle" dominant-baseline="central">3</text>
         <title>band.dart
 ⬇
 1 lib/artifact.dart
 2 lib/artifact.dart
-3 lib/utilities.dart</title>
+3 lib/image_helpers.dart</title>
       </g>
       <g>
-        <circle cx="187.5" cy="215" r="10" fill="blue"/>
-        <text x="187.5" y="215" fill="white" font-size="10" text-anchor="middle" dominant-baseline="central">3</text>
+        <circle cx="205" cy="215" r="10" fill="blue"/>
+        <text x="205" y="215" fill="white" font-size="10" text-anchor="middle" dominant-baseline="central">2</text>
         <title>1 lib/bands.dart
 2 lib/bands.dart
-3 lib/utilities.dart
 ⬇
 band.dart</title>
       </g>
     </g>
     <g id='Counters_character_definition.dart'>
       <g>
-        <circle cx="747.5" cy="255" r="10" fill="green"/>
-        <text x="747.5" y="255" fill="white" font-size="10" text-anchor="middle" dominant-baseline="central">1</text>
+        <circle cx="765" cy="255" r="10" fill="green"/>
+        <text x="765" y="255" fill="white" font-size="10" text-anchor="middle" dominant-baseline="central">1</text>
         <title>character_definition.dart
 ⬇
 1 lib/artifact.dart</title>
       </g>
       <g>
-        <circle cx="487.5" cy="215" r="10" fill="blue"/>
-        <text x="487.5" y="215" fill="white" font-size="10" text-anchor="middle" dominant-baseline="central">2</text>
+        <circle cx="505" cy="215" r="10" fill="blue"/>
+        <text x="505" y="215" fill="white" font-size="10" text-anchor="middle" dominant-baseline="central">2</text>
         <title>1 lib/character_definitions.dart
 2 lib/character_definitions.dart
 ⬇
@@ -352,16 +340,16 @@ character_definition.dart</title>
     </g>
     <g id='Counters_artifact.dart'>
       <g>
-        <circle cx="597.5" cy="335" r="10" fill="green"/>
-        <text x="597.5" y="335" fill="white" font-size="10" text-anchor="middle" dominant-baseline="central">2</text>
+        <circle cx="615" cy="335" r="10" fill="green"/>
+        <text x="615" y="335" fill="white" font-size="10" text-anchor="middle" dominant-baseline="central">2</text>
         <title>artifact.dart
 ⬇
 1 lib/correction.dart
-2 lib/utilities.dart</title>
+2 lib/image_helpers.dart</title>
       </g>
       <g>
-        <circle cx="337.5" cy="295" r="10" fill="blue"/>
-        <text x="337.5" y="295" fill="white" font-size="10" text-anchor="middle" dominant-baseline="central">4</text>
+        <circle cx="355" cy="295" r="10" fill="blue"/>
+        <text x="355" y="295" fill="white" font-size="10" text-anchor="middle" dominant-baseline="central">4</text>
         <title>1 lib/band.dart
 2 lib/band.dart
 3 lib/character_definition.dart
@@ -370,110 +358,142 @@ character_definition.dart</title>
 artifact.dart</title>
       </g>
     </g>
-    <g id='Counters_utilities.dart'>
+    <g id='Counters_image_helpers.dart'>
       <g>
-        <circle cx="447.5" cy="415" r="10" fill="green"/>
-        <text x="447.5" y="415" fill="white" font-size="10" text-anchor="middle" dominant-baseline="central">3</text>
-        <title>utilities.dart
+        <circle cx="465" cy="415" r="10" fill="green"/>
+        <text x="465" y="415" fill="white" font-size="10" text-anchor="middle" dominant-baseline="central">1</text>
+        <title>image_helpers.dart
 ⬇
-1 lib/band.dart
-2 lib/int_rect.dart
-3 lib/int_rect.dart</title>
+1 lib/models/int_rect.dart</title>
       </g>
       <g>
-        <circle cx="187.5" cy="375" r="10" fill="blue"/>
-        <text x="187.5" y="375" fill="white" font-size="10" text-anchor="middle" dominant-baseline="central">4</text>
+        <circle cx="205" cy="375" r="10" fill="blue"/>
+        <text x="205" y="375" fill="white" font-size="10" text-anchor="middle" dominant-baseline="central">4</text>
         <title>1 lib/artifact.dart
 2 lib/band.dart
 3 lib/bands.dart
 4 lib/textify.dart
 ⬇
-utilities.dart</title>
+image_helpers.dart</title>
       </g>
     </g>
     <g id='Counters_correction.dart'>
       <g>
-        <circle cx="747.5" cy="415" r="10" fill="green"/>
-        <text x="747.5" y="415" fill="white" font-size="10" text-anchor="middle" dominant-baseline="central">1</text>
+        <circle cx="765" cy="415" r="10" fill="green"/>
+        <text x="765" y="415" fill="white" font-size="10" text-anchor="middle" dominant-baseline="central">1</text>
         <title>correction.dart
 ⬇
-1 lib/english_words.dart</title>
+1 lib/models/english_words.dart</title>
       </g>
       <g>
-        <circle cx="487.5" cy="375" r="10" fill="blue"/>
-        <text x="487.5" y="375" fill="white" font-size="10" text-anchor="middle" dominant-baseline="central">2</text>
+        <circle cx="505" cy="375" r="10" fill="blue"/>
+        <text x="505" y="375" fill="white" font-size="10" text-anchor="middle" dominant-baseline="central">2</text>
         <title>1 lib/artifact.dart
 2 lib/textify.dart
 ⬇
 correction.dart</title>
       </g>
     </g>
-    <g id='Counters_int_offset.dart'>
-      <g>
-        <circle cx="37.5" cy="455" r="10" fill="blue"/>
-        <text x="37.5" y="455" fill="white" font-size="10" text-anchor="middle" dominant-baseline="central">2</text>
-        <title>1 lib/int_rect.dart
-2 lib/int_rect.dart
+    <g id='Counters_models'>
+      <g id='Counters_int_rect.dart'>
+        <g>
+          <circle cx="465" cy="530" r="10" fill="green"/>
+          <text x="465" y="530" fill="white" font-size="10" text-anchor="middle" dominant-baseline="central">2</text>
+          <title>int_rect.dart
+⬇
+1 lib/models/int_offset.dart
+2 lib/models/int_offset.dart</title>
+        </g>
+        <g>
+          <circle cx="205" cy="490" r="10" fill="blue"/>
+          <text x="205" y="490" fill="white" font-size="10" text-anchor="middle" dominant-baseline="central">1</text>
+          <title>1 lib/image_helpers.dart
+⬇
+int_rect.dart</title>
+        </g>
+      </g>
+      <g id='Counters_textify_config.dart'>
+        <g>
+          <circle cx="505" cy="490" r="10" fill="blue"/>
+          <text x="505" y="490" fill="white" font-size="10" text-anchor="middle" dominant-baseline="central">1</text>
+          <title>1 lib/textify.dart
+⬇
+textify_config.dart</title>
+        </g>
+      </g>
+      <g id='Counters_int_offset.dart'>
+        <g>
+          <circle cx="55" cy="570" r="10" fill="blue"/>
+          <text x="55" y="570" fill="white" font-size="10" text-anchor="middle" dominant-baseline="central">2</text>
+          <title>1 lib/models/int_rect.dart
+2 lib/models/int_rect.dart
 ⬇
 int_offset.dart</title>
+        </g>
       </g>
-    </g>
-    <g id='Counters_english_words.dart'>
-      <g>
-        <circle cx="337.5" cy="455" r="10" fill="blue"/>
-        <text x="337.5" y="455" fill="white" font-size="10" text-anchor="middle" dominant-baseline="central">1</text>
-        <title>1 lib/correction.dart
+      <g id='Counters_english_words.dart'>
+        <g>
+          <circle cx="355" cy="570" r="10" fill="blue"/>
+          <text x="355" y="570" fill="white" font-size="10" text-anchor="middle" dominant-baseline="central">1</text>
+          <title>1 lib/correction.dart
 ⬇
 english_words.dart</title>
+        </g>
       </g>
-    </g>
-    <g id='Counters_score_match.dart'>
-      <g>
-        <circle cx="637.5" cy="455" r="10" fill="blue"/>
-        <text x="637.5" y="455" fill="white" font-size="10" text-anchor="middle" dominant-baseline="central">1</text>
-        <title>1 lib/textify.dart
+      <g id='Counters_score_match.dart'>
+        <g>
+          <circle cx="655" cy="570" r="10" fill="blue"/>
+          <text x="655" y="570" fill="white" font-size="10" text-anchor="middle" dominant-baseline="central">1</text>
+          <title>1 lib/textify.dart
 ⬇
 score_match.dart</title>
+        </g>
       </g>
     </g>
   </g>
   <g id='Labels_lib'>
     <text class="folderName" x="10" y="10">lib</text>
     <g id='Labels_textify.dart'>
-      <text class="nodeName" x="317.5" y="75" font-size="120%">textify.dart</text>
-    </g>
-    <g id='Labels_int_rect.dart'>
-      <text class="nodeName" x="617.5" y="75" font-size="120%">int_rect.dart</text>
+      <text class="nodeName" x="485" y="75" font-size="120%">textify.dart</text>
     </g>
     <g id='Labels_bands.dart'>
-      <text class="nodeName" x="317.5" y="155" font-size="120%">bands.dart</text>
+      <text class="nodeName" x="335" y="155" font-size="120%">bands.dart</text>
     </g>
     <g id='Labels_character_definitions.dart'>
-      <text class="nodeName" x="617.5" y="155" font-size="120%">character_definitions.dart</text>
+      <text class="nodeName" x="635" y="155" font-size="120%">character_definitions.dart</text>
     </g>
     <g id='Labels_band.dart'>
-      <text class="nodeName" x="317.5" y="235" font-size="120%">band.dart</text>
+      <text class="nodeName" x="335" y="235" font-size="120%">band.dart</text>
     </g>
     <g id='Labels_character_definition.dart'>
-      <text class="nodeName" x="617.5" y="235" font-size="120%">character_definition.dart</text>
+      <text class="nodeName" x="635" y="235" font-size="120%">character_definition.dart</text>
     </g>
     <g id='Labels_artifact.dart'>
-      <text class="nodeName" x="467.5" y="315" font-size="120%">artifact.dart</text>
+      <text class="nodeName" x="485" y="315" font-size="120%">artifact.dart</text>
     </g>
-    <g id='Labels_utilities.dart'>
-      <text class="nodeName" x="317.5" y="395" font-size="120%">utilities.dart</text>
+    <g id='Labels_image_helpers.dart'>
+      <text class="nodeName" x="335" y="395" font-size="120%">image_helpers.dart</text>
     </g>
     <g id='Labels_correction.dart'>
-      <text class="nodeName" x="617.5" y="395" font-size="120%">correction.dart</text>
+      <text class="nodeName" x="635" y="395" font-size="120%">correction.dart</text>
     </g>
-    <g id='Labels_int_offset.dart'>
-      <text class="nodeName" x="167.5" y="475" font-size="120%">int_offset.dart</text>
-    </g>
-    <g id='Labels_english_words.dart'>
-      <text class="nodeName" x="467.5" y="475" font-size="120%">english_words.dart</text>
-    </g>
-    <g id='Labels_score_match.dart'>
-      <text class="nodeName" x="767.5" y="475" font-size="120%">score_match.dart</text>
+    <g id='Labels_models'>
+      <text class="folderName" x="27.5" y="445">models</text>
+      <g id='Labels_int_rect.dart'>
+        <text class="nodeName" x="335" y="510" font-size="120%">int_rect.dart</text>
+      </g>
+      <g id='Labels_textify_config.dart'>
+        <text class="nodeName" x="635" y="510" font-size="120%">textify_config.dart</text>
+      </g>
+      <g id='Labels_int_offset.dart'>
+        <text class="nodeName" x="185" y="590" font-size="120%">int_offset.dart</text>
+      </g>
+      <g id='Labels_english_words.dart'>
+        <text class="nodeName" x="485" y="590" font-size="120%">english_words.dart</text>
+      </g>
+      <g id='Labels_score_match.dart'>
+        <text class="nodeName" x="785" y="590" font-size="120%">score_match.dart</text>
+      </g>
     </g>
   </g>
 </svg>

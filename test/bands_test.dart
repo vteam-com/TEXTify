@@ -2,7 +2,7 @@
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:textify/bands.dart';
-import 'package:textify/int_offset.dart';
+import 'package:textify/models/int_offset.dart';
 
 void main() {
   group('mergeBandsHorizontally', () {

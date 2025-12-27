@@ -2,10 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:textify/artifact.dart';
 import 'package:textify/character_definitions.dart';
-import 'package:textify/score_match.dart';
-
+import 'package:textify/models/score_match.dart';
 import 'package:textify/textify.dart';
-import 'package:textify/utilities.dart';
 import 'package:textify_dashboard/widgets/paint_grid.dart';
 
 class EditScreen extends StatefulWidget {
@@ -233,7 +231,7 @@ class _EditScreenState extends State<EditScreen> {
         }
 
         final CharacterDefinition? definition =
-            widget.textify.characterDefinitions.getDefinition(match.character);
+            Textify.characterDefinitions.getDefinition(match.character);
         if (definition != null) {
           final templateMatrix = definition.matrices[match.matrixIndex];
 
@@ -241,7 +239,7 @@ class _EditScreenState extends State<EditScreen> {
               '\n"${match.character}" [${templateMatrix.font}]\nScore ${(match.score * 100).toStringAsFixed(1)}% ${attributeOfCharacterDefinition('', definition)}';
         }
 
-        final Artifact characterMatrix = widget.textify.characterDefinitions
+        final Artifact characterMatrix = Textify.characterDefinitions
             .getMatrix(match.character, match.matrixIndex);
 
         widgets.add(
@@ -290,19 +288,19 @@ class _EditScreenState extends State<EditScreen> {
     final int matrixIndex,
   ) {
     final CharacterDefinition? definition =
-        widget.textify.characterDefinitions.getDefinition(character);
+        Textify.characterDefinitions.getDefinition(character);
     if (definition != null && matrixIndex < definition.matrices.length) {
       final templatedMatrix = definition.matrices[matrixIndex];
 
       final double scoreForThisVariation =
-          hammingDistancePercentageOfTwoArtifacts(
+          Artifact.hammingDistancePercentageOfTwoArtifacts(
                 matrixFound,
                 templatedMatrix,
               ) *
               100;
 
       final Artifact characterMatrix =
-          widget.textify.characterDefinitions.getMatrix(character, matrixIndex);
+          Textify.characterDefinitions.getMatrix(character, matrixIndex);
 
       return _buildArtifactGrid(
         '"$character" [${templatedMatrix.font}]\nScore ${scoreForThisVariation.toStringAsFixed(2)}%',

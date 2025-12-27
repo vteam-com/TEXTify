@@ -3,7 +3,7 @@
 library;
 
 import 'package:textify/band.dart';
-import 'package:textify/utilities.dart';
+import 'package:textify/image_helpers.dart';
 
 /// Exports
 export 'package:textify/band.dart';

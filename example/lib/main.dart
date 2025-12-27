@@ -3,6 +3,7 @@
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
+import 'package:textify/models/textify_config.dart';
 import 'package:textify/textify.dart';
 
 /// The entry point of the application. Runs the [MainApp] widget.
@@ -14,11 +15,10 @@ void main() async {
     'assets/samples/the-quick-brown-fox.png',
   );
 
-  // instantiate Textify once
-  Textify textify = await Textify().init();
-
-  // Optionally apply English dictionary word correction
-  textify.applyDictionary = true;
+  // instantiate Textify once with dictionary correction enabled
+  Textify textify = await Textify(
+    config: const TextifyConfig(applyDictionaryCorrection: true),
+  ).init();
 
   // extract text from the image
   final String extractedText = await textify.getTextFromImage(image: uiImage);

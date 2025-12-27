@@ -4,10 +4,10 @@ library;
 
 import 'dart:math';
 
-import 'package:textify/int_offset.dart';
+import 'package:textify/models/int_offset.dart';
 
 /// Exports
-export 'package:textify/int_offset.dart';
+export 'package:textify/models/int_offset.dart';
 
 /// A class representing a rectangle with integer coordinates and dimensions.
 class IntRect {

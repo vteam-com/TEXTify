@@ -3,8 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:textify/artifact.dart';
 import 'package:textify/character_definition.dart';
+import 'package:textify/image_helpers.dart';
+import 'package:textify/models/textify_config.dart';
 import 'package:textify/textify.dart';
-import 'package:textify/utilities.dart';
 import 'package:textify_dashboard/generate_samples/generate_image.dart';
 import 'package:textify_dashboard/generate_samples/textify_generated_image.dart';
 import 'package:textify_dashboard/panel1_source/image_source_generated.dart';
@@ -48,8 +49,9 @@ class ContentState extends State<GenerateImagesForUnitTestsScreen> {
   }
 
   Future<void> _generateImages() async {
-    this.textify = await Textify().init();
-    this.textify.excludeLongLines = false;
+    this.textify = await Textify(
+      config: const TextifyConfig(excludeLongLines: false),
+    ).init();
 
     for (int i = 0; i < numberOfImageToGenerate; i++) {
       final text = '$i The Quick Brown Fox\n123.45';
@@ -181,7 +183,7 @@ class ContentState extends State<GenerateImagesForUnitTestsScreen> {
                     onPressed: () {
                       Clipboard.setData(
                         ClipboardData(
-                          text: textify.characterDefinitions.toJsonString(),
+                          text: Textify.characterDefinitions.toJsonString(),
                         ),
                       );
                     },
@@ -223,7 +225,8 @@ class ContentState extends State<GenerateImagesForUnitTestsScreen> {
 
     // Apply image processing pipeline
     final ui.Image imageOptimized = await imageToBlackOnWhite(newImageSource);
-    final Artifact imageAsMatrix = await artifactFromImage(imageOptimized);
+    final Artifact imageAsMatrix =
+        await Artifact.artifactFromImage(imageOptimized);
 
     // Find artifacts from the binary image
     textify.extractBandsAndArtifacts(imageAsMatrix);
@@ -251,7 +254,7 @@ class ContentState extends State<GenerateImagesForUnitTestsScreen> {
 
         // Update the character definition with the new matrix
         final wasNewDefinition =
-            textify.characterDefinitions.upsertTemplate(fontName, char, matrix);
+            Textify.characterDefinitions.upsertTemplate(fontName, char, matrix);
 
         // If the matrix is empty, add a problem message
         if (matrix.isEmpty) {

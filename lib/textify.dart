@@ -9,8 +9,9 @@ import 'package:flutter/widgets.dart';
 import 'package:textify/bands.dart';
 import 'package:textify/character_definitions.dart';
 import 'package:textify/correction.dart';
-import 'package:textify/score_match.dart';
-import 'package:textify/utilities.dart';
+import 'package:textify/models/score_match.dart';
+import 'package:textify/models/textify_config.dart';
+import 'package:textify/image_helpers.dart';
 
 /// Textify is a class designed to extract text from clean digital images.
 ///
@@ -18,11 +19,18 @@ import 'package:textify/utilities.dart';
 /// organize them into bands, and extract the text content. It is optimized for
 /// clean computer-generated documents with standard fonts and good contrast.
 class Textify {
-  /// Creates a new instance of Textify.
-  Textify();
+  /// Creates a new instance of Textify with the specified configuration.
+  ///
+  /// [config] defines the OCR processing settings. If not provided,
+  /// uses the balanced configuration with default settings.
+  Textify({this.config = const TextifyConfig()});
+
+  /// The configuration settings for this Textify instance.
+  final TextifyConfig config;
 
   /// Stores definitions of characters for matching.
-  final CharacterDefinitions characterDefinitions = CharacterDefinitions();
+  static final CharacterDefinitions characterDefinitions =
+      CharacterDefinitions();
 
   /// Identified regions on the image after dilation processing.
   List<IntRect> regionsFromDilated = [];
@@ -47,25 +55,15 @@ class Textify {
   int get duration =>
       processEnd.millisecondsSinceEpoch - processBegin.millisecondsSinceEpoch;
 
-  /// Whether to exclude long horizontal and vertical lines from text recognition.
-  /// When true, lines that span a significant portion of the image are ignored.
-  bool excludeLongLines = true;
-
-  /// Size of the dilation kernel used in preprocessing.
-  ///
-  /// Controls how much nearby pixels are merged together. Larger values help
-  /// connect broken characters but may merge unrelated elements.
-  int dilatingSize = 22;
-
   /// Whether to attempt splitting touching characters.
   /// When true, the system tries to separate characters that are connected.
-  bool innerSplit = true;
+  bool get innerSplit => config.attemptCharacterSplitting;
 
   /// Whether to apply dictionary-based text correction.
   ///
   /// When enabled, recognized text is compared against a dictionary
   /// to improve accuracy by correcting likely mis-recognitions.
-  bool applyDictionary = false;
+  bool get applyDictionary => config.applyDictionaryCorrection;
 
   /// Initializes Textify by loading character definitions from assets.
   ///
@@ -108,7 +106,7 @@ class Textify {
   }) async {
     final ui.Image imageBlackAndWhite = await imageToBlackOnWhite(image);
 
-    final Artifact imageAsArtifact = await artifactFromImage(
+    final Artifact imageAsArtifact = await Artifact.artifactFromImage(
       imageBlackAndWhite,
     );
 
@@ -163,7 +161,7 @@ class Textify {
       matrixSourceImage.rows,
       0.02,
     );
-    final Artifact dilatedImage = dilateArtifact(
+    final Artifact dilatedImage = Artifact.dilateArtifact(
       matrixImage: matrixSourceImage,
       kernelSize: kernelSize,
     );
@@ -197,7 +195,7 @@ class Textify {
       // Find best match and calculate total score
       for (int i = 0; i < template.matrices.length; i++) {
         final Artifact artifact = template.matrices[i];
-        final double score = hammingDistancePercentageOfTwoArtifacts(
+        final double score = Artifact.hammingDistancePercentageOfTwoArtifacts(
           inputMatrix,
           artifact,
         );

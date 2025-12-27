@@ -4,7 +4,7 @@
 library;
 
 import 'dart:math';
-import 'package:textify/english_words.dart';
+import 'package:textify/models/english_words.dart';
 
 /// Utility class to analyze character statistics in text.
 ///

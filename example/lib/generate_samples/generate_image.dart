@@ -4,7 +4,7 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:textify/artifact.dart';
-import 'package:textify/int_rect.dart';
+import 'package:textify/models/int_rect.dart';
 
 Future<ui.Image> generateImageDrawText({
   required final int imageWidth,

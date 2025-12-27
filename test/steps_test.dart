@@ -4,7 +4,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:textify/bands.dart';
 import 'package:textify/textify.dart';
-import 'package:textify/utilities.dart';
+import 'package:textify/models/textify_config.dart';
+import 'package:textify/image_helpers.dart';
 
 // ignore: avoid_relative_lib_imports
 import '../example/lib/generate_samples/generate_image.dart';
@@ -43,10 +44,9 @@ void main() async {
 
   WidgetsFlutterBinding.ensureInitialized();
 
-  final Textify textify = await Textify().init(
-    pathToAssetsDefinition: 'assets/matrices.json',
-  );
-  textify.applyDictionary = true;
+  final Textify textify = await Textify(
+    config: const TextifyConfig(applyDictionaryCorrection: true),
+  ).init(pathToAssetsDefinition: 'assets/matrices.json');
 
   group('Steps', () {
     test('Empty image', () async {
@@ -156,7 +156,7 @@ Future<void> testFromImage(
   //
   // To Matrix
   //
-  final Artifact matrixSourceImage = await artifactFromImage(
+  final Artifact matrixSourceImage = await Artifact.artifactFromImage(
     imageBlackAndWhite,
   );
   expect(matrixSourceImage.cols, image.width);
@@ -169,7 +169,7 @@ Future<void> testFromImage(
   int kernelSize =
       dilateFactor ?? computeKernelSize(image.width, image.height, 0.02);
 
-  final Artifact imageAsMatrixDilated = dilateArtifact(
+  final Artifact imageAsMatrixDilated = Artifact.dilateArtifact(
     matrixImage: matrixSourceImage,
     kernelSize: kernelSize,
   );

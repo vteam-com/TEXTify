@@ -58,6 +58,67 @@ print(extractedText);
 
 ```
 
+## Configuration
+
+TEXTify provides extensive configuration options to customize OCR behavior for different use cases:
+
+### Basic Configuration
+
+```dart
+import 'package:textify/textify.dart';
+
+// Create Textify instance with custom configuration
+final textify = Textify(
+  config: TextifyConfig(
+    dilationSize: 25,           // Controls pixel merging (higher = more merging)
+    excludeLongLines: true,     // Ignore long horizontal/vertical lines
+    attemptCharacterSplitting: true,  // Try to separate touching characters
+    applyDictionaryCorrection: false, // Use dictionary for better accuracy
+    matchingThreshold: 0.4,     // Minimum match confidence (0.0-1.0)
+    maxProcessingTimeMs: 30000, // Maximum processing time
+  ),
+);
+
+// Initialize and use
+await textify.init();
+final text = await textify.getTextFromImage(image: inputImage);
+```
+
+### Preset Configurations
+
+TEXTify includes optimized presets for common scenarios:
+
+```dart
+// Fast processing (lower accuracy, quicker results)
+final fastTextify = Textify(config: TextifyConfig.fast);
+
+// High accuracy (slower, better results)
+final accurateTextify = Textify(config: TextifyConfig.accurate);
+
+// Robust for challenging images (handles noise, low quality)
+final robustTextify = Textify(config: TextifyConfig.robust);
+
+// Default balanced configuration
+final defaultTextify = Textify(); // Uses TextifyConfig()
+```
+
+### Configuration Options
+
+| Option                      | Default | Description                                                                                                |
+| --------------------------- | ------- | ---------------------------------------------------------------------------------------------------------- |
+| `dilationSize`              | 22      | Size of dilation kernel. Higher values help connect broken characters but may merge unrelated elements.    |
+| `excludeLongLines`          | true    | Whether to ignore long horizontal/vertical lines that span significant portions of the image.              |
+| `attemptCharacterSplitting` | true    | Whether to attempt splitting characters that appear connected. Improves accuracy but adds processing time. |
+| `applyDictionaryCorrection` | false   | Whether to apply English dictionary correction to improve recognition accuracy.                            |
+| `matchingThreshold`         | 0.4     | Minimum similarity score required for character matching (0.0-1.0). Higher values are more strict.         |
+| `maxProcessingTimeMs`       | 30000   | Maximum processing time in milliseconds before timing out.                                                 |
+
+### Performance Tuning
+
+- **Speed Priority**: Use `TextifyConfig.fast` for quick processing when accuracy is less critical
+- **Accuracy Priority**: Use `TextifyConfig.accurate` for maximum accuracy on clean documents
+- **Robust Processing**: Use `TextifyConfig.robust` for challenging images with noise or low quality
+
 ## Features
 
 - Extracts text from [clean digital images](#input-image---clean-digital-image-guidelines)

@@ -4,6 +4,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.4.8 : 2025-12-27
+
+### Updated
+
+- sdk: ^3.10.0
+- flutter: ">=3.38.5"
+- Use the GLAD tool to generate the Layer Diagram
+
 ## 0.4.7 : 2025-10-16
 
 ### Changed
@@ -18,6 +26,7 @@ All notable changes to this project will be documented in this file.
 - Flutter: 3.35.6
 
 ### Changed
+
 - remove all "this."
 - deprecated ".scale()"
 

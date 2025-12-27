@@ -1,17 +1,19 @@
 #!/bin/sh
-echo --- Pub Get
+
+echo ↓------------------ Pub Get ------------------↓
 flutter pub get
 flutter pub upgrade
 
-echo --- Analyze
-
+echo ↓------------------ Analyze ------------------↓
 dart analyze 
 dart fix --apply
-
 flutter analyze
 
+echo ↓------------------ Format ------------------↓
 dart format .
 
+echo ↓------------------ Tests ------------------↓
 flutter test
 
-tools/graph.sh
+echo ↓------------------  Graph  ------------------↓
+tool/graph.sh

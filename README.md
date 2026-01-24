@@ -1,24 +1,22 @@
-# TEXTify (OCR)
+# TEXTify
 
-TEXTify is a Dart package that provides utilities for working with text representations in a specific character set. It is designed to handle text processing tasks for the English language and a limited set of characters.
+A pure Dart/Flutter OCR library for extracting text from clean digital images.
 
- It is 100% cross-platform, utilizing native Dart and Flutter code, and works offline without any package dependencies.
+✅ **100% offline** - No internet or cloud services required
+✅ **Cross-platform** - Works on Android, iOS, macOS, Windows, Linux, and Web
+✅ **Lightweight** - No external dependencies, just pure Dart code
+✅ **Privacy-focused** - All processing happens on-device
 
 ## Why TEXTify?
 
-TEXTify addresses common limitations of existing OCR (Optical Character Recognition) solutions:
+Unlike traditional OCR solutions that are:
 
-1. **Small & Fast**: Most OCR libraries are heavy and often rely on external system dependencies or remote cloud services, complicating deployment and increasing costs.
+- **Heavy** (require C/C++ compilation, external dependencies)
+- **Complex** (difficult cross-platform setup)
+- **Cloud-dependent** (require internet, privacy concerns)
+- **Platform-limited** (don't work everywhere)
 
-2. **Supports All Platforms**: Many OCR solutions only supports some platforms, TEXTify works on Android, iOS, macOS, Windows, Linux, and Web.
-
-3. **Offline**: Works 100% offline without requiring internet connectivity or cloud services for text extraction.
-
-4. **Privacy**: No dependency on external services means your data stays on device, ensuring complete privacy and security.
-
-5. **Simplified Setup**: Popular solutions like Tesseract require complex build configurations, including C/C++ compilation, which can be difficult to manage across platforms.
-
-TEXTify overcomes these issues with a lightweight, pure Dart implementation that works seamlessly across all Flutter platforms, including web, without external dependencies.
+TEXTify provides a **simple, lightweight alternative** that just works.
 
 ## Installation
 
@@ -125,19 +123,20 @@ final defaultTextify = Textify(); // Uses TextifyConfig()
 
 ## Features
 
-- Extracts text from [clean digital images](#input-image---clean-digital-image-guidelines)
-- Supports standard fonts like "Arial", "Courier", "Helvetica", "Times New Roman"
-- Fully cross-platform
-- Pure Dart and Flutter implementation
-- Works 100% Offline
-- No external package dependencies
+- **Character recognition** for clean digital text images
+- **Font support**: Arial, Courier, Helvetica, Times New Roman
+- **Automatic line detection** and text organization
+- **Dictionary correction** for improved accuracy
+- **Connected character splitting** for better results
 
 ## Limitations
 
-- Supported for [clean digital images](#input-image---clean-digital-image-guidelines) (no handwriting)
-- Limited character set support
-- No support for special formatting (italic, variable size etc.)
-- Text must be free of images and framing (aka no borders)
+TEXTify works best with **clean digital images** and has some limitations:
+
+- **No handwriting support** - only computer-generated text
+- **Limited character set** - see [Supported Characters](#supported-characters)
+- **No formatting** - plain text only (no italics, bold, etc.)
+- **Clean images required** - no noise, borders, or complex backgrounds
 
 ## Supported Characters
 

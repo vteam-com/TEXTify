@@ -13,11 +13,10 @@ import 'package:textify/models/score_match.dart';
 import 'package:textify/models/textify_config.dart';
 import 'package:textify/image_helpers.dart';
 
-/// Textify is a class designed to extract text from clean digital images.
+/// Main OCR class for extracting text from clean digital images.
 ///
-/// This class provides functionality to process binary images, identify text artifacts,
-/// organize them into bands, and extract the text content. It is optimized for
-/// clean computer-generated documents with standard fonts and good contrast.
+/// Processes images by identifying text regions, organizing them into lines (bands),
+/// and recognizing characters using template matching.
 class Textify {
   /// Creates a new instance of Textify with the specified configuration.
   ///
@@ -149,10 +148,9 @@ class Textify {
   /// [matrixSourceImage] is the binary image to process.
   /// Updates internal state with found regions and text bands.
   ///
-  /// This method performs three key steps:
-  /// 1. Dilates the image to connect nearby pixels using an adaptive kernel size
-  /// 2. Identifies text regions from the dilated image
-  /// 3. Groups the regions into horizontal bands of text
+  /// Processes an image to find text regions and organize them into lines.
+  ///
+  /// Steps: dilate image → find regions → group into text lines (bands)
   void extractBandsAndArtifacts(final Artifact matrixSourceImage) {
     clear();
 
@@ -298,7 +296,7 @@ class Textify {
     return textFound.trim();
   }
 
-  /// Calculates character match scores for a normalized artifact.
+  /// Finds which character templates best match the given artifact.
   ///
   /// [artifact] is the normalized character image.
   /// [supportedCharacters] optionally limits matching to specific characters.

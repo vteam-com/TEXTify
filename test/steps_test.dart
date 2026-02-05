@@ -69,7 +69,7 @@ void main() async {
         textify: textify,
         text: inputText,
         result:
-            'Quip ,\n'
+            'Quip,\n'
             'Word me',
         fontFamily: 'Courier',
         imageWidth: 130,

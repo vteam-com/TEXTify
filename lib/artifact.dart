@@ -33,14 +33,28 @@ class Artifact {
   static const int _invalidThreshold = -1;
   static const int _flatValleyLookahead = 2;
 
+  static const int _valleyPeakWindow = 2;
+  static const double _valleyDepthRatio = 0.4;
+  static const int _minSplitSeparation = 2;
+  static const double _lowerRightStrokeXRatio = 0.55;
+  static const double _lowerRightStrokeYRatio = 0.55;
+  static const double _lowerRightStrokeDensityRatio = 0.6;
+  static const double _stemThresholdRatio = 0.8;
+
   static const double _lineAspectRatioMin = 0.09;
   static const double _lineAspectRatioMax = 50.0;
   static const double _punctuationHeightRatio = 0.40;
   static const double _minEnclosedRegionAreaRatio = 0.01;
   static const double _valleyThresholdMultiplier = 1.2;
+  static const double _downscaleDensityLow = 0.2;
+  static const double _downscaleDensityHigh = 0.5;
+  static const double _downscaleFillThresholdMin = 0.25;
+  static const double _downscaleFillThresholdMax = 0.45;
+  static const int _erosionNeighborThreshold = 5;
 
   static const double _sameLineVerticalThreshold = 10.0;
   static const double _defaultRectangleSortThreshold = 5.0;
+  static const double _downscaleFillThreshold = 0.3;
 
   /// Main constructor
   Artifact(this.cols, int rows) {
@@ -310,6 +324,160 @@ class Artifact {
     setGrid(newGrid._matrix, newGrid.cols);
   }
 
+  /// Counts the number of "on" pixels within an optional rectangle.
+  ///
+  /// If [rect] is omitted, counts all pixels in the artifact.
+  int countOnPixels({IntRect? rect}) {
+    final IntRect bounds = rect ?? IntRect.fromLTWH(0, 0, cols, rows);
+    if (bounds.isEmpty) {
+      return 0;
+    }
+
+    int count = 0;
+    for (int y = bounds.top; y < bounds.bottom; y++) {
+      for (int x = bounds.left; x < bounds.right; x++) {
+        if (cellGet(x, y)) {
+          count++;
+        }
+      }
+    }
+    return count;
+  }
+
+  /// Creates a softly eroded version of this artifact to reduce stroke thickness.
+  ///
+  /// A pixel remains "on" only if it has at least [_erosionNeighborThreshold]
+  /// neighbors (including itself) in a 3x3 window. This is used to improve
+  /// matching when templates are thinner than the input glyphs.
+  Artifact erodeSoft() {
+    final Artifact result = Artifact(cols, rows);
+    if (isEmpty) {
+      return result;
+    }
+
+    for (int y = 0; y < rows; y++) {
+      for (int x = 0; x < cols; x++) {
+        if (!cellGet(x, y)) {
+          continue;
+        }
+
+        int neighbors = 0;
+        for (int dy = -1; dy <= 1; dy++) {
+          final int ny = y + dy;
+          if (ny < 0 || ny >= rows) {
+            continue;
+          }
+          for (int dx = -1; dx <= 1; dx++) {
+            final int nx = x + dx;
+            if (nx < 0 || nx >= cols) {
+              continue;
+            }
+            if (cellGet(nx, ny)) {
+              neighbors++;
+            }
+          }
+        }
+
+        if (neighbors >= _erosionNeighborThreshold) {
+          result.cellSet(x, y, true);
+        }
+      }
+    }
+
+    return result;
+  }
+
+  /// Detects ink density in the lower-right quadrant of the glyph.
+  ///
+  /// This helps differentiate characters like 'R' from 'P' without hardcoding
+  /// specific words, by checking for a diagonal or lower-right stroke.
+  bool hasLowerRightStroke() {
+    final IntRect content = getContentRect();
+    if (content.isEmpty) {
+      return false;
+    }
+
+    final int totalOn = countOnPixels(rect: content);
+    final int totalArea = content.width * content.height;
+    if (totalOn == 0 || totalArea == 0) {
+      return false;
+    }
+
+    final int startX =
+        content.left + (content.width * _lowerRightStrokeXRatio).round();
+    final int startY =
+        content.top + (content.height * _lowerRightStrokeYRatio).round();
+
+    final IntRect region = IntRect.fromLTRB(
+      startX.clamp(content.left, content.right),
+      startY.clamp(content.top, content.bottom),
+      content.right,
+      content.bottom,
+    );
+
+    if (region.isEmpty) {
+      return false;
+    }
+
+    final int regionOn = countOnPixels(rect: region);
+    final int regionArea = region.width * region.height;
+    if (regionArea == 0) {
+      return false;
+    }
+
+    final double totalDensity = totalOn / totalArea;
+    final double regionDensity = regionOn / regionArea;
+    return regionDensity >= (totalDensity * _lowerRightStrokeDensityRatio);
+  }
+
+  /// Estimates the number of strong vertical stems in a glyph.
+  ///
+  /// This is useful for disambiguating letters with different stroke counts
+  /// (e.g., 'u' vs 'm') without relying on word-specific corrections.
+  int countVerticalStems() {
+    final IntRect content = getContentRect();
+    if (content.isEmpty) {
+      return 0;
+    }
+
+    final int width = content.width;
+    final int height = content.height;
+    if (width <= 0 || height <= 0) {
+      return 0;
+    }
+
+    final List<int> histogram = List<int>.filled(width, 0);
+    for (int x = 0; x < width; x++) {
+      for (int y = 0; y < height; y++) {
+        if (cellGet(content.left + x, content.top + y)) {
+          histogram[x]++;
+        }
+      }
+    }
+
+    final int maxCount = histogram.reduce(max);
+    if (maxCount == 0) {
+      return 0;
+    }
+
+    final int threshold = max(1, (maxCount * _stemThresholdRatio).round());
+
+    int stems = 0;
+    bool inStem = false;
+    for (final int value in histogram) {
+      if (value >= threshold) {
+        if (!inStem) {
+          stems++;
+          inStem = true;
+        }
+      } else {
+        inStem = false;
+      }
+    }
+
+    return stems;
+  }
+
   /// Returns a string representation of this artifact.
   ///
   /// The string includes information about the matched character, position,
@@ -544,19 +712,18 @@ class Artifact {
     final int desiredHeight,
   ) {
     // help resizing by ensuring there's a border
-    if (isPunctuation()) {
-      // do not crop and center
-      return _createWrapGridWithFalse()._createResizedGrid(
-        desiredWidth,
-        desiredHeight,
-      );
-    } else {
-      // Resize
-      return trim()._createWrapGridWithFalse()._createResizedGrid(
-        desiredWidth,
-        desiredHeight,
-      );
-    }
+    final Artifact source = isPunctuation() ? this : trim();
+    final Artifact wrapped = source._createWrapGridWithFalse();
+    final double density = wrapped.rows == 0
+        ? 0
+        : wrapped.countOnPixels() / (wrapped.rows * wrapped.cols);
+    final double fillThreshold = _computeDownscaleFillThreshold(density);
+
+    return wrapped._createResizedGrid(
+      desiredWidth,
+      desiredHeight,
+      fillThreshold: fillThreshold,
+    );
   }
 
   /// Creates a resized version of the current matrix.
@@ -574,8 +741,13 @@ class Artifact {
   ///
   /// Resizing strategy:
   /// - For upscaling (target size larger than original), it uses nearest-neighbor interpolation.
-  /// - For downscaling (target size smaller than original), it averages the values in each sub-grid.
-  Artifact _createResizedGrid(final int targetWidth, final int targetHeight) {
+  /// - For downscaling (target size smaller than original), it uses a coverage threshold
+  ///   based on the fraction of "on" pixels in each sub-grid.
+  Artifact _createResizedGrid(
+    final int targetWidth,
+    final int targetHeight, {
+    double fillThreshold = _downscaleFillThreshold,
+  }) {
     // Initialize the resized grid
     final Artifact resizedGrid = Artifact(targetWidth, targetHeight);
 
@@ -601,25 +773,39 @@ class Artifact {
           final int startY = srcY.floor();
           final int endY = (srcY + yScale).ceil();
 
-          bool hasBlackPixel = false;
+          int blackCount = 0;
+          int totalSamples = 0;
 
           for (int sy = startY; sy < endY && sy < rows; sy++) {
             for (int sx = startX; sx < endX && sx < cols; sx++) {
+              totalSamples++;
               if (cellGet(sx, sy)) {
-                hasBlackPixel = true;
-                break;
+                blackCount++;
               }
             }
-            if (hasBlackPixel) {
-              break;
-            }
           }
-          // Set the resized grid value based on the presence of any black pixel
+          final bool hasBlackPixel =
+              totalSamples > 0 && (blackCount / totalSamples) >= fillThreshold;
           resizedGrid.cellSet(x, y, hasBlackPixel);
         }
       }
     }
     return resizedGrid;
+  }
+
+  static double _computeDownscaleFillThreshold(double density) {
+    if (density <= _downscaleDensityLow) {
+      return _downscaleFillThresholdMin;
+    }
+    if (density >= _downscaleDensityHigh) {
+      return _downscaleFillThresholdMax;
+    }
+
+    final double t =
+        (density - _downscaleDensityLow) /
+        (_downscaleDensityHigh - _downscaleDensityLow);
+    return _downscaleFillThresholdMin +
+        ((_downscaleFillThresholdMax - _downscaleFillThresholdMin) * t);
   }
 
   /// Adds padding to the top and bottom of the matrix.
@@ -1862,7 +2048,10 @@ class Artifact {
   ///
   /// Returns:
   /// A list of column indices where splits should occur.
-  static List<int> artifactValleysOffsets(final Artifact artifact) {
+  static List<int> artifactValleysOffsets(
+    final Artifact artifact, {
+    bool allowSoftValleys = true,
+  }) {
     final List<int> peaksAndValleys = artifact.getHistogramHorizontal();
 
     // Check if all columns have identical values
@@ -1879,9 +2068,10 @@ class Artifact {
     // Calculate a more appropriate threshold for large artifacts
     final int threshold = calculateThreshold(peaksAndValleys);
 
+    final List<List<int>> gaps = [];
+
     if (threshold != _invalidThreshold) {
       // Find columns where the pixel count is below the threshold
-      final List<List<int>> gaps = [];
       List<int> currentGap = [];
 
       // Identify gaps (consecutive columns below threshold)
@@ -1898,39 +2088,119 @@ class Artifact {
       if (currentGap.isNotEmpty) {
         gaps.add(currentGap);
       }
+    }
 
-      // Filter out gaps that are at the edges of the artifact
-      // These are likely serifs or other character features, not actual gaps between characters
-      gaps.removeWhere((gap) {
-        // Remove gaps that start at column 0 (left edge)
-        if (gap.first == 0) {
-          return true;
-        }
-
-        // Remove gaps that end at the last column (right edge)
-        if (gap.last == peaksAndValleys.length - 1) {
-          return true;
-        }
-
-        // Keep all other gaps
-        return false;
-      });
-
-      // Sort the gaps by position (ascending) to maintain left-to-right order
-      gaps.sort((a, b) => a[0].compareTo(b[0]));
-
-      // For each gap, use the middle of the gap as the split column
-
-      for (final List<int> gap in gaps) {
-        if (gap.isNotEmpty) {
-          // Calculate the middle point of the gap
-          final int splitPoint = gap.first + (gap.length ~/ 2);
-          offsets.add(splitPoint);
-        }
+    // Add soft valleys for touching letters (no empty column),
+    // but only when the valley is significantly lower than nearby peaks.
+    if (allowSoftValleys) {
+      final List<int> softValleys = _findSoftValleySplits(peaksAndValleys);
+      for (final int index in softValleys) {
+        gaps.add([index]);
       }
     }
 
-    return offsets;
+    // Filter out gaps that are at the edges of the artifact
+    // These are likely serifs or other character features, not actual gaps between characters
+    gaps.removeWhere((gap) {
+      if (gap.first == 0) {
+        return true;
+      }
+      if (gap.last == peaksAndValleys.length - 1) {
+        return true;
+      }
+      return false;
+    });
+
+    // Sort the gaps by position (ascending) to maintain left-to-right order
+    gaps.sort((a, b) => a[0].compareTo(b[0]));
+
+    // For each gap, use the middle of the gap as the split column
+    for (final List<int> gap in gaps) {
+      if (gap.isNotEmpty) {
+        final int splitPoint = gap.first + (gap.length ~/ 2);
+        offsets.add(splitPoint);
+      }
+    }
+
+    return _dedupeSplitOffsets(offsets);
+  }
+
+  static List<int> _findSoftValleySplits(List<int> histogram) {
+    if (histogram.length < _minHistogramLengthForValley) {
+      return const [];
+    }
+
+    final List<int> splits = [];
+    int i = 1;
+    while (i < histogram.length - 1) {
+      if (histogram[i] > histogram[i - 1] || histogram[i] > histogram[i + 1]) {
+        i++;
+        continue;
+      }
+
+      int start = i;
+      int end = i;
+      while (end + 1 < histogram.length &&
+          histogram[end + 1] == histogram[start]) {
+        end++;
+      }
+
+      if (_isDeepValley(histogram, start, end)) {
+        final int mid = start + ((end - start) ~/ 2);
+        splits.add(mid);
+      }
+
+      i = end + 1;
+    }
+
+    return splits;
+  }
+
+  static bool _isDeepValley(List<int> histogram, int start, int end) {
+    final int leftStart = max(0, start - _valleyPeakWindow);
+    final int leftEnd = max(0, start - 1);
+    final int rightStart = min(histogram.length - 1, end + 1);
+    final int rightEnd = min(histogram.length - 1, end + _valleyPeakWindow);
+
+    final int leftPeak = _maxInRange(histogram, leftStart, leftEnd);
+    final int rightPeak = _maxInRange(histogram, rightStart, rightEnd);
+
+    if (leftPeak == 0 || rightPeak == 0) {
+      return false;
+    }
+
+    final int minPeak = min(leftPeak, rightPeak);
+    final int valley = histogram[start];
+    return valley <= (minPeak * _valleyDepthRatio).round();
+  }
+
+  static int _maxInRange(List<int> histogram, int start, int end) {
+    if (start > end) {
+      return 0;
+    }
+    int maxValue = histogram[start];
+    for (int i = start + 1; i <= end; i++) {
+      if (histogram[i] > maxValue) {
+        maxValue = histogram[i];
+      }
+    }
+    return maxValue;
+  }
+
+  static List<int> _dedupeSplitOffsets(List<int> offsets) {
+    if (offsets.isEmpty) {
+      return offsets;
+    }
+
+    offsets.sort();
+    final List<int> deduped = [offsets.first];
+    for (int i = 1; i < offsets.length; i++) {
+      final int current = offsets[i];
+      if (current - deduped.last >= _minSplitSeparation) {
+        deduped.add(current);
+      }
+    }
+    return deduped;
   }
 
   /// Splits the given matrix into multiple row matrices based on the provided row offsets.

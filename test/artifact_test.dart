@@ -45,7 +45,7 @@ void main() {
 
       Artifact.fromJson({'cols': 0, 'rows': 0, 'data': []});
 
-      artifact1.debugPrintGrid();
+      printOnFailure('${artifact1.toText()}\n');
     });
 
     test('Merging 2 overlapping artifacts', () {
@@ -295,7 +295,7 @@ void main() {
       final resizedSmaller = artifact.createNormalizeMatrix(2, 2);
       expect(resizedSmaller.cols, 2);
       expect(resizedSmaller.rows, 2);
-      expect(resizedSmaller.gridToStrings(), ['##', '##']);
+      expect(resizedSmaller.gridToStrings(), ['#.', '.#']);
 
       // Test with punctuation
       final punctuation = Artifact.fromAsciiDefinition(['.#.', '###', '.#.']);

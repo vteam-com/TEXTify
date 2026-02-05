@@ -11,7 +11,6 @@ export 'package:textify/models/int_rect.dart';
 const int _bytesPerPixel = 4;
 const int _grayscaleMidpoint = 128;
 const int _maxChannelValue = 255;
-const int _thresholdOffset = 90;
 const int _redChannelOffset = 0;
 const int _greenChannelOffset = 1;
 const int _blueChannelOffset = 2;
@@ -96,10 +95,9 @@ Future<Image> imageToBlackOnWhite(
 
 /// Computes an adaptive threshold for converting a grayscale image to black and white.
 ///
-/// This function takes a list of grayscale pixel values and computes a threshold value
-/// that can be used to convert the image to a black and white representation. The threshold
-/// is computed by taking the average of all the pixel values and subtracting 100 from it.
-/// This helps to create a sharper separation between the foreground and background.
+/// This function uses Otsu's method to select a threshold that maximizes the
+/// between-class variance of foreground and background pixels. This is more stable
+/// than a fixed offset for clean, digitally-rendered text.
 ///
 /// Parameters:
 /// - [pixels]: A list of grayscale pixel values.
@@ -107,18 +105,57 @@ Future<Image> imageToBlackOnWhite(
 /// - [height]: The height of the image in pixels.
 ///
 /// Returns:
-/// The computed adaptive threshold value.
-/// Compute adaptive threshold dynamically
-// Compute adaptive threshold dynamically
+/// The computed adaptive threshold value (0..255).
 int computeAdaptiveThreshold(Uint8List pixels, int width, int height) {
-  int sum = 0, count = 0;
+  final List<int> histogram = List<int>.filled(256, 0);
+  int total = 0;
+  int sumAll = 0;
+
   for (int i = 0; i < pixels.length; i += _bytesPerPixel) {
-    sum += pixels[i];
-    count++;
+    final int gray = pixels[i];
+    histogram[gray] += 1;
+    total++;
+    sumAll += gray;
   }
 
-  // Adjust threshold for sharper separation
-  return (sum ~/ count) - _thresholdOffset;
+  if (total == 0) {
+    return _grayscaleMidpoint;
+  }
+
+  int sumBackground = 0;
+  int weightBackground = 0;
+  double maxBetween = -1;
+  int bestThreshold = _grayscaleMidpoint;
+
+  for (int t = 0; t < 256; t++) {
+    weightBackground += histogram[t];
+    if (weightBackground == 0) {
+      continue;
+    }
+
+    final int weightForeground = total - weightBackground;
+    if (weightForeground == 0) {
+      break;
+    }
+
+    sumBackground += t * histogram[t];
+    final int sumForeground = sumAll - sumBackground;
+
+    final double meanBackground = sumBackground / weightBackground;
+    final double meanForeground = sumForeground / weightForeground;
+    final double between =
+        weightBackground *
+        weightForeground *
+        (meanBackground - meanForeground) *
+        (meanBackground - meanForeground);
+
+    if (between > maxBetween) {
+      maxBetween = between;
+      bestThreshold = t;
+    }
+  }
+
+  return bestThreshold;
 }
 
 /// Converts a [Image] to a [Uint8List] representation.

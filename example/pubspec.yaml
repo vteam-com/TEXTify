@@ -31,16 +31,16 @@ flutter:
   fonts:
     - family: Arial
       fonts:
-        - asset: assets/fonts/arial.ttf
+        - asset: ../assets/test/arial.ttf
     - family: Courier
       fonts:
         - asset: assets/fonts/courier_new.ttf
     - family: Helvetica
       fonts:
-        - asset: assets/fonts/helvetica.ttf
+        - asset: ../assets/test/helvetica.ttf
     - family: Times New Roman
       fonts:
-        - asset: assets/fonts/times_new_roman.ttf
+        - asset: ../assets/test/times_new_roman.ttf
 
 # dart run flutter_launcher_icons
 flutter_launcher_icons:

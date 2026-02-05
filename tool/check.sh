@@ -1,24 +1,24 @@
 #!/bin/sh
 
 echo ↓------------------ Pub Get ------------------↓
-flutter pub get
-flutter pub upgrade
+flutter pub get > /dev/null
+flutter pub upgrade > /dev/null
 
 echo ↓------------------ Analyze ------------------↓
-dart analyze 
+dart analyze > /dev/null
 dart fix --apply
 flutter analyze
 
-echo ↓------------------ Format ------------------↓
+echo ↓------------------ Format -------------------↓
 dart format .
 
-echo ↓------------------ Tests ------------------↓
+echo ↓------------------- Tests -------------------↓
 flutter test
 
 echo ↓------------------  Graph  ------------------↓
-tool/graph.sh
+tool/graph.sh > /dev/null
 
-echo ↓------------------  fCheck  ------------------↓
+#  ↓------------------  fCheck  ------------------↓
 # Use an ephemeral private directory for this session's fcheck installation
 # (avoid contaminating the user's global pub cache and avoid version conflicts)
 mkdir -p "$PWD/.dart_tool/fcheck_pub_cache"
@@ -29,3 +29,8 @@ export PUB_CACHE="$PWD/.dart_tool/fcheck_pub_cache"
 dart pub global activate fcheck 0.8.3 > /dev/null
 
 dart pub global run fcheck --svg --svgfolder
+
+#  ↓------------------  Log result %  ------------------↓
+VERSION=$(grep '^version:' pubspec.yaml | sed 's/version: *//' | tr '.' '_')
+TEXTIFY_TEST_VERBOSE=1 flutter test test/ocr_eval_test.dart -r expanded \
+  > ./test/test_results_$VERSION.txt

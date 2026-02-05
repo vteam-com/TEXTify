@@ -1,0 +1,39 @@
+00:00 +0: loading /Users/jp/src/github/vteam/textify/test/ocr_eval_test.dart
+00:00 +0: (setUpAll)
+00:00 +0: OCR evaluation (baseline)
+OCR Evaluation
+Config: TextifyConfig(dilationSize: 22, excludeLongLines: true, attemptCharacterSplitting: true, applyDictionaryCorrection: false, matchingThreshold: 0.4, maxProcessingTimeMs: 30000)
+Cases: 9
+---
+upper-alpha | font:Roboto 24px | expected:43 actual:43 | char-acc:81.40% | exact:no
+  expected: "THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG"
+  actual:   "THE QulCK BROwN Fox JuMPS OvER THE LAzY DOG"
+upper-alpha-helvetica | font:Helvetica 24px | expected:43 actual:44 | char-acc:90.70% | exact:no
+  expected: "THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG"
+  actual:   "THE QULCK BROWN FOX JUMPS OVER THE [J\ZY DOG"
+upper-alpha-arial | font:Arial 24px | expected:43 actual:44 | char-acc:76.74% | exact:no
+  expected: "THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG"
+  actual:   "THE QulcK BROWN FOX JuMPs ovER THE [.AzY DOG"
+upper-alpha-times | font:Times New Roman 24px | expected:43 actual:41 | char-acc:51.16% | exact:no
+  expected: "THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG"
+  actual:   "T[ QmCK BROwN EOX.I{]MI)s ov]zR]E LAZYDOG"
+lower-alpha | font:Roboto 24px | expected:43 actual:42 | char-acc:93.02% | exact:no
+  expected: "the quick brown fox jumps over the lazy dog"
+  actual:   "The qulck brown foxjumps over the lazy dog"
+digits | font:Courier 24px | expected:10 actual:10 | char-acc:90.00% | exact:no
+  expected: "0123456789"
+  actual:   "0123456759"
+mixed-1 | font:Courier 24px | expected:14 actual:14 | char-acc:85.71% | exact:no
+  expected: "INV-2025/12/31"
+  actual:   "INv+2025/12/31"
+punctuation | font:Courier 24px | expected:24 actual:23 | char-acc:70.83% | exact:no
+  expected: "(){}[]<>/\,;:.!@#$&*-+=?"
+  actual:   "(){}[]<>/\';I!e#*&*++I?"
+multi-line | font:Roboto 22px | expected:36 actual:35 | char-acc:91.67% | exact:no
+  expected: "Order: 12345\nTotal: 67.89\nStatus: OK"
+  actual:   "Order: 12345\nOtal: 67.89\nStatus: oK"
+---
+Overall char-accuracy: 80.27%
+Exact-match rate: 0.00%
+00:01 +1: (tearDownAll)
+00:01 +1: All tests passed!

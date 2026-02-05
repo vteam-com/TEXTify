@@ -25,13 +25,20 @@ class Band {
 
   static const double _similarWidthLowerRatio = 0.7;
   static const double _similarWidthUpperRatio = 1.3;
-  static const double _defaultWideThresholdMultiplier = 2.5;
+  static const double _defaultWideThresholdMultiplier = 2.0;
   static const double _smallSetWideThresholdMultiplier = 1.5;
+  static const double _minWideSplitRatio = 2.0;
+  static const double _attachmentMaxAreaRatio = 0.25;
+  static const double _attachmentMaxDistanceRatio = 0.25;
+  static const double _attachmentMaxLineHeightRatio = 0.6;
+  static const double _attachmentMaxLineWidthRatio = 0.8;
+  static const double _minLineArtifactHeightRatio = 0.6;
 
   static const int _spaceBorderWidth = 2;
   static const int _minSpaceWidth = 2;
-  static const int _spaceKerningMultiplier = 2;
-  static const int _spaceWidthDivisor = 3;
+  static const double _spaceMedianMultiplier = 1.6;
+  static const double _spaceMinWidthRatio = 0.4;
+  static const double _spaceGapJumpRatio = 1.8;
 
   static const double _mergeOverlapThreshold = 0.8;
 
@@ -80,10 +87,23 @@ class Band {
       (a, b) => a.locationFound.x.compareTo(b.locationFound.x),
     );
 
+    newBand.mergeDiscardableArtifactsIntoNeighbors(artifactsFound);
+
+    int totalHeight = 0;
     for (final Artifact artifact in artifactsFound) {
-      if (artifact.discardableContent() == false) {
-        newBand.addArtifact(artifact);
+      totalHeight += artifact.rectFound.height;
+    }
+    final int avgHeight = artifactsFound.isEmpty
+        ? 0
+        : (totalHeight / artifactsFound.length).round();
+    final int minLineHeight = (avgHeight * _minLineArtifactHeightRatio).round();
+
+    for (final Artifact artifact in artifactsFound) {
+      final bool discardable = artifact.discardableContent();
+      if (discardable && !_shouldKeepLineArtifact(artifact, minLineHeight)) {
+        continue;
       }
+      newBand.addArtifact(artifact);
     }
 
     // All artifact will have the same grid height
@@ -91,6 +111,8 @@ class Band {
 
     // Clean up inner Matrix overlap for example the letter X may have one of the lines not touching the others like so  `/,
     newBand.mergeArtifactsBasedOnVerticalAlignment();
+    // Repair small intra-glyph gaps caused by binarization (e.g., serif diagonals).
+    newBand.mergeArtifactsWithTightGaps();
 
     newBand.clearStats();
 
@@ -251,8 +273,13 @@ class Band {
   /// [artifactToSplit] The artifact to be split into multiple components.
   /// Returns a list of new artifacts created from the split.
   List<Artifact> splitChunk(Artifact artifactToSplit) {
+    final bool allowSoftValleys =
+        artifactToSplit.cols >= (averageWidth * _minWideSplitRatio).round();
     // Get columns where to split the artifact
-    List<int> splitColumns = Artifact.artifactValleysOffsets(artifactToSplit);
+    List<int> splitColumns = Artifact.artifactValleysOffsets(
+      artifactToSplit,
+      allowSoftValleys: allowSoftValleys,
+    );
 
     // If no split columns found, return empty list
     if (splitColumns.isEmpty) {
@@ -361,6 +388,195 @@ class Band {
     artifacts = mergedArtifacts;
   }
 
+  /// Merges adjacent artifacts that are separated by very small gaps but overlap
+  /// strongly in the vertical axis. This helps repair split glyphs (e.g., serif
+  /// diagonals) without merging full adjacent letters.
+  void mergeArtifactsWithTightGaps() {
+    if (artifacts.length < _minArtifactsForStats) {
+      return;
+    }
+
+    sortArtifactsLeftToRight();
+    updateStatistics();
+
+    if (averageWidth <= 0) {
+      return;
+    }
+
+    final int baseKerning = averageKerning > 0 ? averageKerning : kerningWidth;
+    final int minGap = max(1, _minSpaceWidth - 1);
+    final int tightGapThreshold = max(
+      minGap,
+      min(baseKerning, kerningWidth) ~/ _pairArtifactsCount,
+    );
+
+    int i = 0;
+    while (i < artifacts.length - 1) {
+      final Artifact left = artifacts[i];
+      final Artifact right = artifacts[i + 1];
+
+      final int gap = right.rectFound.left - left.rectFound.right;
+      if (gap >= 0 && gap <= tightGapThreshold) {
+        final IntRect overlap = left.rectFound.intersect(right.rectFound);
+        if (!overlap.isEmpty) {
+          final int minHeight = min(
+            left.rectFound.height,
+            right.rectFound.height,
+          );
+          final double overlapRatio = minHeight == 0
+              ? 0
+              : overlap.height / minHeight;
+
+          final double narrowThreshold = averageWidth * _similarWidthLowerRatio;
+          final bool leftNarrow = left.rectFound.width <= narrowThreshold;
+          final bool rightNarrow = right.rectFound.width <= narrowThreshold;
+
+          if (overlapRatio >= _mergeOverlapThreshold &&
+              leftNarrow &&
+              rightNarrow) {
+            left.mergeArtifact(right);
+            artifacts.removeAt(i + 1);
+            clearStats();
+            continue;
+          }
+        }
+      }
+      i++;
+    }
+  }
+
+  /// Merges discardable artifacts (tiny or line-like) into nearby neighbors
+  /// when they are within a small, size-relative distance. This recovers
+  /// detached strokes (e.g., diagonals in serif letters) without hardcoding
+  /// specific words.
+  void mergeDiscardableArtifactsIntoNeighbors(List<Artifact> artifactsFound) {
+    final List<Artifact> keep = [];
+    final List<Artifact> discardable = [];
+
+    for (final Artifact artifact in artifactsFound) {
+      if (artifact.discardableContent()) {
+        discardable.add(artifact);
+      } else {
+        keep.add(artifact);
+      }
+    }
+
+    if (keep.isEmpty || discardable.isEmpty) {
+      return;
+    }
+
+    final int avgWidth = _averageRectDimension(keep, (rect) => rect.width);
+    final int avgHeight = _averageRectDimension(keep, (rect) => rect.height);
+
+    final int maxDistance = max(
+      1,
+      (min(avgWidth, avgHeight) * _attachmentMaxDistanceRatio).round(),
+    );
+
+    for (final Artifact tiny in discardable) {
+      Artifact? best;
+      int bestDistance = 1 << 30;
+
+      for (final Artifact big in keep) {
+        if (!_isEligibleAttachment(
+          tiny,
+          big,
+          maxDistance,
+          avgWidth,
+          avgHeight,
+        )) {
+          continue;
+        }
+
+        final int distance = _rectDistance(tiny.rectFound, big.rectFound);
+        if (distance < bestDistance) {
+          bestDistance = distance;
+          best = big;
+        }
+      }
+
+      if (best != null) {
+        best.mergeArtifact(tiny);
+      }
+    }
+  }
+
+  static int _averageRectDimension(
+    List<Artifact> artifacts,
+    int Function(IntRect rect) selector,
+  ) {
+    int total = 0;
+    for (final Artifact artifact in artifacts) {
+      total += selector(artifact.rectFound);
+    }
+    return (total / artifacts.length).round();
+  }
+
+  static int _rectDistance(IntRect a, IntRect b) {
+    int dx = 0;
+    if (a.right < b.left) {
+      dx = b.left - a.right;
+    } else if (b.right < a.left) {
+      dx = a.left - b.right;
+    }
+
+    int dy = 0;
+    if (a.bottom < b.top) {
+      dy = b.top - a.bottom;
+    } else if (b.bottom < a.top) {
+      dy = a.top - b.bottom;
+    }
+
+    return max(dx, dy);
+  }
+
+  static bool _isEligibleAttachment(
+    Artifact tiny,
+    Artifact big,
+    int maxDistance,
+    int avgWidth,
+    int avgHeight,
+  ) {
+    final IntRect tinyRect = tiny.getContentRect();
+    final IntRect bigRect = big.getContentRect();
+
+    if (tinyRect.isEmpty || bigRect.isEmpty) {
+      return false;
+    }
+
+    final int tinyArea = tinyRect.width * tinyRect.height;
+    final int bigArea = bigRect.width * bigRect.height;
+
+    if (tinyArea > (bigArea * _attachmentMaxAreaRatio)) {
+      return false;
+    }
+
+    if (tiny.isConsideredLine()) {
+      if (tinyRect.height >= (avgHeight * _attachmentMaxLineHeightRatio)) {
+        return false;
+      }
+      if (tinyRect.width >= (avgWidth * _attachmentMaxLineWidthRatio)) {
+        return false;
+      }
+    }
+
+    return _withinExpandedRect(tiny.rectFound, big.rectFound, maxDistance);
+  }
+
+  static bool _withinExpandedRect(IntRect inner, IntRect outer, int padding) {
+    return inner.left >= (outer.left - padding) &&
+        inner.right <= (outer.right + padding) &&
+        inner.top >= (outer.top - padding) &&
+        inner.bottom <= (outer.bottom + padding);
+  }
+
+  static bool _shouldKeepLineArtifact(Artifact artifact, int minLineHeight) {
+    if (!artifact.isConsideredLine()) {
+      return false;
+    }
+    return artifact.rectFound.height >= minLineHeight;
+  }
+
   /// Determines if two artifacts should be merged based on their spatial relationship.
   ///
   /// This method checks if the smaller artifact significantly overlaps with the larger one.
@@ -429,7 +645,7 @@ class Band {
   /// 3. Creating a list of artifacts that need spaces inserted before them.
   /// 4. Inserting space artifacts at the appropriate positions.
   ///
-  /// The threshold is set at 50% of the average width of artifacts in the band.
+  /// The threshold is derived from the median gap between artifacts.
   void identifySpacesInBand() {
     updateStatistics();
 
@@ -437,8 +653,18 @@ class Band {
       return;
     }
 
-    // Calculate a more adaptive threshold based on both average width and kerning
-    final int spaceThreshold = calculateSpaceThreshold();
+    final List<int> gaps = [];
+    for (int i = 1; i < artifacts.length; i++) {
+      final int leftEdge = artifacts[i - 1].rectFound.right;
+      final int rightEdge = artifacts[i].rectFound.left;
+      final int gap = rightEdge - leftEdge;
+      if (gap > 0) {
+        gaps.add(gap);
+      }
+    }
+
+    // Calculate a threshold based on gap distribution (robust to large spaces)
+    final int spaceThreshold = calculateSpaceThreshold(gaps);
 
     for (int i = 1; i < artifacts.length; i++) {
       final Artifact leftArtifact = artifacts[i - 1];
@@ -475,12 +701,50 @@ class Band {
   ///
   /// Returns:
   /// An integer representing the minimum gap width to be considered a space
-  int calculateSpaceThreshold() {
-    // A space is typically 1.5-2.5x wider than normal kerning
-    return max(
-      _averageKerning * _spaceKerningMultiplier,
-      averageWidth ~/ _spaceWidthDivisor,
-    );
+  int calculateSpaceThreshold(List<int> gaps) {
+    if (gaps.isEmpty) {
+      return _minSpaceWidth;
+    }
+
+    gaps.sort();
+    final int jumpThreshold = _tryJumpThreshold(gaps);
+    if (jumpThreshold > 0) {
+      return max(_minSpaceWidth, jumpThreshold);
+    }
+
+    final int medianGap = gaps[gaps.length ~/ 2];
+    final int thresholdFromGaps = (medianGap * _spaceMedianMultiplier).round();
+    final int thresholdFromWidth = (averageWidth * _spaceMinWidthRatio).round();
+    return max(_minSpaceWidth, max(thresholdFromGaps, thresholdFromWidth));
+  }
+
+  static int _tryJumpThreshold(List<int> gaps) {
+    if (gaps.length < _minArtifactsForSpaceDetection) {
+      return 0;
+    }
+
+    double bestRatio = 1.0;
+    int bestIndex = -1;
+
+    for (int i = 1; i < gaps.length; i++) {
+      final int prev = gaps[i - 1];
+      final int current = gaps[i];
+      if (prev <= 0) {
+        continue;
+      }
+
+      final double ratio = current / prev;
+      if (ratio > bestRatio) {
+        bestRatio = ratio;
+        bestIndex = i;
+      }
+    }
+
+    if (bestIndex < 0 || bestRatio < _spaceGapJumpRatio) {
+      return 0;
+    }
+
+    return ((gaps[bestIndex - 1] + gaps[bestIndex]) / 2).round();
   }
 
   /// Inserts a space artifact at a specified position in the artifacts list.

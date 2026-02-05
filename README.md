@@ -121,6 +121,14 @@ final defaultTextify = Textify(); // Uses TextifyConfig()
 - **Accuracy Priority**: Use `TextifyConfig.accurate` for maximum accuracy on clean documents
 - **Robust Processing**: Use `TextifyConfig.robust` for challenging images with noise or low quality
 
+## Contributing
+
+Contributions are welcome. Please keep changes focused, update docs as needed, and run the full verification workflow before opening a PR.
+
+```bash
+tool/check.sh
+```
+
 ## Features
 
 - **Character recognition** for clean digital text images

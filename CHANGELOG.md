@@ -4,6 +4,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.5.1 : 2026-02-05
+
+### Changed
+
+- Replace magic numbers with named constants across core OCR components for clarity and maintainability.
+- Added `fcheck` to the verification process.
+
 ## 0.5.0 : 2025-12-27
 
 ### Breaking Changes

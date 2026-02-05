@@ -15,6 +15,11 @@ export 'package:textify/band.dart';
 /// It supports operations like identifying artifacts, adjusting their locations,
 /// and preparing text bands for further analysis.
 class Bands {
+  static const int _averageDivisor = 2;
+  static const double _verticalAlignmentRatio = 0.4;
+  static const double _estimatedSpaceWidthMultiplier = 1.2;
+  static const double _defaultSortThreshold = 5.0;
+
   /// Initializes a new empty Bands collection.
   ///
   /// Creates a collection with an empty list of bands ready to be populated.
@@ -80,10 +85,11 @@ class Bands {
           (a.rectangleAdjusted.center.y - b.rectangleAdjusted.center.y).abs();
 
       int avgHeightOfBothBands =
-          (a.rectangleAdjusted.height + b.rectangleAdjusted.height) ~/ 2;
+          (a.rectangleAdjusted.height + b.rectangleAdjusted.height) ~/
+          _averageDivisor;
 
       // The bands needs an vertical overlapping of least 50% of the average height
-      if (verticalDistance < avgHeightOfBothBands * 0.4) {
+      if (verticalDistance < avgHeightOfBothBands * _verticalAlignmentRatio) {
         return true;
       }
     }
@@ -178,9 +184,10 @@ class Bands {
     final int avgHeightOfBothBands =
         (bandEast.rectangleAdjusted.height +
             bandWest.rectangleAdjusted.height) ~/
-        2;
+        _averageDivisor;
 
-    final estimatedSpaceWidth = avgHeightOfBothBands * 1.2;
+    final estimatedSpaceWidth =
+        avgHeightOfBothBands * _estimatedSpaceWidthMultiplier;
 
     return horizontalDistance > 0 && horizontalDistance <= estimatedSpaceWidth;
   }
@@ -287,7 +294,7 @@ class Bands {
   /// [threshold] The vertical threshold (in pixels) within which bands are considered to be on the same line.
   static void sortVerticallyThenHorizontally(
     List<Band> list, {
-    double threshold = 5.0,
+    double threshold = _defaultSortThreshold,
   }) {
     list.sort((a, b) {
       // If the vertical difference is within the threshold, treat them as the same row

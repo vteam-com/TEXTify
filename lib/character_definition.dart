@@ -103,10 +103,10 @@ class CharacterDefinition {
   }
 
   /// The height of the character template.
-  static int templateHeight = 60;
+  static const int templateHeight = 60;
 
   /// The width of the character template.
-  static int templateWidth = 40;
+  static const int templateWidth = 40;
 
   /// The character being defined.
   final String character;

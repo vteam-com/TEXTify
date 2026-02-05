@@ -11,6 +11,8 @@ export 'package:textify/models/int_offset.dart';
 
 /// A class representing a rectangle with integer coordinates and dimensions.
 class IntRect {
+  static const int _centerDivisor = 2;
+
   /// Creates a new [IntRect] with the specified position and dimensions.
   ///
   /// [left] The x-coordinate of the left edge.
@@ -60,8 +62,8 @@ class IntRect {
     required final int height,
   }) {
     return IntRect(
-      center.x - width ~/ 2,
-      center.y - height ~/ 2,
+      center.x - width ~/ _centerDivisor,
+      center.y - height ~/ _centerDivisor,
       width,
       height,
     );
@@ -92,25 +94,30 @@ class IntRect {
   IntOffset get topLeft => IntOffset(left, top);
 
   /// The top-center point of the rectangle.
-  IntOffset get topCenter => IntOffset(left + (width ~/ 2), top);
+  IntOffset get topCenter => IntOffset(left + (width ~/ _centerDivisor), top);
 
   /// The top-right corner of the rectangle.
   IntOffset get topRight => IntOffset(right, top);
 
   /// The center-left point of the rectangle.
-  IntOffset get centerLeft => IntOffset(left, top + (height ~/ 2));
+  IntOffset get centerLeft => IntOffset(left, top + (height ~/ _centerDivisor));
 
   /// The center point of the rectangle.
-  IntOffset get center => IntOffset(left + (width ~/ 2), top + (height ~/ 2));
+  IntOffset get center => IntOffset(
+    left + (width ~/ _centerDivisor),
+    top + (height ~/ _centerDivisor),
+  );
 
   /// The center-right point of the rectangle.
-  IntOffset get centerRight => IntOffset(right, top + (height ~/ 2));
+  IntOffset get centerRight =>
+      IntOffset(right, top + (height ~/ _centerDivisor));
 
   /// The bottom-left corner of the rectangle.
   IntOffset get bottomLeft => IntOffset(left, bottom);
 
   /// The bottom-center point of the rectangle.
-  IntOffset get bottomCenter => IntOffset(left + (width ~/ 2), bottom);
+  IntOffset get bottomCenter =>
+      IntOffset(left + (width ~/ _centerDivisor), bottom);
 
   /// The bottom-right corner of the rectangle.
   IntOffset get bottomRight => IntOffset(right, bottom);

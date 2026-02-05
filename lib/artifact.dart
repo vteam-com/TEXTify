@@ -16,6 +16,32 @@ import 'package:textify/image_helpers.dart';
 /// This class provides various ways to create, manipulate, and analyze boolean matrices,
 /// including methods for resizing, comparing, and extracting information from the grid.
 class Artifact {
+  static const int _bytesPerPixel = 4;
+  static const int _pixelOffValue = 0;
+  static const int _pixelOnValue = 1;
+  static const int _blackChannelValue = 0;
+
+  static const int _uninitializedEnclosures = -1;
+  static const int _noContentSentinel = -1;
+  static const int _maxDiscardableArea = 2;
+  static const int _wrapBorderPadding = 1;
+  static const int _wrapBorderPaddingMultiplier = 2;
+  static const double _centerDivisor = 2.0;
+
+  static const int _minEnclosedRegionSize = 3;
+  static const int _minHistogramLengthForValley = 3;
+  static const int _invalidThreshold = -1;
+  static const int _flatValleyLookahead = 2;
+
+  static const double _lineAspectRatioMin = 0.09;
+  static const double _lineAspectRatioMax = 50.0;
+  static const double _punctuationHeightRatio = 0.40;
+  static const double _minEnclosedRegionAreaRatio = 0.01;
+  static const double _valleyThresholdMultiplier = 1.2;
+
+  static const double _sameLineVerticalThreshold = 10.0;
+  static const double _defaultRectangleSortThreshold = 5.0;
+
   /// Main constructor
   Artifact(this.cols, int rows) {
     _matrix = Uint8List(rows * cols);
@@ -99,7 +125,10 @@ class Artifact {
     artifact.font = json['font'] ?? '';
     artifact._matrix = Uint8List.fromList(
       (json['data'] as List<dynamic>).expand((final dynamic row) {
-        return row.toString().split('').map((cell) => cell == '#' ? 1 : 0);
+        return row
+            .toString()
+            .split('')
+            .map((cell) => cell == '#' ? _pixelOnValue : _pixelOffValue);
       }).toList(),
     );
     return artifact;
@@ -111,7 +140,8 @@ class Artifact {
   /// [width] The width of the image.
   factory Artifact.fromUint8List(final Uint8List pixels, final int width) {
     return Artifact.fromFlatListOfBool([
-      for (int i = 0; i < pixels.length; i += 4) pixels[i] == 0,
+      for (int i = 0; i < pixels.length; i += _bytesPerPixel)
+        pixels[i] == _blackChannelValue,
     ], width);
   }
 
@@ -341,7 +371,7 @@ class Artifact {
       IntRect.fromLTWH(locationAdjusted.x, locationAdjusted.y, cols, rows);
 
   /// The number of enclosure found
-  int _enclosures = -1;
+  int _enclosures = _uninitializedEnclosures;
 
   /// The number of vertical left lines found
   bool? _verticalLineLeft;
@@ -371,7 +401,7 @@ class Artifact {
   /// Returns false if the coordinates are out of bounds.
   bool cellGet(final int x, final int y) {
     assert(_isValidXY(x, y) == true);
-    return _matrix[y * cols + x] == 1;
+    return _matrix[y * cols + x] == _pixelOnValue;
   }
 
   /// Sets the value of a cell at the specified coordinates.
@@ -379,17 +409,18 @@ class Artifact {
   /// Does nothing if the coordinates are out of bounds.
   void cellSet(final int x, final int y, bool value) {
     assert(_isValidXY(x, y) == true);
-    _matrix[y * cols + x] = value ? 1 : 0;
+    _matrix[y * cols + x] = value ? _pixelOnValue : _pixelOffValue;
   }
 
   /// Determines if this artifact contains content that can be discarded.
   ///
-  /// An artifact is considered discardable if it is very small (area ≤ 2)
+  /// An artifact is considered discardable if it is very small
+  /// (area ≤ [_maxDiscardableArea])
   /// or if it is classified as a line.
   ///
   /// Returns true if the artifact can be discarded, false otherwise.
   bool discardableContent() {
-    return area <= 2 || isConsideredLine();
+    return area <= _maxDiscardableArea || isConsideredLine();
   }
 
   /// Returns the vertical histogram of the matrix.
@@ -644,12 +675,19 @@ class Artifact {
   /// such as cellular automata or image processing algorithms.
   Artifact _createWrapGridWithFalse() {
     // Create a new grid with increased dimensions
-    final Artifact newGrid = Artifact(cols + 2, rows + 2);
+    final Artifact newGrid = Artifact(
+      cols + (_wrapBorderPadding * _wrapBorderPaddingMultiplier),
+      rows + (_wrapBorderPadding * _wrapBorderPaddingMultiplier),
+    );
 
     // Copy the original grid into the center of the new grid
     for (int y = 0; y < rows; y++) {
       for (int x = 0; x < cols; x++) {
-        newGrid.cellSet(x + 1, y + 1, cellGet(x, y));
+        newGrid.cellSet(
+          x + _wrapBorderPadding,
+          y + _wrapBorderPadding,
+          cellGet(x, y),
+        );
       }
     }
 
@@ -665,7 +703,7 @@ class Artifact {
   ///
   /// Returns the number of enclosed regions in the matrix.
   int get enclosures {
-    if (_enclosures < 0) {
+    if (_enclosures == _uninitializedEnclosures) {
       _enclosures = _countEnclosedRegion(this);
     }
     return _enclosures;
@@ -733,9 +771,9 @@ class Artifact {
   ///   the cell just after the last true cell in each direction).
   IntRect getContentRect() {
     int minX = cols;
-    int maxX = -1;
+    int maxX = _noContentSentinel;
     int minY = rows;
-    int maxY = -1;
+    int maxY = _noContentSentinel;
 
     for (int y = 0; y < rows; y++) {
       for (int x = 0; x < cols; x++) {
@@ -749,7 +787,7 @@ class Artifact {
     }
 
     // If no content found, return Rect.zero
-    if (maxX == -1 || maxY == -1) {
+    if (maxX == _noContentSentinel || maxY == _noContentSentinel) {
       return IntRect();
     } else {
       return IntRect.fromLTRB(minX, minY, (maxX + 1), (maxY + 1));
@@ -823,21 +861,22 @@ class Artifact {
   /// within a specific range to determine if it should be considered a line.
   ///
   /// Returns:
-  ///   * true if the aspect ratio is less than 0.25 or greater than 50,
-  ///     indicating that the Matrix is likely representing a line.
+  ///   * true if the aspect ratio is less than [_lineAspectRatioMin] or greater
+  ///     than [_lineAspectRatioMax], indicating that the Matrix is likely
+  ///     representing a line.
   ///   * false otherwise, suggesting the Matrix is not representing a line.
   ///
-  /// The aspect ratio is calculated by the aspectRatioOfContent() method, which is
-  /// assumed to return width divided by height of the Matrix's content. Therefore:
-  ///   * A very small aspect ratio (< 0.25) indicates a tall, narrow Matrix.
-  ///   * A very large aspect ratio (> 50) indicates a wide, short Matrix.
+  /// The aspect ratio is calculated by the aspectRatioOfContent() method as
+  /// height divided by width. Therefore:
+  ///   * A very small aspect ratio indicates a tall, narrow Matrix.
+  ///   * A very large aspect ratio indicates a wide, short Matrix.
   /// Both of these cases are considered to be line-like in this context.
   ///
   /// This method is useful in image processing or OCR tasks where distinguishing
   /// between line-like structures and other shapes is important.
   bool isConsideredLine() {
     final double ar = aspectRatioOfContent();
-    return ar < 0.09 || ar > 50;
+    return ar < _lineAspectRatioMin || ar > _lineAspectRatioMax;
   }
 
   /// The grid contains one or more True values
@@ -846,7 +885,7 @@ class Artifact {
   /// All entries in the grid are false
   bool get isNotEmpty => !isEmpty;
 
-  /// smaller (~30%) in height artifacts will be considered punctuation
+  /// smaller (~40%) in height artifacts will be considered punctuation
   bool isPunctuation() {
     // Calculate the height of the content
     final IntRect rect = getContentRect();
@@ -857,7 +896,7 @@ class Artifact {
     }
 
     // Check if the content height is less than 40% of the total height
-    return rect.height < (rows * 0.40);
+    return rect.height < (rows * _punctuationHeightRatio);
   }
 
   /// Ensure that x & y are in the boundary of the grid
@@ -997,12 +1036,13 @@ class Artifact {
   /// 2. Iterates through each cell in the grid.
   /// 3. For each unvisited 'false' cell (representing a potential region):
   ///    a. Explores the connected region using [_exploreRegion].
-  ///    b. If the region size is at least [minRegionSize] (3 in this case) and
+  ///    b. If the region size is at least [minRegionSize] and
   ///       it's confirmed as enclosed by [_isEnclosedRegion], increments the loop count.
   ///
   /// Note:
   /// - The function assumes the existence of helper methods [_exploreRegion] and [_isEnclosedRegion].
-  /// - A region must have at least 3 cells to be considered a loop.
+  /// - A region must have at least [_minEnclosedRegionSize] cells to be
+  ///   considered a loop.
   /// - The function uses a depth-first search approach to explore regions.
   ///
   /// Time Complexity: O(rows * cols), where each cell is visited at most once.
@@ -1014,7 +1054,7 @@ class Artifact {
     final Artifact visited = Artifact(cols, rows);
 
     int loopCount = 0;
-    int minRegionSize = 3; // Minimum size for a region to be considered a loop
+    final int minRegionSize = _minEnclosedRegionSize;
 
     for (int y = 0; y < rows; y++) {
       for (int x = 0; x < cols; x++) {
@@ -1034,7 +1074,8 @@ class Artifact {
   /// Sorts a list of Artifact objects based on their vertical and horizontal positions.
   ///
   /// This method first compares the vertical center positions of artifacts.
-  /// If two artifacts are approximately on the same line (within 10 pixels vertically),
+  /// If two artifacts are approximately on the same line (within
+  /// [_sameLineVerticalThreshold] pixels vertically),
   /// it sorts them from left to right based on their horizontal position.
   /// Otherwise, it sorts them from top to bottom.
   ///
@@ -1042,9 +1083,9 @@ class Artifact {
   ///   [list]: The list of Artifact objects to sort.
   static void sortMatrices(List<Artifact> list) {
     list.sort((Artifact a, Artifact b) {
-      final aCenterY = a.rectFound.top + a.rectFound.height / 2;
-      final bCenterY = b.rectFound.top + b.rectFound.height / 2;
-      if ((aCenterY - bCenterY).abs() < 10) {
+      final aCenterY = a.rectFound.top + a.rectFound.height / _centerDivisor;
+      final bCenterY = b.rectFound.top + b.rectFound.height / _centerDivisor;
+      if ((aCenterY - bCenterY).abs() < _sameLineVerticalThreshold) {
         return a.rectFound.left.compareTo(b.rectFound.left);
       }
       return aCenterY.compareTo(bCenterY);
@@ -1061,8 +1102,12 @@ class Artifact {
   /// Parameters:
   ///   [list]: The list of IntRect objects to sort.
   ///   [threshold]: The maximum vertical distance (in pixels) for rectangles to be
-  ///                considered on the same line. Defaults to 5.0.
-  static void sortRectangles(List<IntRect> list, {double threshold = 5.0}) {
+  ///                considered on the same line. Defaults to
+  ///                [_defaultRectangleSortThreshold].
+  static void sortRectangles(
+    List<IntRect> list, {
+    double threshold = _defaultRectangleSortThreshold,
+  }) {
     list.sort((a, b) {
       // If the vertical difference is within the threshold, treat them as the same row
       if ((a.center.y - b.center.y).abs() <= threshold) {
@@ -1153,7 +1198,8 @@ class Artifact {
   ///
   /// A region is considered not enclosed if:
   /// 1. It reaches the edge of the grid during exploration.
-  /// 2. Its size is less than 1% of the total grid area (adjustable threshold).
+  /// 2. Its size is less than [_minEnclosedRegionAreaRatio] of the total grid
+  ///    area (adjustable threshold).
   static bool _isEnclosedRegion(
     final Artifact grid,
     final int startX,
@@ -1201,7 +1247,7 @@ class Artifact {
     // Check if the region is too small compared to the grid size
     final int gridArea = rows * cols;
     final double regionPercentage = regionSize / gridArea;
-    if (regionPercentage < 0.01) {
+    if (regionPercentage < _minEnclosedRegionAreaRatio) {
       // Adjust this threshold as needed
       isEnclosed = false;
     }
@@ -1232,7 +1278,8 @@ class Artifact {
   bool _hasVerticalLineLeft(final Artifact matrix) {
     final Artifact visited = Artifact(matrix.cols, matrix.rows);
 
-    // We only consider lines that are more than 40% of the character's height
+    // We only consider lines that are more than
+    // [_thresholdLinePercentage] of the character's height
     final int minVerticalLine = (matrix.rows * _thresholdLinePercentage)
         .toInt();
 
@@ -1280,7 +1327,8 @@ class Artifact {
   bool _hasVerticalLineRight(final Artifact matrix) {
     final Artifact visited = Artifact(matrix.cols, matrix.rows);
 
-    // We only consider lines that are more than 40% of the character's height
+    // We only consider lines that are more than
+    // [_thresholdLinePercentage] of the character's height
     final int minVerticalLine = (matrix.rows * _thresholdLinePercentage)
         .toInt();
 
@@ -1481,7 +1529,8 @@ class Artifact {
       for (int x = 0; x < width; x++) {
         final int index = rowOffset + x;
         // Check if pixel is on and not visited using direct array access
-        if (visitedData[index] == 0 && imageData[index] == 1) {
+        if (visitedData[index] == _pixelOffValue &&
+            imageData[index] == _pixelOnValue) {
           // Find region bounds directly without storing all points
           final IntRect rect = floodFillToRect(this, visited, x, y);
 
@@ -1543,7 +1592,7 @@ class Artifact {
     final int startIndex = startY * width + startX;
 
     // Mark start point as visited and add to queue
-    visitedData[startIndex] = 1;
+    visitedData[startIndex] = _pixelOnValue;
     queue.add(startIndex);
     connectedPoints.add(Point(startX, startY));
 
@@ -1566,7 +1615,7 @@ class Artifact {
       final int y = currentIndex ~/ width;
 
       // Check all eight directions (including diagonals)
-      for (int i = 0; i < 8; i++) {
+      for (int i = 0; i < rowOffsets.length; i++) {
         final int nx = x + colOffsets[i];
         final int ny = y + rowOffsets[i];
 
@@ -1578,8 +1627,9 @@ class Artifact {
         final int neighborIndex = ny * width + nx;
 
         // Check if neighbor is valid and not visited
-        if (pixelData[neighborIndex] == 1 && visitedData[neighborIndex] == 0) {
-          visitedData[neighborIndex] = 1;
+        if (pixelData[neighborIndex] == _pixelOnValue &&
+            visitedData[neighborIndex] == _pixelOffValue) {
+          visitedData[neighborIndex] = _pixelOnValue;
           queue.add(neighborIndex);
           connectedPoints.add(Point(nx, ny));
         }
@@ -1629,7 +1679,7 @@ class Artifact {
         final int startIndex = startY * width + startX;
 
         // Mark start point as visited and add to queue
-        visitedData[startIndex] = 1;
+        visitedData[startIndex] = _pixelOnValue;
         queue.add(startIndex);
 
         // Direction offsets for adjacent pixels
@@ -1648,7 +1698,7 @@ class Artifact {
           maxY = max(maxY, y);
 
           // Check all four directions
-          for (int i = 0; i < 4; i++) {
+          for (int i = 0; i < rowOffsets.length; i++) {
             final int nx = x + colOffsets[i];
             final int ny = y + rowOffsets[i];
 
@@ -1660,9 +1710,9 @@ class Artifact {
             final int neighborIndex = ny * width + nx;
 
             // Check if neighbor is valid and not visited
-            if (pixelData[neighborIndex] == 1 &&
-                visitedData[neighborIndex] == 0) {
-              visitedData[neighborIndex] = 1;
+            if (pixelData[neighborIndex] == _pixelOnValue &&
+                visitedData[neighborIndex] == _pixelOffValue) {
+              visitedData[neighborIndex] = _pixelOnValue;
               queue.add(neighborIndex);
             }
           }
@@ -1829,7 +1879,7 @@ class Artifact {
     // Calculate a more appropriate threshold for large artifacts
     final int threshold = calculateThreshold(peaksAndValleys);
 
-    if (threshold >= 0) {
+    if (threshold != _invalidThreshold) {
       // Find columns where the pixel count is below the threshold
       final List<List<int>> gaps = [];
       List<int> currentGap = [];
@@ -1983,10 +2033,11 @@ class Artifact {
   /// - [histogram]: A list of integer values representing the histogram.
   ///
   /// Returns:
-  /// An integer threshold value, or -1 if a valid threshold couldn't be determined.
+  /// An integer threshold value, or [_invalidThreshold] if a valid threshold
+  /// couldn't be determined.
   static int calculateThreshold(List<int> histogram) {
-    // need at least 3 elements to have a valley
-    if (histogram.length >= 3) {
+    // Need at least [_minHistogramLengthForValley] elements to have a valley.
+    if (histogram.length >= _minHistogramLengthForValley) {
       // Find all valleys (local minima)
       List<int> valleys = [];
 
@@ -1999,7 +2050,7 @@ class Artifact {
       }
 
       // Handle flat valleys (consecutive identical values that are lower than neighbors)
-      for (int i = 1; i < histogram.length - 2; i++) {
+      for (int i = 1; i < histogram.length - _flatValleyLookahead; i++) {
         // Check if we have a sequence of identical values
         if (histogram[i] == histogram[i + 1]) {
           // Find the end of this flat region
@@ -2024,12 +2075,12 @@ class Artifact {
       // If we found valleys, use the smallest one as threshold
       if (valleys.isNotEmpty) {
         int smallestValley = valleys.reduce(min);
-        return (smallestValley * 1.2)
+        return (smallestValley * _valleyThresholdMultiplier)
             .toInt(); // Slightly higher than smallest valley
       }
     }
-    // If no valleys found, return -1 to indicate that splitting is not possible
-    return -1;
+    // If no valleys found, return the invalid threshold sentinel.
+    return _invalidThreshold;
   }
 
   /// Calculates the normalized Hamming distance between two matrices.

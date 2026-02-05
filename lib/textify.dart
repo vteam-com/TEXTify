@@ -18,6 +18,9 @@ import 'package:textify/image_helpers.dart';
 /// Processes images by identifying text regions, organizing them into lines (bands),
 /// and recognizing characters using template matching.
 class Textify {
+  static const double _dilationKernelRatio = 0.02;
+  static const double _splitScoreThreshold = 0.4;
+
   /// Creates a new instance of Textify with the specified configuration.
   ///
   /// [config] defines the OCR processing settings. If not provided,
@@ -157,7 +160,7 @@ class Textify {
     int kernelSize = computeKernelSize(
       matrixSourceImage.cols,
       matrixSourceImage.rows,
-      0.02,
+      _dilationKernelRatio,
     );
     final Artifact dilatedImage = Artifact.dilateArtifact(
       matrixImage: matrixSourceImage,
@@ -263,7 +266,7 @@ class Textify {
             continue;
           }
 
-          if (scores.first.score < 0.4) {
+          if (scores.first.score < _splitScoreThreshold) {
             artifact.needsInspection = true;
             final List<Artifact> artifactsFromColumns = band.splitChunk(
               artifact,

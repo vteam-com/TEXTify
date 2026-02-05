@@ -15,6 +15,26 @@ export 'package:textify/artifact.dart';
 /// A Band contains multiple [Artifact] objects and provides methods for
 /// analyzing their layout and characteristics.
 class Band {
+  static const int _uninitializedStat = -1;
+  static const int _defaultKerningWidth = 4;
+
+  static const int _minArtifactsForStats = 2;
+  static const int _minArtifactsForSpaceDetection = 2;
+  static const int _pairArtifactsCount = 2;
+  static const int _smallSetMaxArtifacts = 3;
+
+  static const double _similarWidthLowerRatio = 0.7;
+  static const double _similarWidthUpperRatio = 1.3;
+  static const double _defaultWideThresholdMultiplier = 2.5;
+  static const double _smallSetWideThresholdMultiplier = 1.5;
+
+  static const int _spaceBorderWidth = 2;
+  static const int _minSpaceWidth = 2;
+  static const int _spaceKerningMultiplier = 2;
+  static const int _spaceWidthDivisor = 3;
+
+  static const double _mergeOverlapThreshold = 0.8;
+
   /// Creates a new Band instance.
   ///
   /// Initializes an empty band with no artifacts.
@@ -97,10 +117,10 @@ class Band {
   }
 
   /// Private fields to store calculated average of space between each artifacts
-  int _averageKerning = -1;
+  int _averageKerning = _uninitializedStat;
 
   /// Private fields to store calculated average of artifact width
-  int _averageWidth = -1;
+  int _averageWidth = _uninitializedStat;
 
   /// Gets the average kerning between adjacent artifacts in the band.
   ///
@@ -109,14 +129,15 @@ class Band {
   /// Returns:
   /// The average kerning as a double, or -1 if there are fewer than 2 artifacts.
   int get averageKerning {
-    if ((_averageKerning == -1 || _averageWidth == -1)) {
+    if ((_averageKerning == _uninitializedStat ||
+        _averageWidth == _uninitializedStat)) {
       updateStatistics();
     }
     return _averageKerning;
   }
 
   /// Kerning between each artifact when applying packing
-  int kerningWidth = 4;
+  final int kerningWidth = _defaultKerningWidth;
 
   /// Gets the average width of artifacts in the band.
   ///
@@ -125,7 +146,8 @@ class Band {
   /// Returns:
   /// The average width as a double, or -1 if there are fewer than 2 artifacts.
   int get averageWidth {
-    if ((_averageKerning == -1 || _averageWidth == -1)) {
+    if ((_averageKerning == _uninitializedStat ||
+        _averageWidth == _uninitializedStat)) {
       updateStatistics();
     }
     return _averageWidth;
@@ -145,8 +167,8 @@ class Band {
   /// This method sets the average kerning and average width to their default
   /// uninitialized state, forcing recalculation when next accessed.
   void clearStats() {
-    _averageKerning = -1;
-    _averageWidth = -1;
+    _averageKerning = _uninitializedStat;
+    _averageWidth = _uninitializedStat;
   }
 
   /// Calculates the average Kerning between adjacent artifacts and their average width.
@@ -158,8 +180,8 @@ class Band {
   ///
   /// If there are fewer than 2 artifacts, both averages are set to -1.
   void updateStatistics() {
-    if (artifacts.length < 2) {
-      _averageKerning = -1;
+    if (artifacts.length < _minArtifactsForStats) {
+      _averageKerning = _uninitializedStat;
       _averageWidth = rectangleAdjusted.width;
       return;
     }
@@ -259,25 +281,26 @@ class Band {
     final List<Artifact> listToInspect = [];
 
     // If we have 0 or 1 artifacts, there's nothing to inspect
-    if (artifacts.isEmpty || artifacts.length == 1) {
+    if (artifacts.length < _minArtifactsForStats) {
       return listToInspect;
     }
 
     // Special case: If we have exactly 2 artifacts with similar widths,
     // don't consider either of them as wide chunks
-    if (artifacts.length == 2) {
+    if (artifacts.length == _pairArtifactsCount) {
       final double widthRatio = artifacts[0].cols / artifacts[1].cols;
       // If the width ratio is between 0.7 and 1.3, they're similar enough
-      if (widthRatio >= 0.7 && widthRatio <= 1.3) {
+      if (widthRatio >= _similarWidthLowerRatio &&
+          widthRatio <= _similarWidthUpperRatio) {
         return listToInspect; // Return empty list
       }
     }
 
     // Calculate threshold based on number of artifacts
     // With fewer artifacts, we need a higher threshold to avoid false positives
-    double thresholdMultiplier = 2.5;
-    if (artifacts.length <= 3) {
-      thresholdMultiplier = 1.5; // More conservative for small sets
+    double thresholdMultiplier = _defaultWideThresholdMultiplier;
+    if (artifacts.length <= _smallSetMaxArtifacts) {
+      thresholdMultiplier = _smallSetWideThresholdMultiplier;
     }
 
     final double thresholdWidth = averageWidth * thresholdMultiplier;
@@ -373,7 +396,7 @@ class Band {
 
     // If the smaller artifact overlaps with the larger one by at least 80%,
     // they should be merged
-    return overlapArea >= (smallerArea * 0.8);
+    return overlapArea >= (smallerArea * _mergeOverlapThreshold);
   }
 
   /// Replaces a single artifact with multiple artifacts in the band.
@@ -410,7 +433,7 @@ class Band {
   void identifySpacesInBand() {
     updateStatistics();
 
-    if (artifacts.isEmpty || artifacts.length <= 1) {
+    if (artifacts.length < _minArtifactsForSpaceDetection) {
       return;
     }
 
@@ -426,9 +449,8 @@ class Band {
       final int gap = rightEdge - leftEdge;
 
       if (gap >= spaceThreshold) {
-        const int borderWidth = 2;
-        final int spaceWidth = (gap - (borderWidth * 2)).toInt();
-        if (spaceWidth > 1) {
+        final int spaceWidth = (gap - (_spaceBorderWidth * 2)).toInt();
+        if (spaceWidth >= _minSpaceWidth) {
           // this space is big enough
           insertArtifactForSpace(
             artifacts: artifacts,
@@ -436,7 +458,7 @@ class Band {
             cols: spaceWidth,
             rows: rectangleOriginal.height.toInt(),
             locationFoundAt: IntOffset(
-              leftArtifact.rectFound.right + 2,
+              leftArtifact.rectFound.right + _spaceBorderWidth,
               leftArtifact.rectFound.top,
             ),
           );
@@ -455,7 +477,10 @@ class Band {
   /// An integer representing the minimum gap width to be considered a space
   int calculateSpaceThreshold() {
     // A space is typically 1.5-2.5x wider than normal kerning
-    return max(_averageKerning * 2, averageWidth ~/ 3);
+    return max(
+      _averageKerning * _spaceKerningMultiplier,
+      averageWidth ~/ _spaceWidthDivisor,
+    );
   }
 
   /// Inserts a space artifact at a specified position in the artifacts list.

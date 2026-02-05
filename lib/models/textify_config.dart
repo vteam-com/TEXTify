@@ -4,6 +4,10 @@
 /// of the OCR process including image preprocessing, character recognition,
 /// and performance tuning.
 class TextifyConfig {
+  static const int _defaultDilationSize = 22;
+  static const double _defaultMatchingThreshold = 0.4;
+  static const int _defaultMaxProcessingTimeMs = 30000;
+
   /// Size of the dilation kernel used in preprocessing.
   ///
   /// Controls how much nearby pixels are merged together. Larger values help
@@ -44,12 +48,12 @@ class TextifyConfig {
 
   /// Creates a Textify configuration with the specified options.
   const TextifyConfig({
-    this.dilationSize = 22,
+    this.dilationSize = _defaultDilationSize,
     this.excludeLongLines = true,
     this.attemptCharacterSplitting = true,
     this.applyDictionaryCorrection = false,
-    this.matchingThreshold = 0.4,
-    this.maxProcessingTimeMs = 30000,
+    this.matchingThreshold = _defaultMatchingThreshold,
+    this.maxProcessingTimeMs = _defaultMaxProcessingTimeMs,
   }) : assert(dilationSize > 0, 'dilationSize must be positive'),
        assert(
          matchingThreshold >= 0.0 && matchingThreshold <= 1.0,

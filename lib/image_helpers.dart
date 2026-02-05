@@ -8,6 +8,19 @@ import 'dart:ui';
 /// Exports
 export 'package:textify/models/int_rect.dart';
 
+const int _bytesPerPixel = 4;
+const int _grayscaleMidpoint = 128;
+const int _maxChannelValue = 255;
+const int _thresholdOffset = 90;
+const int _redChannelOffset = 0;
+const int _greenChannelOffset = 1;
+const int _blueChannelOffset = 2;
+const int _alphaChannelOffset = 3;
+
+const double _redLumaWeight = 0.299;
+const double _greenLumaWeight = 0.587;
+const double _blueLumaWeight = 0.114;
+
 /// Converts a color image to a binary (black and white) image.
 ///
 /// This preprocessing step simplifies the image for text recognition by
@@ -40,23 +53,26 @@ Future<Image> imageToBlackOnWhite(
 
   // Create a new Uint8List for the output image
   Uint8List outputPixels = Uint8List(pixels.length);
-  for (int i = 0; i < pixels.length; i += 4) {
-    final int r = pixels[i];
-    final int g = pixels[i + 1];
-    final int b = pixels[i + 2];
+  for (int i = 0; i < pixels.length; i += _bytesPerPixel) {
+    final int r = pixels[i + _redChannelOffset];
+    final int g = pixels[i + _greenChannelOffset];
+    final int b = pixels[i + _blueChannelOffset];
     // ignore: unused_local_variable
-    final int a = pixels[i + 3];
+    final int a = pixels[i + _alphaChannelOffset];
 
     // Calculate brightness using a weighted average
-    int gray = (0.299 * r + 0.587 * g + 0.114 * b).toInt();
+    int gray = (_redLumaWeight * r + _greenLumaWeight * g + _blueLumaWeight * b)
+        .toInt();
 
     // Apply contrast adjustment
-    gray = (factor * (gray - 128) + 128).clamp(0, 255).toInt();
+    gray = (factor * (gray - _grayscaleMidpoint) + _grayscaleMidpoint)
+        .clamp(0, _maxChannelValue)
+        .toInt();
 
-    outputPixels[i] = gray;
-    outputPixels[i + 1] = gray;
-    outputPixels[i + 2] = gray;
-    outputPixels[i + 3] = 255; // Drop alpha
+    outputPixels[i + _redChannelOffset] = gray;
+    outputPixels[i + _greenChannelOffset] = gray;
+    outputPixels[i + _blueChannelOffset] = gray;
+    outputPixels[i + _alphaChannelOffset] = _maxChannelValue; // Drop alpha
   }
 
   // Compute threshold dynamically
@@ -64,14 +80,14 @@ Future<Image> imageToBlackOnWhite(
 
   // Apply binary threshold
   Uint8List bwPixels = Uint8List(outputPixels.length);
-  for (int i = 0; i < outputPixels.length; i += 4) {
+  for (int i = 0; i < outputPixels.length; i += _bytesPerPixel) {
     final int gray = outputPixels[i];
-    final int newColor = (gray > threshold) ? 255 : 0;
+    final int newColor = (gray > threshold) ? _maxChannelValue : 0;
 
-    bwPixels[i] = newColor;
-    bwPixels[i + 1] = newColor;
-    bwPixels[i + 2] = newColor;
-    bwPixels[i + 3] = 255; // Drop alpha
+    bwPixels[i + _redChannelOffset] = newColor;
+    bwPixels[i + _greenChannelOffset] = newColor;
+    bwPixels[i + _blueChannelOffset] = newColor;
+    bwPixels[i + _alphaChannelOffset] = _maxChannelValue; // Drop alpha
   }
 
   // Convert Uint8List back to Image
@@ -96,13 +112,13 @@ Future<Image> imageToBlackOnWhite(
 // Compute adaptive threshold dynamically
 int computeAdaptiveThreshold(Uint8List pixels, int width, int height) {
   int sum = 0, count = 0;
-  for (int i = 0; i < pixels.length; i += 4) {
+  for (int i = 0; i < pixels.length; i += _bytesPerPixel) {
     sum += pixels[i];
     count++;
   }
 
   // Adjust threshold for sharper separation
-  return (sum ~/ count) - 90;
+  return (sum ~/ count) - _thresholdOffset;
 }
 
 /// Converts a [Image] to a [Uint8List] representation.

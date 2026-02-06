@@ -4,6 +4,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.5.2 : 2026-02-06
+
+### Changed
+
+- Quiet OCR eval output by default; keep verbose output when explicitly requested.
+- Documentation and comment accuracy updates across the project.
+
 ## 0.5.1 : 2026-02-05
 
 ### Changed

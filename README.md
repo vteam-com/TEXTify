@@ -37,8 +37,11 @@ flutter pub get
 
 Here is an example of how to use TEXTify:
 
-``` dart
+```dart
+import 'dart:ui' as ui;
+import 'package:flutter/services.dart';
 import 'package:textify/textify.dart';
+import 'package:textify/models/textify_config.dart';
 
 // Load your image (example using flutter's rootBundle)
 final ByteData imageData = await rootBundle.load('assets/scan.png');
@@ -68,6 +71,7 @@ TEXTify provides extensive configuration options to customize OCR behavior for d
 
 ```dart
 import 'package:textify/textify.dart';
+import 'package:textify/models/textify_config.dart';
 
 // Create Textify instance with custom configuration
 final textify = Textify(
@@ -153,7 +157,9 @@ This package currently supports the following characters, with plans to expand s
 - Uppercase letters: `ABCDEFGHIJKLMNOPQRSTUVWXYZ`
 - Lowercase letters: `abcdefghijklmnopqrstuvwxyz`
 - Digits: `0123456789`
-- Punctuation marks: `/\(){}[]<>,;:.!@#$&*-+=?`
+- Space: ` ` (space)
+- Punctuation marks: `.,?!:;'"(){}[]<>-`
+- Other characters: `/\+=#$&*@`
 
 While the current character set is limited, future updates will aim to include broader language support, starting with common accented characters and symbols.
 
@@ -182,7 +188,6 @@ While the current character set is limited, future updates will aim to include b
 - Scanned image of high resolution: Minimum 300+ DPI
 - Format: TIFF or PNG preferred
 - Use OCR-friendly fonts
-- High contrast between text and background
 - Clean, white background
 - Black text for optimal readability
 - Remove any background noise or artifacts

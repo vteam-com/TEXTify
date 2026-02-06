@@ -88,7 +88,7 @@ class Bands {
           (a.rectangleAdjusted.height + b.rectangleAdjusted.height) ~/
           _averageDivisor;
 
-      // The bands needs an vertical overlapping of least 50% of the average height
+      // The bands need a vertical overlap of at least 40% of the average height.
       if (verticalDistance < avgHeightOfBothBands * _verticalAlignmentRatio) {
         return true;
       }

@@ -39,6 +39,8 @@ class Band {
   static const double _spaceMedianMultiplier = 1.6;
   static const double _spaceMinWidthRatio = 0.4;
   static const double _spaceGapJumpRatio = 1.8;
+  static const int _gapMidpointDivisor = 2;
+  static const int _maxDistanceSentinel = 1 << 30;
 
   static const double _mergeOverlapThreshold = 0.8;
 
@@ -106,10 +108,10 @@ class Band {
       newBand.addArtifact(artifact);
     }
 
-    // All artifact will have the same grid height
+    // All artifacts will have the same grid height.
     newBand.padVerticallyArtifactToMatchTheBand();
 
-    // Clean up inner Matrix overlap for example the letter X may have one of the lines not touching the others like so  `/,
+    // Merge overlapping inner strokes (e.g., disconnected diagonals in 'X').
     newBand.mergeArtifactsBasedOnVerticalAlignment();
     // Repair small intra-glyph gaps caused by binarization (e.g., serif diagonals).
     newBand.mergeArtifactsWithTightGaps();
@@ -475,7 +477,7 @@ class Band {
 
     for (final Artifact tiny in discardable) {
       Artifact? best;
-      int bestDistance = 1 << 30;
+      int bestDistance = _maxDistanceSentinel;
 
       for (final Artifact big in keep) {
         if (!_isEligibleAttachment(
@@ -744,7 +746,8 @@ class Band {
       return 0;
     }
 
-    return ((gaps[bestIndex - 1] + gaps[bestIndex]) / 2).round();
+    return ((gaps[bestIndex - 1] + gaps[bestIndex]) / _gapMidpointDivisor)
+        .round();
   }
 
   /// Inserts a space artifact at a specified position in the artifacts list.

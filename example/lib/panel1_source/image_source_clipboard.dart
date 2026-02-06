@@ -9,40 +9,11 @@ import '../../widgets/image_viewer.dart';
 import 'debounce.dart';
 import 'panel1_content.dart';
 
-/// Provides functionality to retrieve images from the system clipboard.
+/// Clipboard image source panel.
 ///
-/// This file contains the [ImageSourceClipboard] class, which is responsible for
-/// accessing and processing image data that has been copied to the clipboard.
-/// It's particularly useful in scenarios where users want to quickly import
-/// images into the application without going through a file selection process.
-///
-/// The [ImageSourceClipboard] class likely implements or extends a more general
-/// image source interface, allowing it to be used interchangeably with other
-/// image sources like file pickers or camera inputs.
-///
-/// Usage:
-/// ```dart
-/// final clipboardSource = ImageSourceClipboard();
-/// final image = await clipboardSource.getImage();
-/// if (image != null) {
-///   // Process the image
-/// } else {
-///   // Handle case where no image is on the clipboard
-/// }
-/// ```
-///
-/// Note: The actual implementation details would depend on the specific
-/// methods and properties of the ImageSourceClipboard class, which are not
-/// visible in the provided context.
-///
-/// This class may use platform-specific code to interact with the clipboard,
-/// so it might have different implementations for various platforms (iOS,
-/// Android, web, desktop, etc.).
-///
-/// Limitations:
-/// - May not work on all platforms due to clipboard access restrictions.
-/// - The clipboard must contain valid image data for this to work.
-/// - Performance may vary depending on the size and format of the clipboard image.
+/// Reads image bytes from the system clipboard using `pasteboard`, shows a preview,
+/// and persists the last image in SharedPreferences. Clipboard image support varies
+/// by platform, and the clipboard must contain valid image data.
 class ImageSourceClipboard extends StatefulWidget {
   const ImageSourceClipboard({
     super.key,

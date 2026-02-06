@@ -291,7 +291,7 @@ const List<String> otherCharacters = [
   '/', // Slash
   '\\', // Back Slash
   '+', // Plus (the minus is a dash punctuation)
-  '=', // Back Slash
+  '=', // Equals
   '#', // Hash
   '\$', // Dollar
   '&', //

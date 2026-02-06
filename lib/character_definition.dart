@@ -9,7 +9,7 @@ import 'package:textify/artifact.dart';
 /// A class that defines the characteristics and properties of a single character for OCR processing.
 ///
 /// The [CharacterDefinition] class stores various attributes of a character including its visual
-/// representation through matrices, structural properties like enclosures, and categorical information
+/// representation through template artifacts, structural properties like enclosures, and categorical information
 /// such as whether it's a letter, digit, or punctuation mark.
 ///
 /// Example:
@@ -17,13 +17,13 @@ import 'package:textify/artifact.dart';
 /// final charDef = CharacterDefinition(
 ///   character: 'A',
 ///   isLetter: true,
-///   matrices: [Matrix(...)],
+///   matrices: [Artifact(...)],
 /// );
 /// ```
 ///
 /// Key features:
 /// * Supports JSON serialization/deserialization
-/// * Stores multiple matrix representations of the character
+/// * Stores multiple template artifacts of the character
 /// * Tracks character properties like enclosures and line presence
 /// * Categorizes characters (letter, digit, punctuation, etc.)
 /// * Maintains standard template dimensions (60x40)

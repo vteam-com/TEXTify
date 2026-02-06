@@ -27,17 +27,19 @@ class CharacterStats {
   int spaces = 0;
 
   /// The count of upper case characters in the analyzed text.
-  /// Digits are considered uppercase
+  /// Non-letters (excluding spaces) are counted toward this total for casing heuristics.
   int uppercase = 0;
 
   /// The count of lower case characters in the analyzed text.
   int lowercase = 0;
 
-  /// Clear the counters
+  /// Clear the counters tracked by [inspect].
   void reset() {
     letters = 0;
     digits = 0;
     spaces = 0;
+    uppercase = 0;
+    lowercase = 0;
   }
 
   /// Analyzes the [text] and updates letter and digit counts.
@@ -48,7 +50,9 @@ class CharacterStats {
     reset();
 
     for (final char in text.split('')) {
-      if (isLetter(char)) {
+      if (char == ' ') {
+        spaces++;
+      } else if (isLetter(char)) {
         letters++;
         if (isUpperCase(char)) {
           uppercase++;

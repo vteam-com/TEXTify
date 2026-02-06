@@ -36,6 +36,7 @@ class Artifact {
   static const int _valleyPeakWindow = 2;
   static const double _valleyDepthRatio = 0.4;
   static const int _minSplitSeparation = 2;
+  static const int _splitMidpointDivisor = 2;
   static const double _lowerRightStrokeXRatio = 0.55;
   static const double _lowerRightStrokeYRatio = 0.55;
   static const double _lowerRightStrokeDensityRatio = 0.6;
@@ -63,22 +64,21 @@ class Artifact {
 
   /// Creates a new [Artifact] instance from an existing [Artifact].
   ///
-  /// This factory method creates a new [Artifact] instance based on the provided [value] matrix.
-  /// It copies the grid data and the rectangle properties from the input matrix.
+  /// This factory method creates a new [Artifact] instance based on the provided [value] artifact.
+  /// It copies the grid data and the rectangle properties from the input artifact.
   ///
   /// Parameters:
   /// - [value]: The source [Artifact] instance to copy from.
   ///
   /// Returns:
-  /// A new [Artifact] instance with the same grid data and rectangle as the input matrix.
+  /// A new [Artifact] instance with the same grid data and rectangle as the input artifact.
   ///
-  /// Note: This method creates a shallow copy of the grid data. If deep copying of the data
-  /// is required, consider implementing a separate deep copy method.
+  /// Note: This method creates a deep copy of the grid data.
   ///
   /// Example:
   /// ```dart
-  /// Matrix original = Matrix(/* ... */);
-  /// Matrix copy = Matrix.fromMatrix(original);
+  /// Artifact original = Artifact(/* ... */);
+  /// Artifact copy = Artifact.fromMatrix(original);
   /// ```
   factory Artifact.fromMatrix(final Artifact value) {
     // Create a new Artifact instance with the same dimensions as the source.
@@ -96,7 +96,7 @@ class Artifact {
     return artifact;
   }
 
-  /// Creates a Matrix from an ASCII representation.
+  /// Creates an Artifact from an ASCII representation.
   ///
   /// [template] A list of strings where '#' represents true and any other character represents false.
   factory Artifact.fromAsciiDefinition(final List<String> template) {
@@ -113,7 +113,7 @@ class Artifact {
     return artifact;
   }
 
-  /// Creates a Matrix from a multi-line ASCII string representation.
+  /// Creates an Artifact from a multi-line ASCII string representation.
   ///
   /// This factory method splits the input string by newline characters and
   /// creates a matrix where '#' represents true and any other character represents false.
@@ -129,7 +129,7 @@ class Artifact {
     return artifact;
   }
 
-  /// Creates a Matrix from JSON data.
+  /// Creates an Artifact from JSON data.
   ///
   /// [json] A map containing 'rows', 'cols', and 'data' keys.
   factory Artifact.fromJson(final Map<String, dynamic> json) {
@@ -148,7 +148,7 @@ class Artifact {
     return artifact;
   }
 
-  /// Creates a Matrix from a Uint8List, typically used for image data.
+  /// Creates an Artifact from a Uint8List, typically used for image data.
   ///
   /// [pixels] A Uint8List representing pixel data.
   /// [width] The width of the image.
@@ -159,7 +159,7 @@ class Artifact {
     ], width);
   }
 
-  /// Creates a Matrix from a flat list of boolean values.
+  /// Creates an Artifact from a flat list of boolean values.
   ///
   /// [inputList] A flat list of boolean values.
   /// [width] The width of the resulting matrix.
@@ -507,38 +507,36 @@ class Artifact {
     return histogram;
   }
 
-  /// Font this matrix template is based on
+  /// Font this template is based on.
   String font = '';
 
-  /// The number of columns in the matrix.
+  /// The number of columns in the grid.
   int cols = 0;
 
-  /// The number of rows in the matrix.
+  /// The number of rows in the grid.
   int get rows => _matrix.isEmpty ? 0 : _matrix.length ~/ cols;
 
-  /// The 2D list representing the boolean grid.
-  /// Each outer list represents a row, and each inner list represents a column.
-  /// _data[row][column] gives the boolean value at that position.
+  /// Flat row-major buffer representing the grid (0 = off, 1 = on).
   Uint8List _matrix = Uint8List(0);
 
-  /// The 2D list representing the boolean grid.
+  /// The raw grid buffer.
   Uint8List get matrix => _matrix;
 
-  /// the location of this matrix.
+  /// The location of this artifact in the source image.
   IntOffset locationFound = const IntOffset();
 
-  /// the rectangle location of this matrix.
+  /// The rectangle location of this artifact.
   IntRect get rectFound =>
       IntRect.fromLTWH(locationFound.x, locationFound.y, cols, rows);
 
-  /// the location moved to
+  /// The adjusted location.
   IntOffset locationAdjusted = const IntOffset();
 
-  /// the rectangle location of this matrix.
+  /// The rectangle location after adjustment.
   IntRect get rectAdjusted =>
       IntRect.fromLTWH(locationAdjusted.x, locationAdjusted.y, cols, rows);
 
-  /// The number of enclosure found
+  /// The number of enclosures found.
   int _enclosures = _uninitializedEnclosures;
 
   /// The number of vertical left lines found
@@ -616,9 +614,9 @@ class Artifact {
   /// size that contains all true values.
   ///
   /// Returns:
-  /// A new Matrix object that is a trimmed version of the original. If the
+  /// A new Artifact object that is a trimmed version of the original. If the
   /// original matrix is empty or contains only false values, it returns an
-  /// empty Matrix.
+  /// empty Artifact.
   ///
   /// Note: This method does not modify the original matrix but returns a new one.
   Artifact trim() {
@@ -736,7 +734,7 @@ class Artifact {
   /// - [targetHeight]: The desired height of the resized matrix.
   ///
   /// Returns:
-  /// A new Matrix object with the specified dimensions, containing a resized
+  /// A new Artifact object with the specified dimensions, containing a resized
   /// version of the original matrix's content.
   ///
   /// Resizing strategy:
@@ -840,9 +838,9 @@ class Artifact {
     _matrix = newMatrix;
   }
 
-  /// Creates a new Matrix with a false border wrapping around the original matrix.
+  /// Creates a new Artifact with a false border wrapping around the original matrix.
   ///
-  /// This function generates a new Matrix that is larger than the original by adding
+  /// This function generates a new Artifact that is larger than the original by adding
   /// a border of 'false' values around all sides. If the original matrix is empty,
   /// it returns a predefined 3x2 matrix of 'false' values.
   ///
@@ -853,8 +851,8 @@ class Artifact {
   ///    the outer border as 'false'.
   ///
   /// Returns:
-  /// - If the original matrix is empty: A new 3x2 Matrix filled with 'false' values.
-  /// - Otherwise: A new Matrix with dimensions (rows + 2) x (cols + 2), where the
+  /// - If the original matrix is empty: A new 3x2 Artifact filled with 'false' values.
+  /// - Otherwise: A new Artifact with dimensions (rows + 2) x (cols + 2), where the
   ///   original matrix data is centered and surrounded by a border of 'false' values.
   ///
   /// This function is useful for operations that require considering the edges of a matrix,
@@ -897,16 +895,16 @@ class Artifact {
 
   /// Extracts a sub-grid from a larger binary image matrix.
   ///
-  /// This static method creates a new Matrix object representing a portion of
+  /// This static method creates a new Artifact object representing a portion of
   /// the input binary image, as specified by the given rectangle.
   ///
   /// Parameters:
-  /// - [matrix]: The source Matrix from which to extract the sub-grid.
+  /// - [matrix]: The source Artifact from which to extract the sub-grid.
   /// - [rect]: A IntRect object specifying the region to extract. The rectangle's
   ///   coordinates are relative to the top-left corner of the binaryImage.
   ///
   /// Returns:
-  /// A new Matrix object containing the extracted sub-grid.
+  /// A new Artifact object containing the extracted sub-grid.
   ///
   /// Note:
   /// - If the specified rectangle extends beyond the boundaries of the source
@@ -1041,21 +1039,21 @@ class Artifact {
     return result;
   }
 
-  /// Determines if the current Matrix is considered a line based on its aspect ratio.
+  /// Determines if the current Artifact is considered a line based on its aspect ratio.
   ///
-  /// This method calculates the aspect ratio of the Matrix's content and checks if it falls
+  /// This method calculates the aspect ratio of the Artifact's content and checks if it falls
   /// within a specific range to determine if it should be considered a line.
   ///
   /// Returns:
   ///   * true if the aspect ratio is less than [_lineAspectRatioMin] or greater
-  ///     than [_lineAspectRatioMax], indicating that the Matrix is likely
+  ///     than [_lineAspectRatioMax], indicating that the Artifact is likely
   ///     representing a line.
-  ///   * false otherwise, suggesting the Matrix is not representing a line.
+  ///   * false otherwise, suggesting the Artifact is not representing a line.
   ///
   /// The aspect ratio is calculated by the aspectRatioOfContent() method as
   /// height divided by width. Therefore:
-  ///   * A very small aspect ratio indicates a tall, narrow Matrix.
-  ///   * A very large aspect ratio indicates a wide, short Matrix.
+  ///   * A very small aspect ratio indicates a tall, narrow Artifact.
+  ///   * A very large aspect ratio indicates a wide, short Artifact.
   /// Both of these cases are considered to be line-like in this context.
   ///
   /// This method is useful in image processing or OCR tasks where distinguishing
@@ -1090,17 +1088,9 @@ class Artifact {
     return (x >= 0 && x < cols) && (y >= 0 && y < rows);
   }
 
-  /// Sets the grid of the Matrix object.
+  /// Sets the grid from a flat [Uint8List] and column count.
   ///
-  /// This method takes a 2D list of boolean values representing the grid of the Matrix.
-  /// It ensures that all rows have the same length, and creates a deep copy of the
-  /// grid to store in the Matrix's internal `_data` field.
-  ///
-  /// If the input grid is empty or has no rows, the Matrix's `rows` and `cols` fields
-  /// are set to 0, and the `_data` field is set to an empty list.
-  ///
-  /// Parameters:
-  ///   [grid] (```Uint8List```): The 2D list of boolean values representing the grid.
+  /// If [grid] is empty, the artifact is cleared.
   void setGrid(final Uint8List grid, final int cols) {
     if (grid.isEmpty) {
       clear();
@@ -1112,7 +1102,7 @@ class Artifact {
     _matrix = Uint8List.fromList(grid);
   }
 
-  /// Sets the grid of the Matrix object from a 2D list of boolean values.
+  /// Sets the grid of the Artifact object from a 2D list of boolean values.
   ///
   /// This method takes a 2D list of boolean values representing the grid and
   /// converts it to the internal Uint8List representation.
@@ -1120,7 +1110,7 @@ class Artifact {
   /// Parameters:
   ///   [input] (```List<List<bool>>```): The 2D list of boolean values representing the grid.
   ///
-  /// If the input grid is empty or has no rows, the Matrix is cleared.
+  /// If the input grid is empty or has no rows, the Artifact is cleared.
   void setGridFromBools(final List<List<bool>> input) {
     if (input.isEmpty || input[0].isEmpty) {
       clear();
@@ -1139,15 +1129,15 @@ class Artifact {
     }
   }
 
-  /// Converts the Matrix object to a JSON-serializable Map.
+  /// Converts the Artifact object to a JSON-serializable Map.
   ///
-  /// This method creates a Map representation of the Matrix object that can be
+  /// This method creates a Map representation of the Artifact object that can be
   /// easily serialized to JSON. The resulting Map contains the following keys:
   ///
-  /// - 'font': The font used in the Matrix (type depends on how 'font' is defined in the class).
-  /// - 'rows': The number of rows in the Matrix.
-  /// - 'cols': The number of columns in the Matrix.
-  /// - 'data': A List of Strings, where each String represents a row in the Matrix.
+  /// - 'font': The font used in the Artifact (type depends on how 'font' is defined in the class).
+  /// - 'rows': The number of rows in the Artifact.
+  /// - 'cols': The number of columns in the Artifact.
+  /// - 'data': A List of Strings, where each String represents a row in the Artifact.
   ///           In these Strings, '#' represents true (or filled) cells, and '.'
   ///           represents false (or empty) cells.
   ///
@@ -1157,7 +1147,7 @@ class Artifact {
   ///
   /// Returns:
   ///   A ```Map<String, dynamic>``` that can be serialized to JSON, representing the
-  ///   current state of the Matrix object.
+  ///   current state of the Artifact object.
   ///
   Map<String, dynamic> toJson() {
     return {
@@ -1311,9 +1301,9 @@ class Artifact {
   /// of connected cells in a grid, starting from the specified coordinates.
   ///
   /// Parameters:
-  /// - [grid]: A Matrix representing the grid to explore.
+  /// - [grid]: A Artifact representing the grid to explore.
   ///   Assumed to contain boolean values where false represents an explorable cell.
-  /// - [visited]: A Matrix of the same size as [grid] to keep track of visited cells.
+  /// - [visited]: A Artifact of the same size as [grid] to keep track of visited cells.
   /// - [startX]: The starting X-coordinate for exploration.
   /// - [startY]: The starting Y-coordinate for exploration.
   ///
@@ -1373,7 +1363,7 @@ class Artifact {
   /// starting from the given coordinates and checks if it's enclosed within the grid.
   ///
   /// Parameters:
-  /// - [grid]: A Matrix representing the grid.
+  /// - [grid]: A Artifact representing the grid.
   ///   Assumed to contain boolean values where false represents an explorable cell.
   /// - [startX]: The starting X-coordinate for exploration.
   /// - [startY]: The starting Y-coordinate for exploration.
@@ -1451,7 +1441,7 @@ class Artifact {
   /// `_isValidVerticalLineLeft` to validate potential vertical lines.
   ///
   /// Parameters:
-  /// - [matrix]: A Matrix representing the data to be analyzed.
+  /// - [matrix]: A Artifact representing the data to be analyzed.
   ///   Assumed to contain boolean values where true represents a filled cell.
   ///
   /// Returns:
@@ -1500,7 +1490,7 @@ class Artifact {
   /// `_isValidVerticalLineRight` to validate potential vertical lines.
   ///
   /// Parameters:
-  /// - [matrix]: A Matrix representing the data to be analyzed.
+  /// - [matrix]: A Artifact representing the data to be analyzed.
   ///   Assumed to contain boolean values where true represents a filled cell.
   ///
   /// Returns:
@@ -1551,10 +1541,10 @@ class Artifact {
   ///
   /// Parameters:
   /// - [minVerticalLine]: The minimum length required for a vertical line to be considered valid.
-  /// - [matrix]: The Matrix representing the character or image being analyzed.
+  /// - [matrix]: The Artifact representing the character or image being analyzed.
   /// - [x]: The x-coordinate of the starting point of the potential line.
   /// - [y]: The y-coordinate of the starting point of the potential line.
-  /// - [visited]: A Matrix to keep track of visited pixels.
+  /// - [visited]: A Artifact to keep track of visited pixels.
   ///
   /// Returns:
   /// A boolean value indicating whether a valid vertical line was found (true) or not (false).
@@ -1596,10 +1586,10 @@ class Artifact {
   ///
   /// Parameters:
   /// - [minVerticalLine]: The minimum length required for a vertical line to be considered valid.
-  /// - [matrix]: The Matrix representing the character or image being analyzed.
+  /// - [matrix]: The Artifact representing the character or image being analyzed.
   /// - [x]: The x-coordinate of the starting point of the potential line.
   /// - [y]: The y-coordinate of the starting point of the potential line.
-  /// - [visited]: A Matrix to keep track of visited pixels.
+  /// - [visited]: A Artifact to keep track of visited pixels.
   ///
   /// Returns:
   /// A boolean value indicating whether a valid vertical line was found (true) or not (false).
@@ -1642,7 +1632,7 @@ class Artifact {
   /// starting x-coordinate is 0, the function returns true, indicating a valid left side.
   ///
   /// Parameters:
-  /// - [m]: The Matrix representing the character or image being analyzed.
+  /// - [m]: The Artifact representing the character or image being analyzed.
   /// - [x]: The x-coordinate of the starting point of the potential line.
   /// - [y]: The y-coordinate of the starting point of the potential line.
   ///
@@ -1666,7 +1656,7 @@ class Artifact {
   /// x-coordinate is at the edge of the matrix, the function returns true, indicating a valid right side.
   ///
   /// Parameters:
-  /// - [m]: The Matrix representing the character or image being analyzed.
+  /// - [m]: The Artifact representing the character or image being analyzed.
   /// - [x]: The x-coordinate of the starting point of the potential line.
   /// - [y]: The y-coordinate of the starting point of the potential line.
   ///
@@ -1737,9 +1727,9 @@ class Artifact {
   /// to significantly improve performance over the traditional approach.
   ///
   /// Parameters:
-  ///   [binaryPixels]: A Matrix representing the binary image where true values
+  ///   [binaryPixels]: A Artifact representing the binary image where true values
   ///                   indicate filled pixels.
-  ///   [visited]: A Matrix of the same size as [binaryPixels] to keep track of
+  ///   [visited]: A Artifact of the same size as [binaryPixels] to keep track of
   ///              visited pixels.
   ///   [startX]: The starting X coordinate for the flood fill.
   ///   [startY]: The starting Y coordinate for the flood fill.
@@ -1829,8 +1819,8 @@ class Artifact {
   /// without storing all individual points.
   ///
   /// Parameters:
-  ///   [binaryPixels]: A Matrix representing the binary image.
-  ///   [visited]: A Matrix to keep track of visited pixels.
+  ///   [binaryPixels]: A Artifact representing the binary image.
+  ///   [visited]: A Artifact to keep track of visited pixels.
   ///   [startX]: The starting X coordinate for the flood fill.
   ///   [startY]: The starting Y coordinate for the flood fill.
   ///
@@ -1990,7 +1980,7 @@ class Artifact {
   /// This factory constructor takes a [Image] object and transforms it into a [Artifact]
   /// representation. The process involves two main steps:
   /// 1. Converting the image to a Uint8List using [imageToUint8List].
-  /// 2. Creating a Matrix from the Uint8List using [Artifact.fromUint8List].
+  /// 2. Creating an Artifact from the Uint8List using [Artifact.fromUint8List].
   ///
   /// [image] The Image object to be converted. This should be a valid,
   /// non-null image object.
@@ -2009,16 +1999,16 @@ class Artifact {
     return Artifact.fromUint8List(uint8List, image.width);
   }
 
-  /// Copies the contents of a source Matrix into a target Matrix, with an optional offset.
+  /// Copies the contents of a source Artifact into a target Artifact, with an optional offset.
   ///
-  /// This method copies the values from the source Matrix into the target Matrix,
-  /// starting at the specified offset coordinates. If the source Matrix extends
-  /// beyond the bounds of the target Matrix, only the portion that fits within
-  /// the target Matrix will be copied.
+  /// This method copies the values from the source Artifact into the target Artifact,
+  /// starting at the specified offset coordinates. If the source Artifact extends
+  /// beyond the bounds of the target Artifact, only the portion that fits within
+  /// the target Artifact will be copied.
   ///
   /// Parameters:
-  /// - `source`: The Matrix to copy from.
-  /// - `target`: The Matrix to copy into.
+  /// - `source`: The Artifact to copy from.
+  /// - `target`: The Artifact to copy into.
   /// - `offsetX`: The horizontal offset to apply when copying the source into the target.
   /// - `offsetY`: The vertical offset to apply when copying the source into the target.
   static void copyArtifactGrid(
@@ -2146,7 +2136,7 @@ class Artifact {
       }
 
       if (_isDeepValley(histogram, start, end)) {
-        final int mid = start + ((end - start) ~/ 2);
+        final int mid = start + ((end - start) ~/ _splitMidpointDivisor);
         splits.add(mid);
       }
 
@@ -2203,22 +2193,15 @@ class Artifact {
     return deduped;
   }
 
-  /// Splits the given matrix into multiple row matrices based on the provided row offsets.
+  /// Splits the given artifact into multiple column slices based on the offsets.
   ///
-  /// Each row offset in [offsets] marks the start of a new split.
-  /// The function returns a list of [Artifact] objects, where each matrix represents
-  /// a horizontal slice of the original [artifactToSplit] matrix while maintaining its relative position.
+  /// Each entry in [offsets] marks the start column of a new slice.
+  /// The function returns a list of [Artifact] objects, where each slice represents
+  /// a vertical portion of the original [artifactToSplit] while maintaining its relative position.
   ///
-  /// Example:
-  /// ```dart
-  /// Matrix input = Matrix(5, 5);
-  /// List<int> rowOffsets = [0, 2, 4]; // Splits at row indices 0, 2, and 4
-  /// List<Matrix> rowMatrices = Matrix.splitAsRows(input, rowOffsets);
-  /// ```
-  ///
-  /// - [artifactToSplit]: The original matrix to split.
-  /// - [offsets]: A list of row indices where splits should occur.
-  /// - Returns: A list of matrices representing the split rows while preserving `locationFound`.
+  /// - [artifactToSplit]: The original artifact to split.
+  /// - [offsets]: A list of column indices where splits should occur.
+  /// - Returns: A list of artifacts representing the split columns while preserving `locationFound`.
   static List<Artifact> splitArtifactByColumns(
     final Artifact artifactToSplit,
     List<int> offsets,
@@ -2360,8 +2343,8 @@ class Artifact {
   /// similarity score based on the Hamming distance.
   ///
   /// Parameters:
-  /// - [inputGrid]: The first Matrix to compare.
-  /// - [templateGrid]: The second Matrix to compare against.
+  /// - [inputGrid]: The first Artifact to compare.
+  /// - [templateGrid]: The second Artifact to compare against.
   ///
   /// Returns:
   /// A double value between 0 and 1, where:

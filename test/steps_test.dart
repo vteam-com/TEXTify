@@ -154,7 +154,7 @@ Future<void> testFromImage(
   expect(imageBlackAndWhite.height, image.height);
 
   //
-  // To Matrix
+  // To Artifact
   //
   final Artifact matrixSourceImage = await Artifact.artifactFromImage(
     imageBlackAndWhite,

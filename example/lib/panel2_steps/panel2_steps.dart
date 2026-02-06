@@ -198,7 +198,7 @@ class _PanelStepsState extends State<PanelSteps> {
       final ui.Image imageBW = await imageToBlackOnWhite(widget.imageSource!);
 
       //
-      // Task 2 - Convert ot Binary Matrix
+      // Task 2 - Convert to binary grid
       //
       final Artifact binaryImage = await Artifact.artifactFromImage(imageBW);
       final Artifact dilatedMatrix = Artifact.dilateArtifact(

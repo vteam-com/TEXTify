@@ -14,6 +14,24 @@ import 'package:textify/models/score_match.dart';
 import 'package:textify/models/textify_config.dart';
 import 'package:textify/image_helpers.dart';
 
+const int _minLettersForCaseNormalization = 3;
+const double _dominantCaseRatio = 0.9;
+const int _spaceCodeUnit = 32;
+const int _tabCodeUnit = 9;
+const int _lineFeedCodeUnit = 10;
+const int _carriageReturnCodeUnit = 13;
+const int _maxNoiseLineLength = 2;
+const double _punctuationHeavyRatioThreshold = 0.3;
+const int _regexGroupFirst = 1;
+const int _regexGroupSecond = 2;
+const int _uppercaseACodeUnit = 65;
+const int _uppercaseZCodeUnit = 90;
+const int _lowercaseACodeUnit = 97;
+const int _lowercaseZCodeUnit = 122;
+const int _digitZeroCodeUnit = 48;
+const int _digitNineCodeUnit = 57;
+const int _asciiCaseOffset = 32;
+
 /// Main OCR class for extracting text from clean digital images.
 ///
 /// Processes images by identifying text regions, organizing them into lines (bands),
@@ -614,17 +632,17 @@ String _normalizeLineCase(String line) {
     }
   }
 
-  if (letters < 3) {
+  if (letters < _minLettersForCaseNormalization) {
     return line;
   }
 
   final double upperRatio = upper / letters;
   final double lowerRatio = lower / letters;
 
-  if (upperRatio >= 0.9) {
+  if (upperRatio >= _dominantCaseRatio) {
     return line.toUpperCase();
   }
-  if (lowerRatio >= 0.9 && firstLetterCode != null) {
+  if (lowerRatio >= _dominantCaseRatio && firstLetterCode != null) {
     if (_isLower(firstLetterCode)) {
       return _sentenceCase(line);
     }
@@ -691,10 +709,10 @@ String _normalizeNumericGaps(String line) {
   for (int i = 0; i < line.length; i++) {
     final int code = line.codeUnitAt(i);
     if (!_isDigit(code) &&
-        code != 32 &&
-        code != 9 &&
-        code != 10 &&
-        code != 13) {
+        code != _spaceCodeUnit &&
+        code != _tabCodeUnit &&
+        code != _lineFeedCodeUnit &&
+        code != _carriageReturnCodeUnit) {
       hasNonDigitToken = true;
       break;
     }
@@ -713,7 +731,10 @@ String _normalizeNumericGaps(String line) {
       continue;
     }
 
-    if (code == 32 || code == 9 || code == 10 || code == 13) {
+    if (code == _spaceCodeUnit ||
+        code == _tabCodeUnit ||
+        code == _lineFeedCodeUnit ||
+        code == _carriageReturnCodeUnit) {
       buffer.write(ch);
       continue;
     }
@@ -730,8 +751,8 @@ String _normalizeNumericGaps(String line) {
   return withMappedNonAlnum.replaceAllMapped(
     RegExp(r'(\d)\s+([A-Za-z0-9])(?=\d)'),
     (Match match) {
-      final String left = match.group(1) ?? '';
-      final String mid = match.group(2) ?? '';
+      final String left = match.group(_regexGroupFirst) ?? '';
+      final String mid = match.group(_regexGroupSecond) ?? '';
       final String mapped = _digitConfusionMap[mid] ?? mid;
       return '$left.$mapped';
     },
@@ -779,7 +800,7 @@ bool _isNoiseLine(String line) {
   if (trimmed.isEmpty) {
     return true;
   }
-  if (trimmed.length > 2) {
+  if (trimmed.length > _maxNoiseLineLength) {
     return false;
   }
 
@@ -835,7 +856,10 @@ String _normalizePunctuationHeavyText(String text) {
   int nonWhitespace = 0;
   for (int i = 0; i < text.length; i++) {
     final int code = text.codeUnitAt(i);
-    if (code != 32 && code != 9 && code != 10 && code != 13) {
+    if (code != _spaceCodeUnit &&
+        code != _tabCodeUnit &&
+        code != _lineFeedCodeUnit &&
+        code != _carriageReturnCodeUnit) {
       nonWhitespace++;
     }
     if (_isLetter(code) || _isDigit(code)) {
@@ -848,7 +872,7 @@ String _normalizePunctuationHeavyText(String text) {
   }
 
   final double ratio = alnum / nonWhitespace;
-  if (ratio < 0.3) {
+  if (ratio < _punctuationHeavyRatioThreshold) {
     return text.replaceAll(RegExp(r'\s+'), '');
   }
   return text;
@@ -878,14 +902,18 @@ String _normalizeLetterConfusions(String text) {
   // Common split of 'H' into 'I]' when the crossbar is faint.
   return text.replaceAllMapped(
     RegExp(r'([A-Za-z])I\]([A-Za-z])'),
-    (match) => '${match.group(1)}H${match.group(2)}',
+    (match) =>
+        '${match.group(_regexGroupFirst)}H${match.group(_regexGroupSecond)}',
   );
 }
 
-bool _isUpper(int code) => code >= 65 && code <= 90;
-bool _isLower(int code) => code >= 97 && code <= 122;
+bool _isUpper(int code) =>
+    code >= _uppercaseACodeUnit && code <= _uppercaseZCodeUnit;
+bool _isLower(int code) =>
+    code >= _lowercaseACodeUnit && code <= _lowercaseZCodeUnit;
 bool _isLetter(int code) => _isUpper(code) || _isLower(code);
-bool _isDigit(int code) => code >= 48 && code <= 57;
+bool _isDigit(int code) =>
+    code >= _digitZeroCodeUnit && code <= _digitNineCodeUnit;
 
 String _sentenceCase(String line) {
   final StringBuffer buffer = StringBuffer();
@@ -894,7 +922,7 @@ String _sentenceCase(String line) {
     final String ch = line[i];
     final int code = ch.codeUnitAt(0);
     if (!capitalized && _isLetter(code)) {
-      buffer.writeCharCode(_isLower(code) ? code - 32 : code);
+      buffer.writeCharCode(_isLower(code) ? code - _asciiCaseOffset : code);
       capitalized = true;
       continue;
     }

@@ -14,6 +14,16 @@ void main() {
       expect(isLetter('5'), false);
     });
 
+    test('CharacterStats tracks spaces and counters', () {
+      final CharacterStats stats = CharacterStats();
+      stats.inspect('A b 9');
+      expect(stats.letters, 2);
+      expect(stats.digits, 1);
+      expect(stats.spaces, 2);
+      expect(stats.uppercase, 2);
+      expect(stats.lowercase, 1);
+    });
+
     test('applyCorrection with dictionary disabled', () {
       const String input = 'Hell0 W0rld';
       final String result = applyCorrection(input, false);

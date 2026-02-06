@@ -9,6 +9,7 @@ import 'dart:ui';
 export 'package:textify/models/int_rect.dart';
 
 const int _bytesPerPixel = 4;
+const int _grayscaleLevels = 256;
 const int _grayscaleMidpoint = 128;
 const int _maxChannelValue = 255;
 const int _redChannelOffset = 0;
@@ -107,7 +108,7 @@ Future<Image> imageToBlackOnWhite(
 /// Returns:
 /// The computed adaptive threshold value (0..255).
 int computeAdaptiveThreshold(Uint8List pixels, int width, int height) {
-  final List<int> histogram = List<int>.filled(256, 0);
+  final List<int> histogram = List<int>.filled(_grayscaleLevels, 0);
   int total = 0;
   int sumAll = 0;
 
@@ -127,7 +128,7 @@ int computeAdaptiveThreshold(Uint8List pixels, int width, int height) {
   double maxBetween = -1;
   int bestThreshold = _grayscaleMidpoint;
 
-  for (int t = 0; t < 256; t++) {
+  for (int t = 0; t < _grayscaleLevels; t++) {
     weightBackground += histogram[t];
     if (weightBackground == 0) {
       continue;

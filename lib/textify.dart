@@ -348,6 +348,7 @@ class Textify {
     return textFound.trim();
   }
 
+  /// Attempts to merge adjacent line-like fragments into a single glyph.
   bool _tryMergeAdjacentLineLikeArtifacts(
     Band band,
     int index,
@@ -518,6 +519,7 @@ class Textify {
     return scores;
   }
 
+  /// Prefers `R/r` over `P/p` when a lower-right stroke is detected.
   static void _promoteRWhenLowerRightStroke(List<ScoreMatch> scores) {
     if (scores.isEmpty) {
       return;
@@ -542,6 +544,7 @@ class Textify {
     }
   }
 
+  /// Prefers `u` when a narrow lowercase `m` candidate is likely over-segmented.
   static void _promoteUWhenNarrowLowercaseM(
     List<ScoreMatch> scores,
     double inputAspectRatio,
@@ -592,6 +595,7 @@ class Textify {
   }
 }
 
+/// Applies final normalization passes to OCR text output.
 String _postProcessText(String text) {
   if (text.isEmpty) {
     return text;
@@ -613,6 +617,7 @@ String _postProcessText(String text) {
   return _normalizePunctuationSpacing(lettersFixed);
 }
 
+/// Normalizes dominant line casing while preserving mixed-case lines.
 String _normalizeLineCase(String line) {
   int letters = 0;
   int upper = 0;
@@ -652,6 +657,7 @@ String _normalizeLineCase(String line) {
   return line;
 }
 
+/// Corrects letter-like confusions inside digit-dominant token segments.
 String _normalizeDigitSegments(String line) {
   final StringBuffer out = StringBuffer();
   final StringBuffer buffer = StringBuffer();
@@ -700,6 +706,7 @@ String _normalizeDigitSegments(String line) {
   return out.toString();
 }
 
+/// Repairs noisy separators and spacing in numeric expressions.
 String _normalizeNumericGaps(String line) {
   if (line.isEmpty) {
     return line;
@@ -759,6 +766,7 @@ String _normalizeNumericGaps(String line) {
   );
 }
 
+/// Merges short noise-only lines into the following content line when useful.
 List<String> _mergeNoiseLines(List<String> lines) {
   if (lines.isEmpty) {
     return lines;
@@ -795,6 +803,7 @@ List<String> _mergeNoiseLines(List<String> lines) {
   return merged;
 }
 
+/// Returns true when a line appears to be OCR noise rather than content.
 bool _isNoiseLine(String line) {
   final String trimmed = line.trim();
   if (trimmed.isEmpty) {
@@ -819,6 +828,7 @@ bool _isNoiseLine(String line) {
   return true;
 }
 
+/// Infers a missing leading letter from nearby vertical/horizontal noise marks.
 String _inferPrefixFromNoise(List<String> noiseLines, String nextLine) {
   if (nextLine.isEmpty) {
     return '';
@@ -851,6 +861,7 @@ String _inferPrefixFromNoise(List<String> noiseLines, String nextLine) {
   return '';
 }
 
+/// Collapses whitespace when text is dominated by punctuation artifacts.
 String _normalizePunctuationHeavyText(String text) {
   int alnum = 0;
   int nonWhitespace = 0;
@@ -878,6 +889,7 @@ String _normalizePunctuationHeavyText(String text) {
   return text;
 }
 
+/// Removes invalid spaces before punctuation and closing brackets.
 String _normalizePunctuationSpacing(String text) {
   if (text.isEmpty) {
     return text;
@@ -894,6 +906,7 @@ String _normalizePunctuationSpacing(String text) {
   return value;
 }
 
+/// Fixes known letter-shape confusions produced by OCR segmentation.
 String _normalizeLetterConfusions(String text) {
   if (text.isEmpty) {
     return text;
@@ -915,6 +928,7 @@ bool _isLetter(int code) => _isUpper(code) || _isLower(code);
 bool _isDigit(int code) =>
     code >= _digitZeroCodeUnit && code <= _digitNineCodeUnit;
 
+/// Uppercases only the first alphabetic character in a line.
 String _sentenceCase(String line) {
   final StringBuffer buffer = StringBuffer();
   bool capitalized = false;

@@ -503,6 +503,7 @@ class Band {
     }
   }
 
+  /// Returns the rounded average of a selected rectangle dimension.
   static int _averageRectDimension(
     List<Artifact> artifacts,
     int Function(IntRect rect) selector,
@@ -514,6 +515,7 @@ class Band {
     return (total / artifacts.length).round();
   }
 
+  /// Computes the edge-to-edge distance between two rectangles.
   static int _rectDistance(IntRect a, IntRect b) {
     int dx = 0;
     if (a.right < b.left) {
@@ -532,6 +534,7 @@ class Band {
     return max(dx, dy);
   }
 
+  /// Checks whether a tiny artifact can be merged into a nearby neighbor.
   static bool _isEligibleAttachment(
     Artifact tiny,
     Artifact big,
@@ -572,6 +575,7 @@ class Band {
         inner.bottom <= (outer.bottom + padding);
   }
 
+  /// Keeps tall line artifacts that are likely part of a real character.
   static bool _shouldKeepLineArtifact(Artifact artifact, int minLineHeight) {
     if (!artifact.isConsideredLine()) {
       return false;
@@ -720,6 +724,7 @@ class Band {
     return max(_minSpaceWidth, max(thresholdFromGaps, thresholdFromWidth));
   }
 
+  /// Returns a threshold when sorted gaps show a clear jump in spacing.
   static int _tryJumpThreshold(List<int> gaps) {
     if (gaps.length < _minArtifactsForSpaceDetection) {
       return 0;

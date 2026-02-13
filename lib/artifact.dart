@@ -791,6 +791,7 @@ class Artifact {
     return resizedGrid;
   }
 
+  /// Interpolates a fill threshold for downscaling based on source density.
   static double _computeDownscaleFillThreshold(double density) {
     if (density <= _downscaleDensityLow) {
       return _downscaleFillThresholdMin;
@@ -2115,6 +2116,7 @@ class Artifact {
     return _dedupeSplitOffsets(offsets);
   }
 
+  /// Finds shallow valley candidates when no zero-height gaps exist.
   static List<int> _findSoftValleySplits(List<int> histogram) {
     if (histogram.length < _minHistogramLengthForValley) {
       return const [];
@@ -2146,6 +2148,7 @@ class Artifact {
     return splits;
   }
 
+  /// Returns true when a valley is sufficiently lower than nearby peaks.
   static bool _isDeepValley(List<int> histogram, int start, int end) {
     final int leftStart = max(0, start - _valleyPeakWindow);
     final int leftEnd = max(0, start - 1);
@@ -2164,6 +2167,7 @@ class Artifact {
     return valley <= (minPeak * _valleyDepthRatio).round();
   }
 
+  /// Returns the maximum histogram value in an inclusive index range.
   static int _maxInRange(List<int> histogram, int start, int end) {
     if (start > end) {
       return 0;
@@ -2177,6 +2181,7 @@ class Artifact {
     return maxValue;
   }
 
+  /// Sorts split offsets and removes entries that are too close together.
   static List<int> _dedupeSplitOffsets(List<int> offsets) {
     if (offsets.isEmpty) {
       return offsets;

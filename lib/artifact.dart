@@ -1437,71 +1437,37 @@ class Artifact {
 
   /// Checks if the given matrix contains a vertical line on the left side.
   ///
-  /// This function scans the matrix from left to right, looking for vertical lines
-  /// that meet a minimum height requirement. It uses a helper function
-  /// `_isValidVerticalLineLeft` to validate potential vertical lines.
-  ///
-  /// Parameters:
-  /// - [matrix]: A Artifact representing the data to be analyzed.
-  ///   Assumed to contain boolean values where true represents a filled cell.
-  ///
-  /// Returns:
-  /// A boolean value indicating whether a valid vertical line was found on the left side.
-  ///
-  /// Note:
-  /// - The minimum height for a vertical line is determined by `_thresholdLinePercentage`,
-  ///   which is a constant value representing the percentage of the character's height.
-  /// - The function modifies the [visited] matrix in-place to keep track of visited cells.
   bool _hasVerticalLineLeft(final Artifact matrix) {
-    final Artifact visited = Artifact(matrix.cols, matrix.rows);
-
-    // We only consider lines that are more than
-    // [_thresholdLinePercentage] of the character's height
-    final int minVerticalLine = (matrix.rows * _thresholdLinePercentage)
-        .toInt();
-
-    // Iterate over the matrix from left to right
-    for (int x = 0; x < matrix.cols; x++) {
-      for (int y = 0; y < matrix.rows; y++) {
-        // If the current cell is filled and not visited
-        if (matrix.cellGet(x, y) && !visited.cellGet(x, y)) {
-          // Check if a valid vertical line exists starting from this cell
-          if (_isValidVerticalLineLeft(
-            minVerticalLine,
-            matrix,
-            x,
-            y,
-            visited,
-          )) {
-            // If a valid line is found, return true
-            return true;
-          }
-        }
-      }
-    }
-
-    // If no valid vertical line is found, return false
-    return false;
+    return _hasVerticalLine(
+      matrix,
+      startX: 0,
+      endXExclusive: matrix.cols,
+      stepX: 1,
+      isValidVerticalLine: _isValidVerticalLineLeft,
+    );
   }
 
   /// Checks if the given matrix contains a vertical line on the right side.
   ///
-  /// This function scans the matrix from right to left, looking for vertical lines
-  /// that meet a minimum height requirement. It uses a helper function
-  /// `_isValidVerticalLineRight` to validate potential vertical lines.
-  ///
-  /// Parameters:
-  /// - [matrix]: A Artifact representing the data to be analyzed.
-  ///   Assumed to contain boolean values where true represents a filled cell.
-  ///
-  /// Returns:
-  /// A boolean value indicating whether a valid vertical line was found on the right side.
-  ///
-  /// Note:
-  /// - The minimum height for a vertical line is determined by `_thresholdLinePercentage`,
-  ///   which is assumed to be a class-level constant or variable.
-  /// - The function modifies the [visited] matrix in-place to keep track of visited cells.
   bool _hasVerticalLineRight(final Artifact matrix) {
+    return _hasVerticalLine(
+      matrix,
+      startX: matrix.cols - 1,
+      endXExclusive: -1,
+      stepX: -1,
+      isValidVerticalLine: _isValidVerticalLineRight,
+    );
+  }
+
+  /// Shared vertical-line scanner used by left/right variants.
+  bool _hasVerticalLine(
+    final Artifact matrix, {
+    required final int startX,
+    required final int endXExclusive,
+    required final int stepX,
+    required final bool Function(int, Artifact, int, int, Artifact)
+    isValidVerticalLine,
+  }) {
     final Artifact visited = Artifact(matrix.cols, matrix.rows);
 
     // We only consider lines that are more than
@@ -1509,27 +1475,16 @@ class Artifact {
     final int minVerticalLine = (matrix.rows * _thresholdLinePercentage)
         .toInt();
 
-    // Iterate over the matrix from right to left
-    for (int x = matrix.cols - 1; x >= 0; x--) {
+    for (int x = startX; x != endXExclusive; x += stepX) {
       for (int y = 0; y < matrix.rows; y++) {
-        // If the current cell is filled and not visited
         if (matrix.cellGet(x, y) && !visited.cellGet(x, y)) {
-          // Check if a valid vertical line exists starting from this cell
-          if (_isValidVerticalLineRight(
-            minVerticalLine,
-            matrix,
-            x,
-            y,
-            visited,
-          )) {
-            // If a valid line is found, return true
+          if (isValidVerticalLine(minVerticalLine, matrix, x, y, visited)) {
             return true;
           }
         }
       }
     }
 
-    // If no valid vertical line is found, return false
     return false;
   }
 
@@ -1556,26 +1511,14 @@ class Artifact {
     int y,
     final Artifact visited,
   ) {
-    final int rows = matrix.rows;
-    int lineLength = 0;
-
-    // Ensure no filled pixels on the immediate left side at any point
-    while (y < rows && matrix.cellGet(x, y)) {
-      visited.cellSet(x, y, true);
-      lineLength++;
-
-      // If there's a filled pixel to the left of any point in the line, it's invalid
-      if (!_validLeftSideLeft(matrix, x, y)) {
-        lineLength = 0; // reset
-      }
-      if (lineLength >= minVerticalLine) {
-        return true;
-      }
-      y++;
-    }
-
-    // Only count if the line length is sufficient
-    return false;
+    return _isValidVerticalLine(
+      minVerticalLine: minVerticalLine,
+      matrix: matrix,
+      x: x,
+      y: y,
+      visited: visited,
+      isSideValid: _validLeftSideLeft,
+    );
   }
 
   /// Validates a potential vertical line on the right side of a character.
@@ -1601,28 +1544,43 @@ class Artifact {
     int y,
     final Artifact visited,
   ) {
+    return _isValidVerticalLine(
+      minVerticalLine: minVerticalLine,
+      matrix: matrix,
+      x: x,
+      y: y,
+      visited: visited,
+      isSideValid: _validLeftSideRight,
+    );
+  }
+
+  /// Shared vertical-line validator used by left/right variants.
+  bool _isValidVerticalLine({
+    required final int minVerticalLine,
+    required final Artifact matrix,
+    required final int x,
+    required int y,
+    required final Artifact visited,
+    required final bool Function(Artifact, int, int) isSideValid,
+  }) {
     final int rows = matrix.rows;
     int lineLength = 0;
 
-    // Traverse downwards from the starting point
     while (y < rows && matrix.cellGet(x, y)) {
       visited.cellSet(x, y, true);
       lineLength++;
 
-      // Check if there's a filled pixel to the left of the current point
-      if (!_validLeftSideRight(matrix, x, y)) {
-        lineLength = 0; // Reset line length if an invalid pixel is found
+      if (!isSideValid(matrix, x, y)) {
+        lineLength = 0;
       }
 
-      // If we've found a line of sufficient length, return true
       if (lineLength >= minVerticalLine) {
         return true;
       }
 
-      y++; // Move to the next row
+      y++;
     }
 
-    // If we've exited the loop, no valid line was found
     return false;
   }
 

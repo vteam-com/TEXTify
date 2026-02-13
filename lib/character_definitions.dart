@@ -59,7 +59,7 @@ class CharacterDefinitions {
   CharacterDefinition? getDefinition(final String character) {
     try {
       return _definitions.firstWhere((t) => t.character == character);
-    } catch (e) {
+    } catch (_) {
       return null;
     }
   }

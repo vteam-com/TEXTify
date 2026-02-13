@@ -57,8 +57,7 @@ Future<Image> imageToBlackOnWhite(
     final int r = pixels[i + _redChannelOffset];
     final int g = pixels[i + _greenChannelOffset];
     final int b = pixels[i + _blueChannelOffset];
-    // ignore: unused_local_variable
-    final int a = pixels[i + _alphaChannelOffset];
+    // final int a = pixels[i + _alphaChannelOffset];
 
     // Calculate brightness using a weighted average
     int gray = (_redLumaWeight * r + _greenLumaWeight * g + _blueLumaWeight * b)
@@ -108,6 +107,8 @@ Future<Image> imageToBlackOnWhite(
 /// Returns:
 /// The computed adaptive threshold value (0..255).
 int computeAdaptiveThreshold(Uint8List pixels, int width, int height) {
+  assert(width != 0);
+  assert(height != 0);
   final List<int> histogram = List<int>.filled(_grayscaleLevels, 0);
   int total = 0;
   int sumAll = 0;
@@ -191,6 +192,7 @@ Future<Uint8List> imageToUint8List(final Image image) async {
 /// Returns:
 /// An integer representing the computed kernel size, clamped between 1 and the image width.
 int computeKernelSize(int width, int height, double scaleFactor) {
+  assert(height != 0);
   return (scaleFactor * width).round().clamp(1, width);
 }
 

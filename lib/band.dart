@@ -506,7 +506,7 @@ class Band {
   /// Returns the rounded average of a selected rectangle dimension.
   static int _averageRectDimension(
     List<Artifact> artifacts,
-    int Function(IntRect rect) selector,
+    int Function(IntRect) selector,
   ) {
     int total = 0;
     for (final Artifact artifact in artifacts) {

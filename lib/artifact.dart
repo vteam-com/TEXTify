@@ -1155,7 +1155,7 @@ class Artifact {
       'font': font,
       'rows': rows,
       'cols': cols,
-      'data': _matrix.map((row) {
+      'data': _matrix.map((_ /* row */) {
         return List.generate(rows, (y) {
           return List.generate(cols, (x) => cellGet(x, y) ? '#' : '.').join();
         });

@@ -20,7 +20,6 @@ linter:
     require_trailing_commas: true
     always_declare_return_types: true
     sort_child_properties_last: true
-    super_goes_last: false
     use_decorated_box: true
     use_super_parameters: true
     prefer_final_fields: true

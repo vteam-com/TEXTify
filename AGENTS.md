@@ -1,5 +1,25 @@
 # RULES TO FOLLOW
 
+## Input image constraints
+
+This library targets **clean digital text only**. All design decisions, algorithms, and optimizations must assume these constraints:
+
+- **Digital text only** — computer-generated/rendered text (e.g., PDFs, screenshots, UI captures)
+- **No handwriting** — no cursive, no freehand, no variable-stroke input
+- **No italic fonts** — upright (roman) typefaces only; no slanted/oblique glyphs
+- **No touching characters** — minimal to no kerning overlap; characters have clear pixel gaps between them. Minor touching (e.g., serifs meeting at baselines) is tolerated: detect artifacts significantly wider than the line average, attempt valley-based splitting, and re-match the pieces
+- **No images, art, or photos** — input contains only text on a plain background
+- **No decorative lines or borders** — no frames, boxes, rules, or separator lines
+- **Clean background** — white or uniform background with no noise, gradients, or watermarks
+- **Single text color** — dark text on light background (no colored or multi-tone text)
+
+These constraints mean:
+
+- Characters are isolated connected components (except multi-part glyphs like `i`, `j`, `:`, `;`, `!`, `%`, `=`, `"`)
+- Binary thresholding (Otsu) produces near-perfect foreground/background separation
+- Vertical histogram projection within a text line yields zero-valued gaps between every character
+- No skew/rotation correction is needed
+
 ## Clean build
 
 - no build warning

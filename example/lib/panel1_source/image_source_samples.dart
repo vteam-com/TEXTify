@@ -92,7 +92,7 @@ class _ImageSourceSamplesState extends State<ImageSourceSamples> {
       '',
     ),
     ImageData(
-      'bank-statement-template-27.webp',
+      'chase.webp',
       '',
     ),
     ImageData(

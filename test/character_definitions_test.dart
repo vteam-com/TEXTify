@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:textify/artifact.dart';
+import 'package:textify/artifact_serialize.dart';
 import 'package:textify/character_definitions.dart';
 
 void main() {

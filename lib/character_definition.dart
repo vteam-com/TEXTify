@@ -5,6 +5,7 @@ library;
 import 'dart:convert';
 
 import 'package:textify/artifact.dart';
+import 'package:textify/artifact_serialize.dart';
 
 /// A class that defines the characteristics and properties of a single character for OCR processing.
 ///

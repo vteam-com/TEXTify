@@ -1,7 +1,12 @@
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:textify/artifact_analysis.dart';
+import 'package:textify/artifact_grid_transform.dart';
+import 'package:textify/artifact_region.dart';
+import 'package:textify/artifact_serialize.dart';
 import 'package:textify/bands.dart';
+import 'package:textify/artifact_splitting.dart' as splitting;
 import 'package:textify/image_helpers.dart';
 
 void main() {
@@ -27,6 +32,10 @@ void main() {
       final artifact1 = Artifact.fromAsciiDefinition(['#']);
       expect(artifact1.isEmpty, false);
       expect(artifact1.isNotEmpty, true);
+      // Trigger lazy computation of cached properties
+      artifact1.enclosures;
+      artifact1.verticalLineLeft;
+      artifact1.verticalLineRight;
       expect(
         artifact1.toString(),
         '"" left:0 top:0 CW:1 CH:1 isEmpty:false E:0 LL:true LR:true',
@@ -318,27 +327,27 @@ void main() {
   group('calculateThreshold Tests', () {
     test('Empty histogram returns -1', () {
       final List<int> histogram = [1, 2];
-      final int threshold = Artifact.calculateThreshold(histogram);
+      final int threshold = splitting.calculateThreshold(histogram);
       expect(threshold, -1);
     });
 
     test('Histogram with no valleys uses average height', () {
       final List<int> histogram = [1, 2, 3, 4, 5];
-      final int threshold = Artifact.calculateThreshold(histogram);
+      final int threshold = splitting.calculateThreshold(histogram);
       // Average is 3, threshold should be 3 * 0.5 = 1.5 -> 1
       expect(threshold, -1);
     });
 
     test('Histogram with valleys adjusts threshold', () {
       final List<int> histogram = [5, 2, 7, 1, 6];
-      final int threshold = Artifact.calculateThreshold(histogram);
+      final int threshold = splitting.calculateThreshold(histogram);
       // Valley is 1, threshold should be 1 * 0.8 = 0.8 -> 0
       expect(threshold, 1);
     });
 
     test('Histogram with multiple valleys uses minimum', () {
       final List<int> histogram = [5, 2, 7, 3, 9, 1, 8];
-      final int threshold = Artifact.calculateThreshold(histogram);
+      final int threshold = splitting.calculateThreshold(histogram);
       // Valleys are 2, 3, 1; minimum is 1
       expect(threshold, 1);
     });

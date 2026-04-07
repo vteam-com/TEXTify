@@ -2,6 +2,7 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/cupertino.dart';
 import 'package:textify/textify.dart';
+import 'package:textify_dashboard/background_ocr.dart';
 
 class TextifyingImage extends StatefulWidget {
   const TextifyingImage({
@@ -48,9 +49,13 @@ class _TextifyingImageState extends State<TextifyingImage> {
     });
 
     try {
-      final text = await widget.textify.getTextFromImage(image: widget.image);
+      final result = await processImageWithBackgroundIsolate(
+        image: widget.image,
+        config: widget.textify.config,
+        characterDefinitionsJson: Textify.characterDefinitions.toJsonString(),
+      );
       setState(() {
-        _extractedText = text;
+        _extractedText = result.textFound;
         _isProcessing = false;
       });
     } catch (e) {

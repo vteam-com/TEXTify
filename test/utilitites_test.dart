@@ -3,6 +3,9 @@ import 'dart:math';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:textify/artifact.dart';
+import 'package:textify/artifact_analysis.dart';
+import 'package:textify/artifact_region.dart' as region;
+import 'package:textify/artifact_splitting.dart' as splitting;
 
 void main() async {
   group('floodFill Tests', () {
@@ -17,7 +20,7 @@ void main() async {
 
       final Artifact visited = Artifact(binaryPixels.cols, binaryPixels.rows);
 
-      final List<Point<int>> points = Artifact.floodFill(
+      final List<Point<int>> points = region.floodFill(
         binaryPixels,
         visited,
         1,
@@ -43,7 +46,7 @@ void main() async {
       final Artifact visited = Artifact(binaryPixels.cols, binaryPixels.rows);
 
       // Fill first region
-      final List<Point<int>> region1 = Artifact.floodFill(
+      final List<Point<int>> region1 = region.floodFill(
         binaryPixels,
         visited,
         2,
@@ -52,7 +55,7 @@ void main() async {
       expect(region1.length, 2);
 
       // Fill second region
-      final List<Point<int>> region2 = Artifact.floodFill(
+      final List<Point<int>> region2 = region.floodFill(
         binaryPixels,
         visited,
         1,
@@ -69,7 +72,7 @@ void main() async {
 
       final Artifact visited = Artifact(binaryPixels.cols, binaryPixels.rows);
 
-      final List<Point<int>> points = Artifact.floodFill(
+      final List<Point<int>> points = region.floodFill(
         binaryPixels,
         visited,
         -1,
@@ -86,7 +89,7 @@ void main() async {
 
       final Artifact visited = Artifact(binaryPixels.cols, binaryPixels.rows);
 
-      final List<Point<int>> points = Artifact.floodFill(
+      final List<Point<int>> points = region.floodFill(
         binaryPixels,
         visited,
         0,
@@ -156,8 +159,8 @@ void main() async {
 
   group('calculateThreshold Tests', () {
     test('returns -1 for histograms with less than 3 elements', () {
-      expect(Artifact.calculateThreshold([1, 2]), -1);
-      expect(Artifact.calculateThreshold([]), -1);
+      expect(splitting.calculateThreshold([1, 2]), -1);
+      expect(splitting.calculateThreshold([]), -1);
     });
 
     test('finds threshold from valleys in histogram', () {
@@ -165,7 +168,7 @@ void main() async {
       final List<int> histogram = [5, 2, 6, 1, 7];
 
       // The smallest valley is 1, so that should be the threshold
-      expect(Artifact.calculateThreshold(histogram), 1);
+      expect(splitting.calculateThreshold(histogram), 1);
     });
 
     test('handles histogram with multiple valleys', () {
@@ -173,7 +176,7 @@ void main() async {
       final List<int> histogram = [8, 3, 7, 2, 9, 1, 6];
 
       // Should average the smallest 20% of valleys (just 1 in this case)
-      expect(Artifact.calculateThreshold(histogram), 1);
+      expect(splitting.calculateThreshold(histogram), 1);
     });
 
     test('handles histogram with no valleys', () {
@@ -181,7 +184,7 @@ void main() async {
       final List<int> histogram = [1, 2, 3, 4, 5];
 
       // No valleys, should return -1
-      expect(Artifact.calculateThreshold(histogram), -1);
+      expect(splitting.calculateThreshold(histogram), -1);
     });
   });
 }

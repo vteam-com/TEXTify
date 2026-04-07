@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:textify/char_utils.dart';
 import 'package:textify/correction.dart';
 
 void main() {

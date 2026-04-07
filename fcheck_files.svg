@@ -1,0 +1,624 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="2880" height="540" viewBox="0 0 2880 540" xmlns="http://www.w3.org/2000/svg" font-family="Arial, Helvetica, sans-serif">
+<defs>
+  <filter id="whiteShadow" x="-20%" y="-20%" width="140%" height="140%">
+    <feGaussianBlur in="SourceAlpha" stdDeviation="3"/>
+    <feOffset dx="0" dy="0" result="offsetblur"/>
+    <feFlood flood-color="white" flood-opacity="1"/>
+    <feComposite in2="offsetblur" operator="in"/>
+    <feMerge>
+      <feMergeNode/>
+      <feMergeNode in="SourceGraphic"/>
+    </feMerge>
+  </filter>
+  <filter id="hierarchicalShadow" x="-20%" y="-20%" width="140%" height="140%">
+    <feGaussianBlur in="SourceAlpha" stdDeviation="5"/>
+    <feOffset dx="2" dy="2" result="offsetblur"/>
+    <feFlood flood-color="rgba(0,0,0,0.1)" flood-opacity="0.8"/>
+    <feComposite in2="offsetblur" operator="in"/>
+    <feMerge>
+      <feMergeNode/>
+      <feMergeNode in="SourceGraphic"/>
+    </feMerge>
+  </filter>
+  <filter id="outlineWhite">
+    <feMorphology in="SourceAlpha" result="DILATED" operator="dilate" radius="2"/>
+    <feFlood flood-color="white" flood-opacity="0.5" result="WHITE"/>
+    <feComposite in="WHITE" in2="DILATED" operator="in" result="OUTLINE"/>
+    <feMerge>
+      <feMergeNode in="OUTLINE"/>
+      <feMergeNode in="SourceGraphic"/>
+    </feMerge>
+  </filter>
+  <linearGradient id="horizontalGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+    <stop offset="0%" stop-color="#28a745"/>
+    <stop offset="100%" stop-color="#007bff"/>
+  </linearGradient>
+  <linearGradient id="horizontalGradientFlat" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="100%" y2="0">
+    <stop offset="0%" stop-color="#28a745"/>
+    <stop offset="100%" stop-color="#007bff"/>
+  </linearGradient>
+  <linearGradient id="verticalGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+    <stop offset="0%" stop-color="#28a745"/>
+    <stop offset="100%" stop-color="#007bff"/>
+  </linearGradient>
+  <linearGradient id="warningNodeGradient" x1="20%" y1="0%" x2="80%" y2="100%">
+    <stop offset="0%" stop-color="#fff6e8" stop-opacity="0.95"/>
+    <stop offset="100%" stop-color="#f2a23a" stop-opacity="0.45"/>
+  </linearGradient>
+  <linearGradient id="errorNodeGradient" x1="20%" y1="0%" x2="80%" y2="100%">
+    <stop offset="0%" stop-color="#fdeeed" stop-opacity="0.95"/>
+    <stop offset="100%" stop-color="#e05545" stop-opacity="0.5"/>
+  </linearGradient>
+</defs>
+<style>  
+  .layerBackground { 
+    fill: rgba(52, 58, 64, 0.08);     
+  }
+
+  .layerBackground:hover { 
+    fill: PaleGoldenRod ;
+    transition: all 0.1s ease-in-out; 
+  }
+
+  .layerBackgroundVirtualFolder { 
+    fill: rgba(52, 58, 64, 0.05); 
+    stroke: gray; 
+    stroke-width: 1; 
+    stroke-dasharray: 4,4; 
+  }
+
+  .layerBackgroundVirtualFolder:hover { 
+    fill: PaleGoldenRod ;
+    stroke: gray; 
+    stroke-width: 0; 
+    stroke-dasharray: 4,4;
+    transition: all 0.1s ease-in-out; 
+  }
+  
+  .layerTitle,
+  .layerTitleSmall { 
+    fill: black; 
+    font-weight: bold; 
+    text-anchor: middle; 
+    filter: url(#outlineWhite); 
+  }
+
+  .layerTitle { 
+    font-size: 16px; 
+  }
+
+  .layerTitleSmall { 
+    font-size: 12px; 
+  }
+  
+  /* File node styles */
+  .fileNode { 
+    fill: white; 
+    stroke: gray; 
+    stroke-width: 0.5; 
+    rx: 6; 
+    ry: 6;    
+  }
+  
+  .fileNode:hover {     
+    fill: PaleGoldenRod;
+    transition: all 0.1s ease-in-out; 
+  }
+
+  .fileNodeWarning,
+  .layerBackgroundWarning,
+  .layerBackgroundVirtualFolderWarning {
+    fill: url(#warningNodeGradient);
+    fill-opacity: 0.68;
+  }
+
+  .fileNodeError,
+  .layerBackgroundError,
+  .layerBackgroundVirtualFolderError {
+    fill: url(#errorNodeGradient);
+    fill-opacity: 0.72;
+  }
+
+  .textNormal,
+  .textSmall { 
+    fill: #212529; 
+    font-weight: 900; 
+    text-anchor: middle; 
+    dominant-baseline: middle; 
+    filter: url(#outlineWhite); 
+  }
+
+  .textNormal { 
+    font-size: 14px; 
+  }
+
+  .textSmall { 
+    font-size: 12px; 
+  }
+
+  /* Unified edge styles */
+  .edge { 
+    fill: none; 
+    stroke: url(#horizontalGradient); 
+    stroke-width: 1; 
+    opacity: 0.5;
+    cursor: pointer;
+    transition: all 0.1s ease-in-out; 
+  }
+
+
+  .edge:hover { 
+    stroke: url(#horizontalGradient); 
+    stroke-width: 3; 
+    opacity: 1.0; 
+  }
+
+  .edgeFlat {
+    stroke: url(#horizontalGradient);
+    stroke-width: 1.5;
+    stroke-linecap: round;
+    opacity: 0.95;
+  }
+
+  .edgeFlat:hover {
+    stroke: url(#horizontalGradient);
+    stroke-width: 3;
+    opacity: 1.0;
+  }
+  
+  .edgeVertical { 
+    fill: none; 
+    stroke: url(#verticalGradient); 
+    stroke-width: 1; 
+    opacity: 0.5; 
+    cursor: pointer;
+    transition: all 0.1s ease-in-out; 
+  }
+  
+  .edgeVertical:hover { 
+    stroke: url(#verticalGradient); 
+    stroke-width: 3; 
+    opacity: 1.0; 
+  }
+  
+  /* Special edge styles */
+  .cycleEdge { 
+    fill: none; 
+    stroke: red; 
+    stroke-width: 5; 
+    opacity: 0.9; 
+    cursor: pointer;
+  }
+  
+  .warningEdge { 
+    fill: none; 
+    stroke: orange; 
+    stroke-width: 3; 
+    opacity: 0.9; 
+    cursor: pointer;
+    transition: all 0.1s ease-in-out; 
+  }
+  
+  .warningEdge:hover { 
+    fill: none; 
+    stroke: orange; 
+    stroke-width: 5; 
+    opacity: 1.0; 
+  }
+  
+  /* Unified badge styles with pointer cursor */
+  .badge { 
+    font-size: 10px; 
+    font-weight: bold; 
+    fill: white; 
+    text-anchor: middle; 
+    dominant-baseline: middle; 
+    cursor: pointer; 
+    transition: all 0.1s ease-in-out; 
+  }
+  
+  .badge:hover { 
+    opacity: 0.8; 
+  }
+  
+  /* Special styles */
+  .folderTitleLayer { 
+    pointer-events: none; 
+    isolation: isolate; 
+  }
+</style>
+<rect width="100%" height="100%" fill="white"/>
+<rect x="25.0" y="50" width="270.0" height="440.0" rx="8.0" class="layerBackground"/>
+<text x="160.0" y="75.0" class="layerTitle">1</text>
+<rect x="345.0" y="50" width="270.0" height="440.0" rx="8.0" class="layerBackground"/>
+<text x="480.0" y="75.0" class="layerTitle">2</text>
+<rect x="665.0" y="50" width="270.0" height="440.0" rx="8.0" class="layerBackground"/>
+<text x="800.0" y="75.0" class="layerTitle">3</text>
+<rect x="985.0" y="50" width="270.0" height="440.0" rx="8.0" class="layerBackground"/>
+<text x="1120.0" y="75.0" class="layerTitle">4</text>
+<rect x="1305.0" y="50" width="270.0" height="440.0" rx="8.0" class="layerBackground"/>
+<text x="1440.0" y="75.0" class="layerTitle">5</text>
+<rect x="1625.0" y="50" width="270.0" height="440.0" rx="8.0" class="layerBackground"/>
+<text x="1760.0" y="75.0" class="layerTitle">6</text>
+<rect x="1945.0" y="50" width="270.0" height="440.0" rx="8.0" class="layerBackground"/>
+<text x="2080.0" y="75.0" class="layerTitle">7</text>
+<rect x="2265.0" y="50" width="270.0" height="440.0" rx="8.0" class="layerBackground"/>
+<text x="2400.0" y="75.0" class="layerTitle">8</text>
+<rect x="2585.0" y="50" width="270.0" height="440.0" rx="8.0" class="layerBackground"/>
+<text x="2720.0" y="75.0" class="layerTitle">9</text>
+<rect x="50.0" y="90.0" width="220" height="50" class="fileNode"><title>File: /Users/jp/src/github/vteam/textify/lib/textify.dart</title></rect>
+<rect x="370.0" y="90.0" width="220" height="50" class="fileNode"><title>File: /Users/jp/src/github/vteam/textify/lib/bands.dart</title></rect>
+<rect x="370.0" y="160.0" width="220" height="50" class="fileNode"><title>File: /Users/jp/src/github/vteam/textify/lib/artifact_morphology.dart</title></rect>
+<rect x="370.0" y="230.0" width="220" height="50" class="fileNode"><title>File: /Users/jp/src/github/vteam/textify/lib/character_definitions.dart</title></rect>
+<rect x="370.0" y="300.0" width="220" height="50" class="fileNode"><title>File: /Users/jp/src/github/vteam/textify/lib/textify_post_process.dart</title></rect>
+<rect x="370.0" y="370.0" width="220" height="50" class="fileNode"><title>File: /Users/jp/src/github/vteam/textify/lib/models/score_match.dart</title></rect>
+<rect x="370.0" y="440.0" width="220" height="50" class="fileNode"><title>File: /Users/jp/src/github/vteam/textify/lib/models/textify_config.dart</title></rect>
+<rect x="690.0" y="90.0" width="220" height="50" class="fileNode"><title>File: /Users/jp/src/github/vteam/textify/lib/band.dart</title></rect>
+<rect x="690.0" y="160.0" width="220" height="50" class="fileNode"><title>File: /Users/jp/src/github/vteam/textify/lib/character_definition.dart</title></rect>
+<rect x="690.0" y="230.0" width="220" height="50" class="fileNode"><title>File: /Users/jp/src/github/vteam/textify/lib/correction.dart</title></rect>
+<rect x="1010.0" y="90.0" width="220" height="50" class="fileNode"><title>File: /Users/jp/src/github/vteam/textify/lib/artifact_grid_transform.dart</title></rect>
+<rect x="1010.0" y="160.0" width="220" height="50" class="fileNode"><title>File: /Users/jp/src/github/vteam/textify/lib/artifact_region.dart</title></rect>
+<rect x="1010.0" y="230.0" width="220" height="50" class="fileNode"><title>File: /Users/jp/src/github/vteam/textify/lib/artifact_serialize.dart</title></rect>
+<rect x="1010.0" y="300.0" width="220" height="50" class="fileNode"><title>File: /Users/jp/src/github/vteam/textify/lib/artifact_splitting.dart</title></rect>
+<rect x="1330.0" y="90.0" width="220" height="50" class="fileNode"><title>File: /Users/jp/src/github/vteam/textify/lib/char_utils.dart</title></rect>
+<rect x="1330.0" y="160.0" width="220" height="50" class="fileNode"><title>File: /Users/jp/src/github/vteam/textify/lib/constants.dart</title></rect>
+<rect x="1330.0" y="230.0" width="220" height="50" class="fileNode"><title>File: /Users/jp/src/github/vteam/textify/lib/artifact_analysis.dart</title></rect>
+<rect x="1650.0" y="90.0" width="220" height="50" class="fileNode"><title>File: /Users/jp/src/github/vteam/textify/lib/artifact.dart</title></rect>
+<rect x="1970.0" y="90.0" width="220" height="50" class="fileNode"><title>File: /Users/jp/src/github/vteam/textify/lib/image_helpers.dart</title></rect>
+<rect x="2290.0" y="90.0" width="220" height="50" class="fileNode"><title>File: /Users/jp/src/github/vteam/textify/lib/models/int_rect.dart</title></rect>
+<rect x="2610.0" y="90.0" width="220" height="50" class="fileNode"><title>File: /Users/jp/src/github/vteam/textify/lib/models/int_offset.dart</title></rect>
+<defs>
+<linearGradient id="flatEdgeGradient1" gradientUnits="userSpaceOnUse" x1="1876.0" y1="115.0" x2="1976.0" y2="115.0"><stop offset="0%" stop-color="#28a745"/><stop offset="100%" stop-color="#007bff"/></linearGradient>
+<linearGradient id="flatEdgeGradient2" gradientUnits="userSpaceOnUse" x1="2196.0" y1="115.0" x2="2296.0" y2="115.0"><stop offset="0%" stop-color="#28a745"/><stop offset="100%" stop-color="#007bff"/></linearGradient>
+</defs>
+<g>
+  <path d="M 596.0 115.0 Q 646.0 109.0 696.0 115.0" class="edge"/>
+  <title>/Users/jp/src/github/vteam/textify/lib/bands.dart ▶ /Users/jp/src/github/vteam/textify/lib/band.dart</title>
+</g>
+<g>
+  <path d="M 596.0 115.0 Q 646.0 109.0 696.0 115.0" class="edge"/>
+  <title>/Users/jp/src/github/vteam/textify/lib/bands.dart ▶ /Users/jp/src/github/vteam/textify/lib/band.dart</title>
+</g>
+<g>
+  <path d="M 916.0 115.0 Q 966.0 109.0 1016.0 115.0" class="edge"/>
+  <title>/Users/jp/src/github/vteam/textify/lib/band.dart ▶ /Users/jp/src/github/vteam/textify/lib/artifact_grid_transform.dart</title>
+</g>
+<g>
+  <path d="M 2516.0 115.0 Q 2566.0 109.0 2616.0 115.0" class="edge"/>
+  <title>/Users/jp/src/github/vteam/textify/lib/models/int_rect.dart ▶ /Users/jp/src/github/vteam/textify/lib/models/int_offset.dart</title>
+</g>
+<g>
+  <path d="M 1876.0 115.0 L 1976.0 115.0" class="edge edgeFlat" style="stroke:url(#flatEdgeGradient1);"/>
+  <title>/Users/jp/src/github/vteam/textify/lib/artifact.dart ▶ /Users/jp/src/github/vteam/textify/lib/image_helpers.dart</title>
+</g>
+<g>
+  <path d="M 278.0 115.0 Q 327.0 109.0 376.0 115.0" class="edge"/>
+  <title>/Users/jp/src/github/vteam/textify/lib/textify.dart ▶ /Users/jp/src/github/vteam/textify/lib/bands.dart</title>
+</g>
+<g>
+  <path d="M 2196.0 115.0 L 2296.0 115.0" class="edge edgeFlat" style="stroke:url(#flatEdgeGradient2);"/>
+  <title>/Users/jp/src/github/vteam/textify/lib/image_helpers.dart ▶ /Users/jp/src/github/vteam/textify/lib/models/int_rect.dart</title>
+</g>
+<g>
+  <path d="M 2516.0 115.0 Q 2566.0 109.0 2616.0 115.0" class="edge"/>
+  <title>/Users/jp/src/github/vteam/textify/lib/models/int_rect.dart ▶ /Users/jp/src/github/vteam/textify/lib/models/int_offset.dart</title>
+</g>
+<g>
+  <path d="M 916.0 185.0 L 930.0 185.0 Q 936.0 185.0 936.0 191.0 V 249.0 Q 936.0 255.0 942.0 255.0 L 1007.0 255.0 L 1016.0 255.0" class="edge"/>
+  <title>/Users/jp/src/github/vteam/textify/lib/character_definition.dart ▶ /Users/jp/src/github/vteam/textify/lib/artifact_serialize.dart</title>
+</g>
+<g>
+  <path d="M 1236.0 255.0 L 1250.0 255.0 Q 1256.0 255.0 1256.0 249.0 V 191.0 Q 1256.0 185.0 1262.0 185.0 L 1327.0 185.0 L 1336.0 185.0" class="edge"/>
+  <title>/Users/jp/src/github/vteam/textify/lib/artifact_serialize.dart ▶ /Users/jp/src/github/vteam/textify/lib/constants.dart</title>
+</g>
+<g>
+  <path d="M 1236.0 325.0 L 1256.0 325.0 Q 1262.0 325.0 1262.0 319.0 V 261.0 Q 1262.0 255.0 1268.0 255.0 L 1327.0 255.0 L 1336.0 255.0" class="edge"/>
+  <title>/Users/jp/src/github/vteam/textify/lib/artifact_splitting.dart ▶ /Users/jp/src/github/vteam/textify/lib/artifact_analysis.dart</title>
+</g>
+<g>
+  <path d="M 278.0 115.0 L 292.0 115.0 Q 298.0 115.0 298.0 121.0 V 179.0 Q 298.0 185.0 304.0 185.0 L 367.0 185.0 L 376.0 185.0" class="edge"/>
+  <title>/Users/jp/src/github/vteam/textify/lib/textify.dart ▶ /Users/jp/src/github/vteam/textify/lib/artifact_morphology.dart</title>
+</g>
+<g>
+  <path d="M 916.0 115.0 L 920.0 115.0 Q 926.0 115.0 926.0 121.0 V 179.0 Q 926.0 185.0 932.0 185.0 L 1007.0 185.0 L 1016.0 185.0" class="edge"/>
+  <title>/Users/jp/src/github/vteam/textify/lib/band.dart ▶ /Users/jp/src/github/vteam/textify/lib/artifact_region.dart</title>
+</g>
+<g>
+  <path d="M 596.0 325.0 L 620.0 325.0 Q 626.0 325.0 626.0 319.0 V 261.0 Q 626.0 255.0 632.0 255.0 L 687.0 255.0 L 696.0 255.0" class="edge"/>
+  <title>/Users/jp/src/github/vteam/textify/lib/textify_post_process.dart ▶ /Users/jp/src/github/vteam/textify/lib/correction.dart</title>
+</g>
+<g>
+  <path d="M 596.0 255.0 L 616.0 255.0 Q 622.0 255.0 622.0 249.0 V 191.0 Q 622.0 185.0 628.0 185.0 L 687.0 185.0 L 696.0 185.0" class="edge"/>
+  <title>/Users/jp/src/github/vteam/textify/lib/character_definitions.dart ▶ /Users/jp/src/github/vteam/textify/lib/character_definition.dart</title>
+</g>
+<g>
+  <path d="M 596.0 255.0 L 616.0 255.0 Q 622.0 255.0 622.0 249.0 V 191.0 Q 622.0 185.0 628.0 185.0 L 687.0 185.0 L 696.0 185.0" class="edge"/>
+  <title>/Users/jp/src/github/vteam/textify/lib/character_definitions.dart ▶ /Users/jp/src/github/vteam/textify/lib/character_definition.dart</title>
+</g>
+<g>
+  <path d="M 1556.0 255.0 L 1558.0 255.0 Q 1564.0 255.0 1564.0 249.0 V 121.0 Q 1564.0 115.0 1570.0 115.0 L 1645.0 115.0 L 1656.0 115.0" class="edge"/>
+  <title>/Users/jp/src/github/vteam/textify/lib/artifact_analysis.dart ▶ /Users/jp/src/github/vteam/textify/lib/artifact.dart</title>
+</g>
+<g>
+  <path d="M 1236.0 255.0 L 1246.0 255.0 Q 1252.0 255.0 1252.0 249.0 V 121.0 Q 1252.0 115.0 1258.0 115.0 L 1327.0 115.0 L 1336.0 115.0" class="edge"/>
+  <title>/Users/jp/src/github/vteam/textify/lib/artifact_serialize.dart ▶ /Users/jp/src/github/vteam/textify/lib/char_utils.dart</title>
+</g>
+<g>
+  <path d="M 278.0 115.0 L 286.0 115.0 Q 292.0 115.0 292.0 121.0 V 249.0 Q 292.0 255.0 298.0 255.0 L 367.0 255.0 L 376.0 255.0" class="edge"/>
+  <title>/Users/jp/src/github/vteam/textify/lib/textify.dart ▶ /Users/jp/src/github/vteam/textify/lib/character_definitions.dart</title>
+</g>
+<g>
+  <path d="M 278.0 115.0 L 284.0 115.0 Q 290.0 115.0 290.0 121.0 V 319.0 Q 290.0 325.0 296.0 325.0 L 367.0 325.0 L 376.0 325.0" class="edge"/>
+  <title>/Users/jp/src/github/vteam/textify/lib/textify.dart ▶ /Users/jp/src/github/vteam/textify/lib/textify_post_process.dart</title>
+</g>
+<g>
+  <path d="M 916.0 115.0 L 918.0 115.0 Q 924.0 115.0 924.0 121.0 V 319.0 Q 924.0 325.0 930.0 325.0 L 1007.0 325.0 L 1016.0 325.0" class="edge"/>
+  <title>/Users/jp/src/github/vteam/textify/lib/band.dart ▶ /Users/jp/src/github/vteam/textify/lib/artifact_splitting.dart</title>
+</g>
+<g>
+  <path d="M 278.0 115.0 L 282.0 115.0 Q 288.0 115.0 288.0 121.0 V 389.0 Q 288.0 395.0 294.0 395.0 L 367.0 395.0 L 376.0 395.0" class="edge"/>
+  <title>/Users/jp/src/github/vteam/textify/lib/textify.dart ▶ /Users/jp/src/github/vteam/textify/lib/models/score_match.dart</title>
+</g>
+<g>
+  <path d="M 278.0 115.0 L 280.0 115.0 Q 286.0 115.0 286.0 121.0 V 459.0 Q 286.0 465.0 292.0 465.0 L 367.0 465.0 L 376.0 465.0" class="edge"/>
+  <title>/Users/jp/src/github/vteam/textify/lib/textify.dart ▶ /Users/jp/src/github/vteam/textify/lib/models/textify_config.dart</title>
+</g>
+<g>
+  <path d="M 596.0 185.0 L 610.0 185.0 Q 616.0 185.0 616.0 179.0 V 154.0 Q 616.0 148.0 622.0 148.0 L 910.0 148.0 L 924.0 148.0 Q 930.0 148.0 930.0 154.0 V 179.0 Q 930.0 185.0 936.0 185.0 L 1010.0 185.0 L 1016.0 185.0" class="edge"/>
+  <title>/Users/jp/src/github/vteam/textify/lib/artifact_morphology.dart ▶ /Users/jp/src/github/vteam/textify/lib/artifact_region.dart</title>
+</g>
+<g>
+  <path d="M 596.0 115.0 L 604.0 115.0 Q 610.0 115.0 610.0 109.0 V 88.0 Q 610.0 82.0 616.0 82.0 L 916.0 82.0 Q 922.0 82.0 922.0 88.0 V 109.0 Q 922.0 115.0 928.0 115.0 L 1007.0 115.0 L 1016.0 115.0" class="edge"/>
+  <title>/Users/jp/src/github/vteam/textify/lib/bands.dart ▶ /Users/jp/src/github/vteam/textify/lib/artifact_grid_transform.dart</title>
+</g>
+<g>
+  <path d="M 1236.0 115.0 L 1240.0 115.0 Q 1246.0 115.0 1246.0 109.0 V 88.0 Q 1246.0 82.0 1252.0 82.0 L 1552.0 82.0 Q 1558.0 82.0 1558.0 88.0 V 109.0 Q 1558.0 115.0 1564.0 115.0 L 1645.0 115.0 L 1656.0 115.0" class="edge"/>
+  <title>/Users/jp/src/github/vteam/textify/lib/artifact_grid_transform.dart ▶ /Users/jp/src/github/vteam/textify/lib/artifact.dart</title>
+</g>
+<g>
+  <path d="M 1236.0 185.0 L 1242.0 185.0 Q 1248.0 185.0 1248.0 179.0 V 85.0 Q 1248.0 79.0 1254.0 79.0 L 1550.0 79.0 L 1556.0 79.0 Q 1562.0 79.0 1562.0 85.0 V 109.0 Q 1562.0 115.0 1568.0 115.0 L 1650.0 115.0 L 1656.0 115.0" class="edge"/>
+  <title>/Users/jp/src/github/vteam/textify/lib/artifact_region.dart ▶ /Users/jp/src/github/vteam/textify/lib/artifact.dart</title>
+</g>
+<g>
+  <path d="M 1556.0 255.0 L 1560.0 255.0 Q 1566.0 255.0 1566.0 249.0 V 86.0 Q 1566.0 80.0 1572.0 80.0 L 1870.0 80.0 L 1874.0 80.0 Q 1880.0 80.0 1880.0 86.0 V 109.0 Q 1880.0 115.0 1886.0 115.0 L 1970.0 115.0 L 1976.0 115.0" class="edge"/>
+  <title>/Users/jp/src/github/vteam/textify/lib/artifact_analysis.dart ▶ /Users/jp/src/github/vteam/textify/lib/image_helpers.dart</title>
+</g>
+<g>
+  <path d="M 1236.0 255.0 L 1248.0 255.0 Q 1254.0 255.0 1254.0 249.0 V 86.0 Q 1254.0 80.0 1260.0 80.0 L 1550.0 80.0 L 1562.0 80.0 Q 1568.0 80.0 1568.0 86.0 V 109.0 Q 1568.0 115.0 1574.0 115.0 L 1650.0 115.0 L 1656.0 115.0" class="edge"/>
+  <title>/Users/jp/src/github/vteam/textify/lib/artifact_serialize.dart ▶ /Users/jp/src/github/vteam/textify/lib/artifact.dart</title>
+</g>
+<g>
+  <path d="M 278.0 115.0 L 288.0 115.0 Q 294.0 115.0 294.0 121.0 V 210.0 Q 294.0 216.0 300.0 216.0 L 590.0 216.0 L 600.0 216.0 Q 606.0 216.0 606.0 222.0 V 249.0 Q 606.0 255.0 612.0 255.0 L 690.0 255.0 L 696.0 255.0" class="edge"/>
+  <title>/Users/jp/src/github/vteam/textify/lib/textify.dart ▶ /Users/jp/src/github/vteam/textify/lib/correction.dart</title>
+</g>
+<g>
+  <path d="M 916.0 255.0 L 934.0 255.0 Q 940.0 255.0 940.0 249.0 V 86.0 Q 940.0 80.0 946.0 80.0 L 1230.0 80.0 L 1248.0 80.0 Q 1254.0 80.0 1254.0 86.0 V 109.0 Q 1254.0 115.0 1260.0 115.0 L 1330.0 115.0 L 1336.0 115.0" class="edge"/>
+  <title>/Users/jp/src/github/vteam/textify/lib/correction.dart ▶ /Users/jp/src/github/vteam/textify/lib/char_utils.dart</title>
+</g>
+<g>
+  <path d="M 1236.0 325.0 L 1252.0 325.0 Q 1258.0 325.0 1258.0 319.0 V 85.0 Q 1258.0 79.0 1264.0 79.0 L 1550.0 79.0 L 1566.0 79.0 Q 1572.0 79.0 1572.0 85.0 V 109.0 Q 1572.0 115.0 1578.0 115.0 L 1650.0 115.0 L 1656.0 115.0" class="edge"/>
+  <title>/Users/jp/src/github/vteam/textify/lib/artifact_splitting.dart ▶ /Users/jp/src/github/vteam/textify/lib/artifact.dart</title>
+</g>
+<g>
+  <path d="M 278.0 115.0 L 304.0 115.0 Q 310.0 115.0 310.0 109.0 V 84.0 Q 310.0 78.0 316.0 78.0 L 932.0 78.0 Q 938.0 78.0 938.0 84.0 V 109.0 Q 938.0 115.0 944.0 115.0 L 1007.0 115.0 L 1016.0 115.0" class="edge"/>
+  <title>/Users/jp/src/github/vteam/textify/lib/textify.dart ▶ /Users/jp/src/github/vteam/textify/lib/artifact_grid_transform.dart</title>
+</g>
+<g>
+  <path d="M 916.0 115.0 L 926.0 115.0 Q 932.0 115.0 932.0 109.0 V 84.0 Q 932.0 78.0 938.0 78.0 L 1560.0 78.0 Q 1566.0 78.0 1566.0 84.0 V 109.0 Q 1566.0 115.0 1572.0 115.0 L 1645.0 115.0 L 1656.0 115.0" class="edge"/>
+  <title>/Users/jp/src/github/vteam/textify/lib/band.dart ▶ /Users/jp/src/github/vteam/textify/lib/artifact.dart</title>
+</g>
+<g>
+  <path d="M 916.0 115.0 L 926.0 115.0 Q 932.0 115.0 932.0 109.0 V 84.0 Q 932.0 78.0 938.0 78.0 L 1560.0 78.0 Q 1566.0 78.0 1566.0 84.0 V 109.0 Q 1566.0 115.0 1572.0 115.0 L 1645.0 115.0 L 1656.0 115.0" class="edge"/>
+  <title>/Users/jp/src/github/vteam/textify/lib/band.dart ▶ /Users/jp/src/github/vteam/textify/lib/artifact.dart</title>
+</g>
+<g>
+  <path d="M 1236.0 115.0 L 1238.0 115.0 Q 1244.0 115.0 1244.0 109.0 V 84.0 Q 1244.0 78.0 1250.0 78.0 L 1874.0 78.0 Q 1880.0 78.0 1880.0 84.0 V 109.0 Q 1880.0 115.0 1886.0 115.0 L 1967.0 115.0 L 1976.0 115.0" class="edge"/>
+  <title>/Users/jp/src/github/vteam/textify/lib/artifact_grid_transform.dart ▶ /Users/jp/src/github/vteam/textify/lib/image_helpers.dart</title>
+</g>
+<g>
+  <path d="M 916.0 185.0 L 932.0 185.0 Q 938.0 185.0 938.0 179.0 V 86.0 Q 938.0 80.0 944.0 80.0 L 1230.0 80.0 L 1550.0 80.0 L 1566.0 80.0 Q 1572.0 80.0 1572.0 86.0 V 109.0 Q 1572.0 115.0 1578.0 115.0 L 1650.0 115.0 L 1656.0 115.0" class="edge"/>
+  <title>/Users/jp/src/github/vteam/textify/lib/character_definition.dart ▶ /Users/jp/src/github/vteam/textify/lib/artifact.dart</title>
+</g>
+<g>
+  <path d="M 278.0 115.0 L 294.0 115.0 Q 300.0 115.0 300.0 121.0 V 142.0 Q 300.0 148.0 306.0 148.0 L 590.0 148.0 L 910.0 148.0 L 926.0 148.0 Q 932.0 148.0 932.0 154.0 V 179.0 Q 932.0 185.0 938.0 185.0 L 1010.0 185.0 L 1016.0 185.0" class="edge"/>
+  <title>/Users/jp/src/github/vteam/textify/lib/textify.dart ▶ /Users/jp/src/github/vteam/textify/lib/artifact_region.dart</title>
+</g>
+<g>
+  <path d="M 1236.0 185.0 L 1244.0 185.0 Q 1250.0 185.0 1250.0 179.0 V 87.0 Q 1250.0 81.0 1256.0 81.0 L 1550.0 81.0 L 1870.0 81.0 L 1878.0 81.0 Q 1884.0 81.0 1884.0 87.0 V 109.0 Q 1884.0 115.0 1890.0 115.0 L 1970.0 115.0 L 1976.0 115.0" class="edge"/>
+  <title>/Users/jp/src/github/vteam/textify/lib/artifact_region.dart ▶ /Users/jp/src/github/vteam/textify/lib/image_helpers.dart</title>
+</g>
+<g>
+  <path d="M 596.0 325.0 L 618.0 325.0 Q 624.0 325.0 624.0 319.0 V 156.0 Q 624.0 150.0 630.0 150.0 L 910.0 150.0 L 1230.0 150.0 L 1252.0 150.0 Q 1258.0 150.0 1258.0 156.0 V 179.0 Q 1258.0 185.0 1264.0 185.0 L 1330.0 185.0 L 1336.0 185.0" class="edge"/>
+  <title>/Users/jp/src/github/vteam/textify/lib/textify_post_process.dart ▶ /Users/jp/src/github/vteam/textify/lib/constants.dart</title>
+</g>
+<g>
+  <path d="M 1236.0 325.0 L 1254.0 325.0 Q 1260.0 325.0 1260.0 319.0 V 87.0 Q 1260.0 81.0 1266.0 81.0 L 1550.0 81.0 L 1870.0 81.0 L 1888.0 81.0 Q 1894.0 81.0 1894.0 87.0 V 109.0 Q 1894.0 115.0 1900.0 115.0 L 1970.0 115.0 L 1976.0 115.0" class="edge"/>
+  <title>/Users/jp/src/github/vteam/textify/lib/artifact_splitting.dart ▶ /Users/jp/src/github/vteam/textify/lib/image_helpers.dart</title>
+</g>
+<g>
+  <path d="M 278.0 115.0 L 302.0 115.0 Q 308.0 115.0 308.0 109.0 V 80.0 Q 308.0 74.0 314.0 74.0 L 1254.0 74.0 Q 1260.0 74.0 1260.0 80.0 V 109.0 Q 1260.0 115.0 1266.0 115.0 L 1327.0 115.0 L 1336.0 115.0" class="edge"/>
+  <title>/Users/jp/src/github/vteam/textify/lib/textify.dart ▶ /Users/jp/src/github/vteam/textify/lib/char_utils.dart</title>
+</g>
+<g>
+  <path d="M 916.0 115.0 L 926.0 115.0 Q 932.0 115.0 932.0 109.0 V 80.0 Q 932.0 74.0 938.0 74.0 L 1882.0 74.0 Q 1888.0 74.0 1888.0 80.0 V 109.0 Q 1888.0 115.0 1894.0 115.0 L 1967.0 115.0 L 1976.0 115.0" class="edge"/>
+  <title>/Users/jp/src/github/vteam/textify/lib/band.dart ▶ /Users/jp/src/github/vteam/textify/lib/image_helpers.dart</title>
+</g>
+<g>
+  <path d="M 278.0 115.0 L 296.0 115.0 Q 302.0 115.0 302.0 121.0 V 146.0 Q 302.0 152.0 308.0 152.0 L 590.0 152.0 L 910.0 152.0 L 1230.0 152.0 L 1248.0 152.0 Q 1254.0 152.0 1254.0 158.0 V 179.0 Q 1254.0 185.0 1260.0 185.0 L 1330.0 185.0 L 1336.0 185.0" class="edge"/>
+  <title>/Users/jp/src/github/vteam/textify/lib/textify.dart ▶ /Users/jp/src/github/vteam/textify/lib/constants.dart</title>
+</g>
+<g>
+  <path d="M 596.0 185.0 L 606.0 185.0 Q 612.0 185.0 612.0 179.0 V 86.0 Q 612.0 80.0 618.0 80.0 L 910.0 80.0 L 1230.0 80.0 L 1550.0 80.0 L 1560.0 80.0 Q 1566.0 80.0 1566.0 86.0 V 109.0 Q 1566.0 115.0 1572.0 115.0 L 1650.0 115.0 L 1656.0 115.0" class="edge"/>
+  <title>/Users/jp/src/github/vteam/textify/lib/artifact_morphology.dart ▶ /Users/jp/src/github/vteam/textify/lib/artifact.dart</title>
+</g>
+<g>
+  <path d="M 278.0 115.0 L 290.0 115.0 Q 296.0 115.0 296.0 121.0 V 218.0 Q 296.0 224.0 302.0 224.0 L 590.0 224.0 L 910.0 224.0 L 1230.0 224.0 L 1242.0 224.0 Q 1248.0 224.0 1248.0 230.0 V 249.0 Q 1248.0 255.0 1254.0 255.0 L 1330.0 255.0 L 1336.0 255.0" class="edge"/>
+  <title>/Users/jp/src/github/vteam/textify/lib/textify.dart ▶ /Users/jp/src/github/vteam/textify/lib/artifact_analysis.dart</title>
+</g>
+<g>
+  <path d="M 596.0 255.0 L 612.0 255.0 Q 618.0 255.0 618.0 249.0 V 86.0 Q 618.0 80.0 624.0 80.0 L 910.0 80.0 L 1230.0 80.0 L 1550.0 80.0 L 1566.0 80.0 Q 1572.0 80.0 1572.0 86.0 V 109.0 Q 1572.0 115.0 1578.0 115.0 L 1650.0 115.0 L 1656.0 115.0" class="edge"/>
+  <title>/Users/jp/src/github/vteam/textify/lib/character_definitions.dart ▶ /Users/jp/src/github/vteam/textify/lib/artifact.dart</title>
+</g>
+<g>
+  <path d="M 596.0 115.0 L 602.0 115.0 Q 608.0 115.0 608.0 109.0 V 76.0 Q 608.0 70.0 614.0 70.0 L 1878.0 70.0 Q 1884.0 70.0 1884.0 76.0 V 109.0 Q 1884.0 115.0 1890.0 115.0 L 1967.0 115.0 L 1976.0 115.0" class="edge"/>
+  <title>/Users/jp/src/github/vteam/textify/lib/bands.dart ▶ /Users/jp/src/github/vteam/textify/lib/image_helpers.dart</title>
+</g>
+<g>
+  <path d="M 596.0 185.0 L 608.0 185.0 Q 614.0 185.0 614.0 179.0 V 88.0 Q 614.0 82.0 620.0 82.0 L 910.0 82.0 L 1230.0 82.0 L 1550.0 82.0 L 1870.0 82.0 L 1882.0 82.0 Q 1888.0 82.0 1888.0 88.0 V 109.0 Q 1888.0 115.0 1894.0 115.0 L 1970.0 115.0 L 1976.0 115.0" class="edge"/>
+  <title>/Users/jp/src/github/vteam/textify/lib/artifact_morphology.dart ▶ /Users/jp/src/github/vteam/textify/lib/image_helpers.dart</title>
+</g>
+<g>
+  <path d="M 278.0 115.0 L 300.0 115.0 Q 306.0 115.0 306.0 109.0 V 72.0 Q 306.0 66.0 312.0 66.0 L 1896.0 66.0 Q 1902.0 66.0 1902.0 72.0 V 109.0 Q 1902.0 115.0 1908.0 115.0 L 1967.0 115.0 L 1976.0 115.0" class="edge"/>
+  <title>/Users/jp/src/github/vteam/textify/lib/textify.dart ▶ /Users/jp/src/github/vteam/textify/lib/image_helpers.dart</title>
+</g>
+<g class="badge outgoingBadge">
+  <path d="M 278.0,115.0 L 262.0,107.4 Q 259.0,107.4 259.0,110.4 L 259.0,119.6 Q 259.0,122.6 262.0,122.6 Z" fill="#10b981"/>
+  <text x="264.72" y="116.0" text-anchor="middle" fill="white" font-size="8.0" font-weight="bold" textLength="10.120000000000001" lengthAdjust="spacingAndGlyphs">13</text><title>1. artifact_analysis.dart
+2. artifact_grid_transform.dart
+3. artifact_morphology.dart
+4. artifact_region.dart
+5. bands.dart
+6. char_utils.dart
+7. character_definitions.dart
+8. constants.dart
+9. correction.dart
+10. image_helpers.dart
+11. score_match.dart
+12. textify_config.dart
+13. textify_post_process.dart</title></g><text x="160.0" y="115.0" class="textNormal">textify.dart</text>
+<g class="badge incomingBadge">
+  <path d="M 382.0,115.0 L 370.0,108.0 Q 367.0,108.0 367.0,111.0 L 367.0,119.0 Q 367.0,122.0 370.0,122.0 Z" fill="#3b82f6"/>
+  <text x="371.68" y="116.0" text-anchor="middle" fill="white" font-size="8.0" font-weight="bold">1</text><title>1. textify.dart</title></g><g class="badge outgoingBadge">
+  <path d="M 596.0,115.0 L 584.0,108.0 Q 581.0,108.0 581.0,111.0 L 581.0,119.0 Q 581.0,122.0 584.0,122.0 Z" fill="#10b981"/>
+  <text x="585.68" y="116.0" text-anchor="middle" fill="white" font-size="8.0" font-weight="bold">4</text><title>1. artifact_grid_transform.dart
+2. band.dart
+3. image_helpers.dart</title></g><text x="480.0" y="115.0" class="textNormal">bands.dart</text>
+<g class="badge incomingBadge">
+  <path d="M 382.0,185.0 L 370.0,178.0 Q 367.0,178.0 367.0,181.0 L 367.0,189.0 Q 367.0,192.0 370.0,192.0 Z" fill="#3b82f6"/>
+  <text x="371.68" y="186.0" text-anchor="middle" fill="white" font-size="8.0" font-weight="bold">1</text><title>1. textify.dart</title></g><g class="badge outgoingBadge">
+  <path d="M 596.0,185.0 L 584.0,178.0 Q 581.0,178.0 581.0,181.0 L 581.0,189.0 Q 581.0,192.0 584.0,192.0 Z" fill="#10b981"/>
+  <text x="585.68" y="186.0" text-anchor="middle" fill="white" font-size="8.0" font-weight="bold">3</text><title>1. artifact.dart
+2. artifact_region.dart
+3. image_helpers.dart</title></g><text x="480.0" y="185.0" class="textNormal">artifact_morphology.dart</text>
+<g class="badge incomingBadge">
+  <path d="M 382.0,255.0 L 370.0,248.0 Q 367.0,248.0 367.0,251.0 L 367.0,259.0 Q 367.0,262.0 370.0,262.0 Z" fill="#3b82f6"/>
+  <text x="371.68" y="256.0" text-anchor="middle" fill="white" font-size="8.0" font-weight="bold">1</text><title>1. textify.dart</title></g><g class="badge outgoingBadge">
+  <path d="M 596.0,255.0 L 584.0,248.0 Q 581.0,248.0 581.0,251.0 L 581.0,259.0 Q 581.0,262.0 584.0,262.0 Z" fill="#10b981"/>
+  <text x="585.68" y="256.0" text-anchor="middle" fill="white" font-size="8.0" font-weight="bold">3</text><title>1. artifact.dart
+2. character_definition.dart</title></g><text x="480.0" y="255.0" class="textSmall">character_definitions.dart</text>
+<g class="badge incomingBadge">
+  <path d="M 382.0,325.0 L 370.0,318.0 Q 367.0,318.0 367.0,321.0 L 367.0,329.0 Q 367.0,332.0 370.0,332.0 Z" fill="#3b82f6"/>
+  <text x="371.68" y="326.0" text-anchor="middle" fill="white" font-size="8.0" font-weight="bold">1</text><title>1. textify.dart</title></g><g class="badge outgoingBadge">
+  <path d="M 596.0,325.0 L 584.0,318.0 Q 581.0,318.0 581.0,321.0 L 581.0,329.0 Q 581.0,332.0 584.0,332.0 Z" fill="#10b981"/>
+  <text x="585.68" y="326.0" text-anchor="middle" fill="white" font-size="8.0" font-weight="bold">2</text><title>1. constants.dart
+2. correction.dart</title></g><text x="480.0" y="325.0" class="textSmall">textify_post_process.dart</text>
+<g class="badge incomingBadge">
+  <path d="M 382.0,395.0 L 370.0,388.0 Q 367.0,388.0 367.0,391.0 L 367.0,399.0 Q 367.0,402.0 370.0,402.0 Z" fill="#3b82f6"/>
+  <text x="371.68" y="396.0" text-anchor="middle" fill="white" font-size="8.0" font-weight="bold">1</text><title>1. textify.dart</title></g><text x="480.0" y="395.0" class="textNormal">score_match.dart</text>
+<g class="badge incomingBadge">
+  <path d="M 382.0,465.0 L 370.0,458.0 Q 367.0,458.0 367.0,461.0 L 367.0,469.0 Q 367.0,472.0 370.0,472.0 Z" fill="#3b82f6"/>
+  <text x="371.68" y="466.0" text-anchor="middle" fill="white" font-size="8.0" font-weight="bold">1</text><title>1. textify.dart</title></g><text x="480.0" y="465.0" class="textNormal">textify_config.dart</text>
+<g class="badge incomingBadge">
+  <path d="M 702.0,115.0 L 690.0,108.0 Q 687.0,108.0 687.0,111.0 L 687.0,119.0 Q 687.0,122.0 690.0,122.0 Z" fill="#3b82f6"/>
+  <text x="691.68" y="116.0" text-anchor="middle" fill="white" font-size="8.0" font-weight="bold">2</text><title>1. bands.dart</title></g><g class="badge outgoingBadge">
+  <path d="M 916.0,115.0 L 904.0,108.0 Q 901.0,108.0 901.0,111.0 L 901.0,119.0 Q 901.0,122.0 904.0,122.0 Z" fill="#10b981"/>
+  <text x="905.68" y="116.0" text-anchor="middle" fill="white" font-size="8.0" font-weight="bold">6</text><title>1. artifact.dart
+2. artifact_grid_transform.dart
+3. artifact_region.dart
+4. artifact_splitting.dart
+5. image_helpers.dart</title></g><text x="800.0" y="115.0" class="textNormal">band.dart</text>
+<g class="badge incomingBadge">
+  <path d="M 702.0,185.0 L 690.0,178.0 Q 687.0,178.0 687.0,181.0 L 687.0,189.0 Q 687.0,192.0 690.0,192.0 Z" fill="#3b82f6"/>
+  <text x="691.68" y="186.0" text-anchor="middle" fill="white" font-size="8.0" font-weight="bold">2</text><title>1. character_definitions.dart</title></g><g class="badge outgoingBadge">
+  <path d="M 916.0,185.0 L 904.0,178.0 Q 901.0,178.0 901.0,181.0 L 901.0,189.0 Q 901.0,192.0 904.0,192.0 Z" fill="#10b981"/>
+  <text x="905.68" y="186.0" text-anchor="middle" fill="white" font-size="8.0" font-weight="bold">2</text><title>1. artifact.dart
+2. artifact_serialize.dart</title></g><text x="800.0" y="185.0" class="textNormal">character_definition.dart</text>
+<g class="badge incomingBadge">
+  <path d="M 702.0,255.0 L 690.0,248.0 Q 687.0,248.0 687.0,251.0 L 687.0,259.0 Q 687.0,262.0 690.0,262.0 Z" fill="#3b82f6"/>
+  <text x="691.68" y="256.0" text-anchor="middle" fill="white" font-size="8.0" font-weight="bold">2</text><title>1. textify.dart
+2. textify_post_process.dart</title></g><g class="badge outgoingBadge">
+  <path d="M 916.0,255.0 L 904.0,248.0 Q 901.0,248.0 901.0,251.0 L 901.0,259.0 Q 901.0,262.0 904.0,262.0 Z" fill="#10b981"/>
+  <text x="905.68" y="256.0" text-anchor="middle" fill="white" font-size="8.0" font-weight="bold">1</text><title>1. char_utils.dart</title></g><text x="800.0" y="255.0" class="textNormal">correction.dart</text>
+<g class="badge incomingBadge">
+  <path d="M 1022.0,115.0 L 1010.0,108.0 Q 1007.0,108.0 1007.0,111.0 L 1007.0,119.0 Q 1007.0,122.0 1010.0,122.0 Z" fill="#3b82f6"/>
+  <text x="1011.68" y="116.0" text-anchor="middle" fill="white" font-size="8.0" font-weight="bold">3</text><title>1. band.dart
+2. bands.dart
+3. textify.dart</title></g><g class="badge outgoingBadge">
+  <path d="M 1236.0,115.0 L 1224.0,108.0 Q 1221.0,108.0 1221.0,111.0 L 1221.0,119.0 Q 1221.0,122.0 1224.0,122.0 Z" fill="#10b981"/>
+  <text x="1225.68" y="116.0" text-anchor="middle" fill="white" font-size="8.0" font-weight="bold">2</text><title>1. artifact.dart
+2. image_helpers.dart</title></g><text x="1120.0" y="115.0" class="textSmall">artifact_grid_transform.dart</text>
+<g class="badge incomingBadge">
+  <path d="M 1022.0,185.0 L 1010.0,178.0 Q 1007.0,178.0 1007.0,181.0 L 1007.0,189.0 Q 1007.0,192.0 1010.0,192.0 Z" fill="#3b82f6"/>
+  <text x="1011.68" y="186.0" text-anchor="middle" fill="white" font-size="8.0" font-weight="bold">3</text><title>1. artifact_morphology.dart
+2. band.dart
+3. textify.dart</title></g><g class="badge outgoingBadge">
+  <path d="M 1236.0,185.0 L 1224.0,178.0 Q 1221.0,178.0 1221.0,181.0 L 1221.0,189.0 Q 1221.0,192.0 1224.0,192.0 Z" fill="#10b981"/>
+  <text x="1225.68" y="186.0" text-anchor="middle" fill="white" font-size="8.0" font-weight="bold">2</text><title>1. artifact.dart
+2. image_helpers.dart</title></g><text x="1120.0" y="185.0" class="textNormal">artifact_region.dart</text>
+<g class="badge incomingBadge">
+  <path d="M 1022.0,255.0 L 1010.0,248.0 Q 1007.0,248.0 1007.0,251.0 L 1007.0,259.0 Q 1007.0,262.0 1010.0,262.0 Z" fill="#3b82f6"/>
+  <text x="1011.68" y="256.0" text-anchor="middle" fill="white" font-size="8.0" font-weight="bold">1</text><title>1. character_definition.dart</title></g><g class="badge outgoingBadge">
+  <path d="M 1236.0,255.0 L 1224.0,248.0 Q 1221.0,248.0 1221.0,251.0 L 1221.0,259.0 Q 1221.0,262.0 1224.0,262.0 Z" fill="#10b981"/>
+  <text x="1225.68" y="256.0" text-anchor="middle" fill="white" font-size="8.0" font-weight="bold">3</text><title>1. artifact.dart
+2. char_utils.dart
+3. constants.dart</title></g><text x="1120.0" y="255.0" class="textNormal">artifact_serialize.dart</text>
+<g class="badge incomingBadge">
+  <path d="M 1022.0,325.0 L 1010.0,318.0 Q 1007.0,318.0 1007.0,321.0 L 1007.0,329.0 Q 1007.0,332.0 1010.0,332.0 Z" fill="#3b82f6"/>
+  <text x="1011.68" y="326.0" text-anchor="middle" fill="white" font-size="8.0" font-weight="bold">1</text><title>1. band.dart</title></g><g class="badge outgoingBadge">
+  <path d="M 1236.0,325.0 L 1224.0,318.0 Q 1221.0,318.0 1221.0,321.0 L 1221.0,329.0 Q 1221.0,332.0 1224.0,332.0 Z" fill="#10b981"/>
+  <text x="1225.68" y="326.0" text-anchor="middle" fill="white" font-size="8.0" font-weight="bold">3</text><title>1. artifact.dart
+2. artifact_analysis.dart
+3. image_helpers.dart</title></g><text x="1120.0" y="325.0" class="textNormal">artifact_splitting.dart</text>
+<g class="badge incomingBadge">
+  <path d="M 1342.0,115.0 L 1330.0,108.0 Q 1327.0,108.0 1327.0,111.0 L 1327.0,119.0 Q 1327.0,122.0 1330.0,122.0 Z" fill="#3b82f6"/>
+  <text x="1331.68" y="116.0" text-anchor="middle" fill="white" font-size="8.0" font-weight="bold">3</text><title>1. artifact_serialize.dart
+2. correction.dart
+3. textify.dart</title></g><text x="1440.0" y="115.0" class="textNormal">char_utils.dart</text>
+<g class="badge incomingBadge">
+  <path d="M 1342.0,185.0 L 1330.0,178.0 Q 1327.0,178.0 1327.0,181.0 L 1327.0,189.0 Q 1327.0,192.0 1330.0,192.0 Z" fill="#3b82f6"/>
+  <text x="1331.68" y="186.0" text-anchor="middle" fill="white" font-size="8.0" font-weight="bold">3</text><title>1. artifact_serialize.dart
+2. textify.dart
+3. textify_post_process.dart</title></g><text x="1440.0" y="185.0" class="textNormal">constants.dart</text>
+<g class="badge incomingBadge">
+  <path d="M 1342.0,255.0 L 1330.0,248.0 Q 1327.0,248.0 1327.0,251.0 L 1327.0,259.0 Q 1327.0,262.0 1330.0,262.0 Z" fill="#3b82f6"/>
+  <text x="1331.68" y="256.0" text-anchor="middle" fill="white" font-size="8.0" font-weight="bold">2</text><title>1. artifact_splitting.dart
+2. textify.dart</title></g><g class="badge outgoingBadge">
+  <path d="M 1556.0,255.0 L 1544.0,248.0 Q 1541.0,248.0 1541.0,251.0 L 1541.0,259.0 Q 1541.0,262.0 1544.0,262.0 Z" fill="#10b981"/>
+  <text x="1545.68" y="256.0" text-anchor="middle" fill="white" font-size="8.0" font-weight="bold">2</text><title>1. artifact.dart
+2. image_helpers.dart</title></g><text x="1440.0" y="255.0" class="textNormal">artifact_analysis.dart</text>
+<g class="badge incomingBadge">
+  <path d="M 1664.0,115.0 L 1648.0,107.4 Q 1645.0,107.4 1645.0,110.4 L 1645.0,119.6 Q 1645.0,122.6 1648.0,122.6 Z" fill="#3b82f6"/>
+  <text x="1650.72" y="116.0" text-anchor="middle" fill="white" font-size="8.0" font-weight="bold" textLength="10.120000000000001" lengthAdjust="spacingAndGlyphs">10</text><title>1. artifact_analysis.dart
+2. artifact_grid_transform.dart
+3. artifact_morphology.dart
+4. artifact_region.dart
+5. artifact_serialize.dart
+6. artifact_splitting.dart
+7. band.dart
+8. character_definition.dart
+9. character_definitions.dart</title></g><g class="badge outgoingBadge">
+  <path d="M 1876.0,115.0 L 1864.0,108.0 Q 1861.0,108.0 1861.0,111.0 L 1861.0,119.0 Q 1861.0,122.0 1864.0,122.0 Z" fill="#10b981"/>
+  <text x="1865.68" y="116.0" text-anchor="middle" fill="white" font-size="8.0" font-weight="bold">1</text><title>1. image_helpers.dart</title></g><text x="1760.0" y="115.0" class="textNormal">artifact.dart</text>
+<g class="badge incomingBadge">
+  <path d="M 1982.0,115.0 L 1970.0,108.0 Q 1967.0,108.0 1967.0,111.0 L 1967.0,119.0 Q 1967.0,122.0 1970.0,122.0 Z" fill="#3b82f6"/>
+  <text x="1971.68" y="116.0" text-anchor="middle" fill="white" font-size="8.0" font-weight="bold">9</text><title>1. artifact.dart
+2. artifact_analysis.dart
+3. artifact_grid_transform.dart
+4. artifact_morphology.dart
+5. artifact_region.dart
+6. artifact_splitting.dart
+7. band.dart
+8. bands.dart
+9. textify.dart</title></g><g class="badge outgoingBadge">
+  <path d="M 2196.0,115.0 L 2184.0,108.0 Q 2181.0,108.0 2181.0,111.0 L 2181.0,119.0 Q 2181.0,122.0 2184.0,122.0 Z" fill="#10b981"/>
+  <text x="2185.68" y="116.0" text-anchor="middle" fill="white" font-size="8.0" font-weight="bold">1</text><title>1. int_rect.dart</title></g><text x="2080.0" y="115.0" class="textNormal">image_helpers.dart</text>
+<g class="badge incomingBadge">
+  <path d="M 2302.0,115.0 L 2290.0,108.0 Q 2287.0,108.0 2287.0,111.0 L 2287.0,119.0 Q 2287.0,122.0 2290.0,122.0 Z" fill="#3b82f6"/>
+  <text x="2291.68" y="116.0" text-anchor="middle" fill="white" font-size="8.0" font-weight="bold">1</text><title>1. image_helpers.dart</title></g><g class="badge outgoingBadge">
+  <path d="M 2516.0,115.0 L 2504.0,108.0 Q 2501.0,108.0 2501.0,111.0 L 2501.0,119.0 Q 2501.0,122.0 2504.0,122.0 Z" fill="#10b981"/>
+  <text x="2505.68" y="116.0" text-anchor="middle" fill="white" font-size="8.0" font-weight="bold">2</text><title>1. int_offset.dart</title></g><text x="2400.0" y="115.0" class="textNormal">int_rect.dart</text>
+<g class="badge incomingBadge">
+  <path d="M 2622.0,115.0 L 2610.0,108.0 Q 2607.0,108.0 2607.0,111.0 L 2607.0,119.0 Q 2607.0,122.0 2610.0,122.0 Z" fill="#3b82f6"/>
+  <text x="2611.68" y="116.0" text-anchor="middle" fill="white" font-size="8.0" font-weight="bold">2</text><title>1. int_rect.dart</title></g><text x="2720.0" y="115.0" class="textNormal">int_offset.dart</text>
+</svg>

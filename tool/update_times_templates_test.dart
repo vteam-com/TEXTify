@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:textify/artifact.dart';
+import 'package:textify/artifact_grid_transform.dart';
 import 'package:textify/character_definitions.dart';
 import 'package:textify/image_helpers.dart';
 import 'package:textify/textify.dart';

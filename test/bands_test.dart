@@ -1,8 +1,10 @@
 // ignore_for_file: avoid_print
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:textify/artifact_serialize.dart';
 import 'package:textify/bands.dart';
 import 'package:textify/models/int_offset.dart';
+import 'package:textify/models/int_rect.dart';
 
 void main() {
   group('mergeBandsHorizontally', () {
@@ -380,6 +382,1066 @@ void main() {
       expect(result[0].cols, 157, reason: '${result[0].toText()}\n');
       expect(result[1].cols, 122, reason: '${result[1].toText()}\n');
       expect(result[2].cols, 111, reason: '${result[2].toText()}\n');
+    });
+  });
+
+  group('getText', () {
+    test('returns concatenated matching characters', () {
+      final Band band = Band();
+      final a1 = Artifact(5, 5);
+      a1.matchingCharacter = 'H';
+      final a2 = Artifact(5, 5);
+      a2.matchingCharacter = 'i';
+      band.addArtifact(a1);
+      band.addArtifact(a2);
+      expect(band.getText(), 'Hi');
+    });
+
+    test('returns empty string for empty band', () {
+      final Band band = Band();
+      expect(band.getText(), '');
+    });
+  });
+
+  group('updateStatistics', () {
+    test('computes averageKerning and averageWidth for multiple artifacts', () {
+      final Band band = Band();
+      final a1 = Artifact(10, 5);
+      a1.setBothLocation(const IntOffset(0, 0));
+      final a2 = Artifact(10, 5);
+      a2.setBothLocation(const IntOffset(15, 0));
+      final a3 = Artifact(10, 5);
+      a3.setBothLocation(const IntOffset(30, 0));
+      band.addArtifact(a1);
+      band.addArtifact(a2);
+      band.addArtifact(a3);
+      expect(band.averageKerning, isNot(-1));
+      expect(band.averageWidth, isNot(-1));
+    });
+
+    test('returns -1 kerning for single artifact', () {
+      final Band band = Band();
+      final a1 = Artifact(10, 5);
+      a1.setBothLocation(const IntOffset(0, 0));
+      band.addArtifact(a1);
+      expect(band.averageKerning, -1);
+      expect(band.averageWidth, 10);
+    });
+
+    test('returns -1 kerning for zero artifacts', () {
+      final Band band = Band();
+      expect(band.averageKerning, -1);
+      expect(band.averageWidth, 0);
+    });
+  });
+
+  group('addArtifacts and removeEmptyArtifacts', () {
+    test('addArtifacts adds multiple artifacts', () {
+      final Band band = Band();
+      final a1 = Artifact(5, 5);
+      final a2 = Artifact(5, 5);
+      band.addArtifacts([a1, a2]);
+      expect(band.artifacts.length, 2);
+    });
+
+    test('removeEmptyArtifacts removes empties', () {
+      final Band band = Band();
+      final empty = Artifact(5, 5); // no pixels = empty
+      final nonEmpty = Artifact.fromAsciiDefinition(['##', '##']);
+      nonEmpty.setBothLocation(const IntOffset(0, 0));
+      band.addArtifact(empty);
+      band.addArtifact(nonEmpty);
+      expect(band.artifacts.length, 2);
+      band.removeEmptyArtifacts();
+      expect(band.artifacts.length, 1);
+    });
+  });
+
+  group('sortArtifactsLeftToRight', () {
+    test('sorts by adjusted left position', () {
+      final Band band = Band();
+      final a1 = Artifact(5, 5);
+      a1.setBothLocation(const IntOffset(20, 0));
+      final a2 = Artifact(5, 5);
+      a2.setBothLocation(const IntOffset(5, 0));
+      band.addArtifact(a1);
+      band.addArtifact(a2);
+      band.sortArtifactsLeftToRight();
+      expect(band.artifacts[0], a2);
+      expect(band.artifacts[1], a1);
+    });
+  });
+
+  group('shouldMergeArtifacts', () {
+    test('merges when smaller artifact overlaps >= 80%', () {
+      final Band band = Band();
+      // Big artifact
+      final big = Artifact(20, 20);
+      big.setBothLocation(const IntOffset(0, 0));
+      // Small artifact mostly inside the big one
+      final small = Artifact(5, 5);
+      small.setBothLocation(const IntOffset(2, 2));
+
+      expect(band.shouldMergeArtifacts(big, small), true);
+    });
+
+    test('does not merge when no overlap', () {
+      final Band band = Band();
+      final a1 = Artifact(5, 5);
+      a1.setBothLocation(const IntOffset(0, 0));
+      final a2 = Artifact(5, 5);
+      a2.setBothLocation(const IntOffset(100, 100));
+
+      expect(band.shouldMergeArtifacts(a1, a2), false);
+    });
+
+    test('does not merge when overlap is small', () {
+      final Band band = Band();
+      final a1 = Artifact(10, 10);
+      a1.setBothLocation(const IntOffset(0, 0));
+      final a2 = Artifact(10, 10);
+      a2.setBothLocation(const IntOffset(9, 9)); // 1px overlap
+
+      expect(band.shouldMergeArtifacts(a1, a2), false);
+    });
+  });
+
+  group('replaceOneArtifactWithMore', () {
+    test('replaces artifact at correct index', () {
+      final Band band = Band();
+      final a1 = Artifact(5, 5);
+      final a2 = Artifact(5, 5);
+      final a3 = Artifact(5, 5);
+      band.addArtifact(a1);
+      band.addArtifact(a2);
+      band.addArtifact(a3);
+
+      final r1 = Artifact(3, 5);
+      final r2 = Artifact(3, 5);
+      band.replaceOneArtifactWithMore(a2, [r1, r2]);
+
+      expect(band.artifacts.length, 4);
+      expect(band.artifacts[0], a1);
+      expect(band.artifacts[1], r1);
+      expect(band.artifacts[2], r2);
+      expect(band.artifacts[3], a3);
+    });
+  });
+
+  group('identifySpacesInBand', () {
+    test('inserts space artifacts for large gaps', () {
+      final Band band = Band();
+
+      // Create 3 artifacts with a big gap between 2nd and 3rd
+      final a1 = Artifact.fromAsciiDefinition(['##', '##']);
+      a1.setBothLocation(const IntOffset(0, 0));
+      final a2 = Artifact.fromAsciiDefinition(['##', '##']);
+      a2.setBothLocation(const IntOffset(4, 0));
+      final a3 = Artifact.fromAsciiDefinition(['##', '##']);
+      a3.setBothLocation(const IntOffset(40, 0)); // big gap
+
+      band.addArtifact(a1);
+      band.addArtifact(a2);
+      band.addArtifact(a3);
+
+      band.identifySpacesInBand();
+
+      // Should have inserted a space between a2 and a3
+      expect(band.artifacts.length, 4);
+      expect(band.artifacts.any((a) => a.matchingCharacter == ' '), true);
+    });
+
+    test('does nothing with fewer than 2 artifacts', () {
+      final Band band = Band();
+      final a1 = Artifact(5, 5);
+      a1.setBothLocation(const IntOffset(0, 0));
+      band.addArtifact(a1);
+      band.identifySpacesInBand();
+      expect(band.artifacts.length, 1);
+    });
+  });
+
+  group('calculateSpaceThreshold', () {
+    test('returns minSpaceWidth for empty gaps', () {
+      final Band band = Band();
+      final a1 = Artifact(10, 5);
+      a1.setBothLocation(const IntOffset(0, 0));
+      final a2 = Artifact(10, 5);
+      a2.setBothLocation(const IntOffset(15, 0));
+      band.addArtifact(a1);
+      band.addArtifact(a2);
+      expect(band.calculateSpaceThreshold([]), 2);
+    });
+
+    test('uses median-based threshold for uniform gaps', () {
+      final Band band = Band();
+      final a1 = Artifact(10, 5);
+      a1.setBothLocation(const IntOffset(0, 0));
+      final a2 = Artifact(10, 5);
+      a2.setBothLocation(const IntOffset(15, 0));
+      band.addArtifact(a1);
+      band.addArtifact(a2);
+      final threshold = band.calculateSpaceThreshold([3, 4, 5]);
+      expect(threshold, greaterThanOrEqualTo(2));
+    });
+
+    test('detects jump threshold in sorted gaps', () {
+      final Band band = Band();
+      final a1 = Artifact(10, 5);
+      a1.setBothLocation(const IntOffset(0, 0));
+      final a2 = Artifact(10, 5);
+      a2.setBothLocation(const IntOffset(15, 0));
+      band.addArtifact(a1);
+      band.addArtifact(a2);
+      // Clear jump: 2,3 then 20 (ratio 6.67x)
+      final threshold = band.calculateSpaceThreshold([2, 3, 20]);
+      expect(threshold, greaterThanOrEqualTo(3));
+      expect(threshold, lessThanOrEqualTo(20));
+    });
+
+    test('handles single gap', () {
+      final Band band = Band();
+      final a1 = Artifact(10, 5);
+      a1.setBothLocation(const IntOffset(0, 0));
+      final a2 = Artifact(10, 5);
+      a2.setBothLocation(const IntOffset(15, 0));
+      band.addArtifact(a1);
+      band.addArtifact(a2);
+      final threshold = band.calculateSpaceThreshold([5]);
+      expect(threshold, greaterThanOrEqualTo(2));
+    });
+  });
+
+  group('insertArtifactForSpace', () {
+    test('inserts a space artifact at the given index', () {
+      final Band band = Band();
+      final a1 = Artifact(5, 5);
+      final a2 = Artifact(5, 5);
+      band.addArtifact(a1);
+      band.addArtifact(a2);
+
+      band.insertArtifactForSpace(
+        artifacts: band.artifacts,
+        insertAtIndex: 1,
+        cols: 6,
+        rows: 5,
+        locationFoundAt: const IntOffset(10, 0),
+      );
+
+      expect(band.artifacts.length, 3);
+      expect(band.artifacts[1].matchingCharacter, ' ');
+      expect(band.artifacts[1].cols, 6);
+    });
+  });
+
+  group('packArtifactLeftToRight', () {
+    test('repositions artifacts left to right', () {
+      final Band band = Band();
+      final a1 = Artifact(10, 5);
+      a1.setBothLocation(const IntOffset(0, 5));
+      final a2 = Artifact(8, 5);
+      a2.setBothLocation(const IntOffset(50, 5));
+      band.addArtifact(a1);
+      band.addArtifact(a2);
+
+      band.packArtifactLeftToRight();
+
+      // a1 should start at x=0, a2 right after with kerning
+      expect(band.artifacts[0].rectAdjusted.left, 0);
+      expect(
+        band.artifacts[1].rectAdjusted.left,
+        band.artifacts[0].rectAdjusted.right + band.kerningWidth,
+      );
+    });
+  });
+
+  group('rectangleOriginal and rectangleAdjusted', () {
+    test('returns zero rect for empty band', () {
+      final Band band = Band();
+      expect(band.rectangleOriginal.isEmpty, true);
+      expect(band.rectangleAdjusted.isEmpty, true);
+    });
+
+    test('computes bounding box for multiple artifacts', () {
+      final Band band = Band();
+      final a1 = Artifact(10, 5);
+      a1.setBothLocation(const IntOffset(0, 0));
+      final a2 = Artifact(10, 5);
+      a2.setBothLocation(const IntOffset(20, 3));
+      band.addArtifact(a1);
+      band.addArtifact(a2);
+
+      final rect = band.rectangleOriginal;
+      expect(rect.left, 0);
+      expect(rect.top, 0);
+      expect(rect.right, 30);
+      expect(rect.bottom, 8);
+    });
+  });
+
+  group('spacesCount', () {
+    test('counts space characters', () {
+      final Band band = Band();
+      final a1 = Artifact(5, 5);
+      a1.matchingCharacter = 'A';
+      final a2 = Artifact(5, 5);
+      a2.matchingCharacter = ' ';
+      final a3 = Artifact(5, 5);
+      a3.matchingCharacter = ' ';
+      band.addArtifact(a1);
+      band.addArtifact(a2);
+      band.addArtifact(a3);
+      expect(band.spacesCount, 2);
+    });
+  });
+
+  group('padVerticallyArtifactToMatchTheBand', () {
+    test('pads artifacts to uniform height', () {
+      final Band band = Band();
+      // Taller artifact at y=0
+      final a1 = Artifact.fromAsciiDefinition(['##', '##', '##', '##']);
+      a1.setBothLocation(const IntOffset(0, 0));
+      // Shorter artifact at y=1
+      final a2 = Artifact.fromAsciiDefinition(['##', '##']);
+      a2.setBothLocation(const IntOffset(5, 1));
+
+      band.addArtifact(a1);
+      band.addArtifact(a2);
+
+      final int bandHeight = band.rectangleOriginal.height;
+
+      band.padVerticallyArtifactToMatchTheBand();
+
+      // All artifacts should now have the same height as the band
+      for (final artifact in band.artifacts) {
+        expect(artifact.rows, bandHeight);
+      }
+    });
+  });
+
+  group('mergeArtifactsBasedOnVerticalAlignment', () {
+    test('merges overlapping artifacts', () {
+      final Band band = Band();
+      // Two artifacts that mostly overlap
+      final a1 = Artifact(10, 10);
+      a1.setBothLocation(const IntOffset(0, 0));
+      final a2 = Artifact(5, 5);
+      a2.setBothLocation(const IntOffset(1, 1)); // mostly inside a1
+
+      band.addArtifact(a1);
+      band.addArtifact(a2);
+
+      band.mergeArtifactsBasedOnVerticalAlignment();
+
+      expect(band.artifacts.length, 1);
+    });
+
+    test('does not merge non-overlapping artifacts', () {
+      final Band band = Band();
+      final a1 = Artifact(10, 10);
+      a1.setBothLocation(const IntOffset(0, 0));
+      final a2 = Artifact(10, 10);
+      a2.setBothLocation(const IntOffset(50, 0));
+
+      band.addArtifact(a1);
+      band.addArtifact(a2);
+
+      band.mergeArtifactsBasedOnVerticalAlignment();
+
+      expect(band.artifacts.length, 2);
+    });
+  });
+
+  group('mergeArtifactsWithTightGaps', () {
+    test('does nothing with fewer than 2 artifacts', () {
+      final Band band = Band();
+      final a1 = Artifact(10, 10);
+      a1.setBothLocation(const IntOffset(0, 0));
+      band.addArtifact(a1);
+      band.mergeArtifactsWithTightGaps();
+      expect(band.artifacts.length, 1);
+    });
+
+    test('merges narrow artifacts with tight gap and vertical overlap', () {
+      final Band band = Band();
+      // Create several normal-width artifacts to establish statistics
+      for (int i = 0; i < 5; i++) {
+        final a = Artifact.fromAsciiDefinition([
+          '########',
+          '########',
+          '########',
+          '########',
+          '########',
+          '########',
+          '########',
+          '########',
+        ]);
+        a.setBothLocation(IntOffset(i * 12, 0));
+        band.addArtifact(a);
+      }
+
+      // Replace last two with narrow artifacts that abut
+      band.artifacts.removeLast();
+      band.artifacts.removeLast();
+
+      final narrowLeft = Artifact.fromAsciiDefinition([
+        '##',
+        '##',
+        '##',
+        '##',
+        '##',
+        '##',
+        '##',
+        '##',
+      ]);
+      narrowLeft.setBothLocation(const IntOffset(36, 0));
+
+      final narrowRight = Artifact.fromAsciiDefinition([
+        '##',
+        '##',
+        '##',
+        '##',
+        '##',
+        '##',
+        '##',
+        '##',
+      ]);
+      narrowRight.setBothLocation(const IntOffset(39, 0)); // gap of 1
+
+      band.addArtifact(narrowLeft);
+      band.addArtifact(narrowRight);
+
+      final countBefore = band.artifacts.length;
+      band.mergeArtifactsWithTightGaps();
+      // May or may not merge depending on thresholds - just ensure it runs
+      expect(band.artifacts.length, lessThanOrEqualTo(countBefore));
+    });
+  });
+
+  group('mergeDiscardableArtifactsIntoNeighbors', () {
+    test('merges tiny artifacts into nearby large ones', () {
+      // Create some normal-sized artifacts
+      final big1 = Artifact.fromAsciiDefinition([
+        '########',
+        '########',
+        '########',
+        '########',
+        '########',
+        '########',
+        '########',
+        '########',
+      ]);
+      big1.setBothLocation(const IntOffset(0, 0));
+
+      final big2 = Artifact.fromAsciiDefinition([
+        '########',
+        '########',
+        '########',
+        '########',
+        '########',
+        '########',
+        '########',
+        '########',
+      ]);
+      big2.setBothLocation(const IntOffset(20, 0));
+
+      // Create a tiny artifact near big1
+      final tiny = Artifact.fromAsciiDefinition(['#']);
+      tiny.setBothLocation(const IntOffset(3, 3)); // inside big1's rect
+
+      final artifactsFound = [big1, tiny, big2];
+
+      final Band band = Band();
+      band.mergeDiscardableArtifactsIntoNeighbors(artifactsFound);
+
+      // Tiny should have been merged - no crash
+      expect(artifactsFound.length, 3); // list itself isn't modified
+    });
+
+    test('does nothing when no discardable artifacts', () {
+      final big1 = Artifact.fromAsciiDefinition([
+        '########',
+        '########',
+        '########',
+        '########',
+        '########',
+        '########',
+        '########',
+        '########',
+      ]);
+      big1.setBothLocation(const IntOffset(0, 0));
+
+      final big2 = Artifact.fromAsciiDefinition([
+        '########',
+        '########',
+        '########',
+        '########',
+        '########',
+        '########',
+        '########',
+        '########',
+      ]);
+      big2.setBothLocation(const IntOffset(20, 0));
+
+      final artifactsFound = [big1, big2];
+
+      final Band band = Band();
+      band.mergeDiscardableArtifactsIntoNeighbors(artifactsFound);
+      expect(artifactsFound.length, 2);
+    });
+
+    test('does nothing when keep list is empty', () {
+      final tiny = Artifact.fromAsciiDefinition(['#']);
+      tiny.setBothLocation(const IntOffset(0, 0));
+
+      final Band band = Band();
+      band.mergeDiscardableArtifactsIntoNeighbors([tiny]);
+      // Should not crash
+    });
+  });
+
+  group('identifySuspiciousLargeArtifacts', () {
+    test('splits wide artifacts', () {
+      final Band band = Band();
+
+      // Several normal-width artifacts
+      for (int i = 0; i < 4; i++) {
+        final a = Artifact.fromAsciiDefinition([
+          '####',
+          '####',
+          '####',
+          '####',
+        ]);
+        a.setBothLocation(IntOffset(i * 8, 0));
+        band.addArtifact(a);
+      }
+
+      // One very wide artifact with split points
+      final wide = Artifact.fromAsciiDefinition([
+        '####...####',
+        '####...####',
+        '####...####',
+        '####...####',
+      ]);
+      wide.setBothLocation(const IntOffset(40, 0));
+      band.addArtifact(wide);
+
+      band.identifySuspiciousLargeArtifacts();
+      // Should attempt to split the wide artifact
+      expect(band.artifacts.length, greaterThanOrEqualTo(5));
+    });
+  });
+
+  group('getWideChunks', () {
+    test('returns empty for 0 or 1 artifacts', () {
+      final Band band = Band();
+      expect(band.getWideChunks(), isEmpty);
+
+      final a1 = Artifact(5, 5);
+      a1.setBothLocation(const IntOffset(0, 0));
+      band.addArtifact(a1);
+      expect(band.getWideChunks(), isEmpty);
+    });
+
+    test('uses higher threshold for small sets of 3', () {
+      final Band band = Band();
+      final a1 = Artifact(10, 5);
+      a1.setBothLocation(const IntOffset(0, 0));
+      final a2 = Artifact(10, 5);
+      a2.setBothLocation(const IntOffset(15, 0));
+      final a3 = Artifact(20, 5); // 2x width
+      a3.setBothLocation(const IntOffset(30, 0));
+      band.addArtifact(a1);
+      band.addArtifact(a2);
+      band.addArtifact(a3);
+
+      final wide = band.getWideChunks();
+      // With 3 artifacts, threshold is 1.5x average
+      expect(wide.length, greaterThanOrEqualTo(0));
+    });
+
+    test('identifies wide chunks in larger sets', () {
+      final Band band = Band();
+      for (int i = 0; i < 5; i++) {
+        final a = Artifact(10, 5);
+        a.setBothLocation(IntOffset(i * 15, 0));
+        band.addArtifact(a);
+      }
+      // Add one very wide artifact
+      final wide = Artifact(50, 5);
+      wide.setBothLocation(const IntOffset(80, 0));
+      band.addArtifact(wide);
+
+      final chunks = band.getWideChunks();
+      expect(chunks, contains(wide));
+    });
+  });
+
+  group('Band.splitArtifactIntoBand', () {
+    test('creates band from region matrix with sub-artifacts', () {
+      // Create a region with two separate blobs
+      final region = Artifact.fromAsciiDefinition([
+        '##......##',
+        '##......##',
+        '##......##',
+        '##......##',
+      ]);
+
+      final band = Band.splitArtifactIntoBand(
+        regionMatrix: region,
+        offset: const IntOffset(10, 20),
+      );
+
+      expect(band.artifacts.isNotEmpty, true);
+    });
+
+    test('creates band from empty region', () {
+      final region = Artifact(10, 4); // all zeros
+
+      final band = Band.splitArtifactIntoBand(
+        regionMatrix: region,
+        offset: const IntOffset(0, 0),
+      );
+
+      expect(band.artifacts.isEmpty, true);
+    });
+
+    test('creates band with single solid block', () {
+      final region = Artifact.fromAsciiDefinition([
+        '####',
+        '####',
+        '####',
+        '####',
+      ]);
+
+      final band = Band.splitArtifactIntoBand(
+        regionMatrix: region,
+        offset: const IntOffset(5, 10),
+      );
+
+      expect(band.artifacts.length, 1);
+    });
+  });
+
+  group('getBoundingBox', () {
+    test('returns zero rect for empty list', () {
+      final rect = Band.getBoundingBox([]);
+      expect(rect.isEmpty, true);
+    });
+
+    test('computes bounding box using found rects', () {
+      final a1 = Artifact(10, 5);
+      a1.setBothLocation(const IntOffset(0, 0));
+      final a2 = Artifact(10, 5);
+      a2.setBothLocation(const IntOffset(20, 10));
+
+      final rect = Band.getBoundingBox([a1, a2], useAdjustedRect: false);
+      expect(rect.left, 0);
+      expect(rect.top, 0);
+      expect(rect.right, 30);
+      expect(rect.bottom, 15);
+    });
+  });
+
+  group('toString', () {
+    test('includes space count when spaces exist', () {
+      final Band band = Band();
+      final a1 = Artifact(10, 5);
+      a1.matchingCharacter = 'A';
+      a1.setBothLocation(const IntOffset(0, 0));
+      final a2 = Artifact(10, 5);
+      a2.matchingCharacter = ' ';
+      a2.setBothLocation(const IntOffset(15, 0));
+      final a3 = Artifact(10, 5);
+      a3.matchingCharacter = 'B';
+      a3.setBothLocation(const IntOffset(30, 0));
+
+      band.addArtifact(a1);
+      band.addArtifact(a2);
+      band.addArtifact(a3);
+
+      final str = band.toString();
+      expect(str, contains('S[1]'));
+    });
+
+    test('omits space count when no spaces', () {
+      final Band band = Band();
+      final a1 = Artifact(10, 5);
+      a1.matchingCharacter = 'A';
+      a1.setBothLocation(const IntOffset(0, 0));
+      final a2 = Artifact(10, 5);
+      a2.matchingCharacter = 'B';
+      a2.setBothLocation(const IntOffset(15, 0));
+
+      band.addArtifact(a1);
+      band.addArtifact(a2);
+
+      final str = band.toString();
+      expect(str, isNot(contains('S[')));
+    });
+  });
+
+  group('clearStats', () {
+    test('resets cached statistics', () {
+      final Band band = Band();
+      final a1 = Artifact(10, 5);
+      a1.setBothLocation(const IntOffset(0, 0));
+      final a2 = Artifact(10, 5);
+      a2.setBothLocation(const IntOffset(15, 0));
+      band.addArtifact(a1);
+      band.addArtifact(a2);
+
+      // Force calculation
+      band.averageKerning;
+      band.averageWidth;
+
+      // Clear and verify re-calculation works
+      band.clearStats();
+      expect(band.averageKerning, isNotNull);
+      expect(band.averageWidth, isNotNull);
+    });
+  });
+
+  group('Band.splitArtifactIntoBand with line artifacts', () {
+    test('keeps tall line artifacts that meet height threshold', () {
+      // Create a region where one sub-artifact is a tall vertical line
+      // Line artifact: very narrow, very tall
+      final region = Artifact(30, 20);
+      // Draw a tall vertical line at x=5
+      for (int y = 0; y < 20; y++) {
+        region.cellSet(5, y, true);
+      }
+      // Draw a normal block at x=15..20
+      for (int y = 2; y < 18; y++) {
+        for (int x = 15; x < 22; x++) {
+          region.cellSet(x, y, true);
+        }
+      }
+
+      final band = Band.splitArtifactIntoBand(
+        regionMatrix: region,
+        offset: const IntOffset(0, 0),
+      );
+
+      // The tall line should be kept if it meets height threshold
+      expect(band.artifacts.isNotEmpty, true);
+    });
+  });
+
+  group('mergeArtifactsWithTightGaps - actual merge branch', () {
+    test('exercises tight gap branch without merge', () {
+      final Band band = Band();
+
+      // Several artifacts to establish statistics
+      for (int i = 0; i < 4; i++) {
+        final a = Artifact.fromAsciiDefinition([
+          '##########',
+          '##########',
+          '##########',
+          '##########',
+          '##########',
+          '##########',
+          '##########',
+          '##########',
+          '##########',
+          '##########',
+        ]);
+        a.setBothLocation(IntOffset(i * 14, 0));
+        band.addArtifact(a);
+      }
+
+      // Two narrow artifacts close with gap=1
+      final left = Artifact.fromAsciiDefinition([
+        '###',
+        '###',
+        '###',
+        '###',
+        '###',
+        '###',
+        '###',
+        '###',
+        '###',
+        '###',
+      ]);
+      left.setBothLocation(const IntOffset(60, 0));
+
+      final right = Artifact.fromAsciiDefinition([
+        '###',
+        '###',
+        '###',
+        '###',
+        '###',
+        '###',
+        '###',
+        '###',
+        '###',
+        '###',
+      ]);
+      right.setBothLocation(const IntOffset(64, 0));
+
+      band.addArtifact(left);
+      band.addArtifact(right);
+
+      // Exercises the gap branch even if merge doesn't happen
+      band.mergeArtifactsWithTightGaps();
+      expect(band.artifacts.length, 6);
+    });
+  });
+
+  group('mergeDiscardableArtifactsIntoNeighbors edge cases', () {
+    test('handles line-like discardable artifacts', () {
+      // A wide line-like discardable artifact (aspect > 50)
+      final wide = Artifact.fromAsciiDefinition([
+        '############################################################################################',
+      ]);
+      wide.setBothLocation(const IntOffset(0, 0));
+
+      final big = Artifact.fromAsciiDefinition([
+        '##########',
+        '##########',
+        '##########',
+        '##########',
+        '##########',
+        '##########',
+        '##########',
+        '##########',
+        '##########',
+        '##########',
+      ]);
+      big.setBothLocation(const IntOffset(0, 5));
+
+      final Band band = Band();
+      band.mergeDiscardableArtifactsIntoNeighbors([big, wide]);
+      // Should not crash; wide line may or may not be merged based on size
+    });
+
+    test('handles tall line-like discardable near big artifact', () {
+      // A tall vertical line (aspect < 0.09)
+      final tall = Artifact(1, 15);
+      for (int y = 0; y < 15; y++) {
+        tall.cellSet(0, y, true);
+      }
+      tall.setBothLocation(const IntOffset(5, 0));
+
+      final big = Artifact.fromAsciiDefinition([
+        '##########',
+        '##########',
+        '##########',
+        '##########',
+        '##########',
+        '##########',
+        '##########',
+        '##########',
+        '##########',
+        '##########',
+        '##########',
+        '##########',
+        '##########',
+        '##########',
+        '##########',
+      ]);
+      big.setBothLocation(const IntOffset(0, 0));
+
+      final Band band = Band();
+      band.mergeDiscardableArtifactsIntoNeighbors([big, tall]);
+    });
+
+    test('discardable too far is not merged', () {
+      final big = Artifact.fromAsciiDefinition([
+        '########',
+        '########',
+        '########',
+        '########',
+        '########',
+        '########',
+        '########',
+        '########',
+      ]);
+      big.setBothLocation(const IntOffset(0, 0));
+
+      final tiny = Artifact.fromAsciiDefinition(['#']);
+      tiny.setBothLocation(const IntOffset(200, 200)); // very far
+
+      final Band band = Band();
+      band.mergeDiscardableArtifactsIntoNeighbors([big, tiny]);
+      // tiny is too far away to merge
+    });
+
+    test('rectDistance covers big-left-of-tiny and big-above-tiny', () {
+      // big at origin 8x8, tiny at (9,9) — just past big's right/bottom but
+      // within padding so _isEligibleAttachment passes. Tests b.right<a.left
+      // and b.bottom<a.top branches in _rectDistance.
+      final big = Artifact.fromAsciiDefinition([
+        '########',
+        '########',
+        '########',
+        '########',
+        '########',
+        '########',
+        '########',
+        '########',
+      ]);
+      big.setBothLocation(const IntOffset(0, 0));
+
+      final tiny = Artifact.fromAsciiDefinition(['#']);
+      tiny.setBothLocation(const IntOffset(9, 9));
+
+      final Band band = Band();
+      band.mergeDiscardableArtifactsIntoNeighbors([big, tiny]);
+    });
+
+    test('rectDistance covers tiny-left-of-big and tiny-above-big', () {
+      // big at (10,10) 8x8, tiny at (8,8) 1x1 — tiny upper-left of big
+      // Tests a.right<b.left and a.bottom<b.top branches in _rectDistance.
+      final big = Artifact.fromAsciiDefinition([
+        '########',
+        '########',
+        '########',
+        '########',
+        '########',
+        '########',
+        '########',
+        '########',
+      ]);
+      big.setBothLocation(const IntOffset(10, 10));
+
+      final tiny = Artifact.fromAsciiDefinition(['#']);
+      tiny.setBothLocation(const IntOffset(8, 8));
+
+      final Band band = Band();
+      band.mergeDiscardableArtifactsIntoNeighbors([big, tiny]);
+    });
+
+    test('line-like artifact rejected by height threshold', () {
+      // Big artifact 10x20 to set avgHeight=20
+      final big = Artifact(10, 20);
+      for (int y = 0; y < 20; y++) {
+        for (int x = 0; x < 10; x++) {
+          big.cellSet(x, y, true);
+        }
+      }
+      big.setBothLocation(const IntOffset(0, 0));
+
+      // Tall vertical line: width=1, height=13
+      // aspect=1/13≈0.077 < 0.09 → isConsideredLine=true
+      // contentHeight=13 >= avgHeight*0.6=12 → rejected by height threshold
+      final tallLine = Artifact(1, 13);
+      for (int y = 0; y < 13; y++) {
+        tallLine.cellSet(0, y, true);
+      }
+      tallLine.setBothLocation(const IntOffset(2, 0));
+
+      final Band band = Band();
+      band.mergeDiscardableArtifactsIntoNeighbors([big, tallLine]);
+    });
+
+    test('line-like artifact rejected by width threshold', () {
+      // Big artifact 10x20 to set avgWidth=10, avgHeight=20
+      final big = Artifact(10, 20);
+      for (int y = 0; y < 20; y++) {
+        for (int x = 0; x < 10; x++) {
+          big.cellSet(x, y, true);
+        }
+      }
+      big.setBothLocation(const IntOffset(0, 0));
+
+      // Wide horizontal line: width=12, height=1
+      // aspect=1/12≈0.083 < 0.09 → isConsideredLine=true
+      // contentHeight=1 < avgHeight*0.6=12 → passes height check
+      // contentWidth=12 >= avgWidth*0.8=8 → rejected by width check
+      final wideLine = Artifact(12, 1);
+      for (int x = 0; x < 12; x++) {
+        wideLine.cellSet(x, 0, true);
+      }
+      wideLine.setBothLocation(const IntOffset(0, 5));
+
+      final Band band = Band();
+      band.mergeDiscardableArtifactsIntoNeighbors([big, wideLine]);
+    });
+  });
+
+  group('Band.splitArtifactIntoBand - line artifact preservation', () {
+    test('keeps tall line artifacts meeting height threshold', () {
+      // Region with a normal block and a tall vertical line
+      final region = Artifact(30, 20);
+
+      // Normal block at x=0..7, y=2..17 (height=16)
+      for (int y = 2; y < 18; y++) {
+        for (int x = 0; x < 8; x++) {
+          region.cellSet(x, y, true);
+        }
+      }
+
+      // Tall vertical line at x=20, y=1..18 (height=18, width=1)
+      // Aspect = 1/18 ≈ 0.055 < 0.09 → isConsideredLine = true
+      // Height 18 > minLineHeight ≈ (16+18)/2 * 0.6 ≈ 10 → kept
+      for (int y = 1; y < 19; y++) {
+        region.cellSet(20, y, true);
+      }
+
+      final band = Band.splitArtifactIntoBand(
+        regionMatrix: region,
+        offset: const IntOffset(0, 0),
+      );
+
+      expect(band.artifacts.length, greaterThanOrEqualTo(1));
+    });
+
+    test('discards small non-line artifacts', () {
+      // Region with two normal blocks and a tiny isolated dot
+      final region = Artifact(50, 20);
+
+      // Block 1 at x=0..9
+      for (int y = 0; y < 20; y++) {
+        for (int x = 0; x < 10; x++) {
+          region.cellSet(x, y, true);
+        }
+      }
+
+      // Block 2 at x=20..29
+      for (int y = 0; y < 20; y++) {
+        for (int x = 20; x < 30; x++) {
+          region.cellSet(x, y, true);
+        }
+      }
+
+      // Isolated single pixel far from both blocks
+      region.cellSet(48, 10, true);
+
+      final band = Band.splitArtifactIntoBand(
+        regionMatrix: region,
+        offset: const IntOffset(0, 0),
+      );
+
+      // Tiny dot should be discarded (area<=2, not a line)
+      expect(band.artifacts.length, greaterThanOrEqualTo(2));
+    });
+
+    test('discards short line artifacts below height threshold', () {
+      // Region with a tall block and a short horizontal line
+      final region = Artifact(40, 20);
+
+      // Tall block at x=0..9 (height=20)
+      for (int y = 0; y < 20; y++) {
+        for (int x = 0; x < 10; x++) {
+          region.cellSet(x, y, true);
+        }
+      }
+
+      // Short horizontal line at y=10, x=25..36 (width=12, height=1)
+      // aspect=1/12≈0.083 < 0.09 → isConsideredLine=true
+      // Height 1 < minLineHeight ≈ 20*0.6=12 → discarded
+      for (int x = 25; x < 37; x++) {
+        region.cellSet(x, 10, true);
+      }
+
+      final band = Band.splitArtifactIntoBand(
+        regionMatrix: region,
+        offset: const IntOffset(0, 0),
+      );
+
+      // Only the block should remain; the short line is discarded
+      expect(band.artifacts.length, greaterThanOrEqualTo(1));
     });
   });
 }

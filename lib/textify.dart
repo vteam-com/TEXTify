@@ -5,32 +5,21 @@ library;
 import 'dart:async';
 import 'dart:math';
 import 'dart:ui' as ui;
-import 'package:flutter/widgets.dart';
 
+import 'package:flutter/widgets.dart';
+import 'package:textify/artifact_analysis.dart';
+import 'package:textify/artifact_grid_transform.dart';
+import 'package:textify/artifact_morphology.dart';
+import 'package:textify/artifact_region.dart';
 import 'package:textify/bands.dart';
+import 'package:textify/char_utils.dart';
 import 'package:textify/character_definitions.dart';
+import 'package:textify/constants.dart';
 import 'package:textify/correction.dart';
+import 'package:textify/image_helpers.dart';
 import 'package:textify/models/score_match.dart';
 import 'package:textify/models/textify_config.dart';
-import 'package:textify/image_helpers.dart';
-
-const int _minLettersForCaseNormalization = 3;
-const double _dominantCaseRatio = 0.9;
-const int _spaceCodeUnit = 32;
-const int _tabCodeUnit = 9;
-const int _lineFeedCodeUnit = 10;
-const int _carriageReturnCodeUnit = 13;
-const int _maxNoiseLineLength = 2;
-const double _punctuationHeavyRatioThreshold = 0.3;
-const int _regexGroupFirst = 1;
-const int _regexGroupSecond = 2;
-const int _uppercaseACodeUnit = 65;
-const int _uppercaseZCodeUnit = 90;
-const int _lowercaseACodeUnit = 97;
-const int _lowercaseZCodeUnit = 122;
-const int _digitZeroCodeUnit = 48;
-const int _digitNineCodeUnit = 57;
-const int _asciiCaseOffset = 32;
+import 'package:textify/textify_post_process.dart';
 
 /// Main OCR class for extracting text from clean digital images.
 ///
@@ -38,7 +27,6 @@ const int _asciiCaseOffset = 32;
 /// and recognizing characters using template matching.
 class Textify {
   static const double _dilationKernelRatio = 0.02;
-  static const double _splitScoreThreshold = 0.4;
   static const double _lowerRightStrokeSwapDelta = 0.06;
   static const double _lowercaseMToUAspectRatioThreshold = 1.05;
   static const double _lowercaseMUScoreDelta = 0.08;
@@ -48,6 +36,13 @@ class Textify {
   static const double _mergeNarrowWidthRatio = 0.6;
   static const double _mergeMaxWidthRatio = 1.3;
   static const double _mergeHScoreDelta = 0.08;
+  static const int _weakArtifactMaxWidth = 10;
+  static const double _structuralTieBreakDelta = 0.02;
+  static const double _scoreEqualityTolerance = 1e-9;
+  static const int _minimumTieBreakCandidates = 2;
+  static const int _characterCategoryLetter = 1;
+  static const int _characterCategoryDigit = 2;
+  static const int _characterCategoryOther = 3;
 
   /// Creates a new instance of Textify with the specified configuration.
   ///
@@ -157,17 +152,21 @@ class Textify {
   }) async {
     assert(
       characterDefinitions.count > 0,
-      'No character definitions loaded, did you forget to call Init()',
+      TextifyErrors.noCharacterDefinitions,
     );
 
     processBegin = DateTime.now();
 
     extractBandsAndArtifacts(imageAsMatrix);
 
-    String result = await getTextInBands(
-      listOfBands: bands.list,
-      supportedCharacters: supportedCharacters,
-    );
+    String result =
+        await getTextInBands(
+          listOfBands: bands.list,
+          supportedCharacters: supportedCharacters,
+        ).timeout(
+          Duration(milliseconds: config.maxProcessingTimeMs),
+          onTimeout: () => textFound,
+        );
 
     processEnd = DateTime.now();
 
@@ -185,20 +184,31 @@ class Textify {
   void extractBandsAndArtifacts(final Artifact matrixSourceImage) {
     clear();
 
-    int kernelSize = computeKernelSize(
-      matrixSourceImage.cols,
-      matrixSourceImage.rows,
-      _dilationKernelRatio,
+    final Artifact cleanedSourceImage = config.excludeLongLines
+        ? matrixSourceImage.removeDecorativeLineComponents()
+        : matrixSourceImage;
+
+    final int maxKernelSize = max(
+      1,
+      min(cleanedSourceImage.cols, cleanedSourceImage.rows),
     );
-    final Artifact dilatedImage = Artifact.dilateArtifact(
-      matrixImage: matrixSourceImage,
+    final int kernelSize =
+        config.dilationSize == TextifyConfig.balanced.dilationSize
+        ? computeKernelSize(
+            cleanedSourceImage.cols,
+            cleanedSourceImage.rows,
+            _dilationKernelRatio,
+          )
+        : config.dilationSize.clamp(1, maxKernelSize);
+    final Artifact dilatedImage = dilateArtifact(
+      matrixImage: cleanedSourceImage,
       kernelSize: kernelSize,
     );
 
     regionsFromDilated = dilatedImage.findSubRegions();
 
     bands = Bands.getBandsOfArtifacts(
-      matrixSourceImage,
+      cleanedSourceImage,
       regionsFromDilated,
       innerSplit,
     );
@@ -314,7 +324,7 @@ class Textify {
             break;
           }
 
-          if (scores.first.score < _splitScoreThreshold) {
+          if (scores.first.score < config.matchingThreshold) {
             artifact.needsInspection = true;
             final List<Artifact> artifactsFromColumns = band.splitChunk(
               artifact,
@@ -325,6 +335,18 @@ class Textify {
               needsReprocessing = true;
               break; // Exit the loop to restart with the new artifacts
             }
+          }
+
+          final double weakArtifactThreshold = max(
+            0,
+            config.matchingThreshold - _mergeScoreDelta,
+          );
+          final bool weakTinyArtifact =
+              scores.first.score < weakArtifactThreshold &&
+              (artifact.rectFound.width <= _weakArtifactMaxWidth ||
+                  artifact.isPunctuation());
+          if (weakTinyArtifact) {
+            continue;
           }
 
           artifact.matchingScore = scores.first.score;
@@ -343,7 +365,7 @@ class Textify {
 
     textFound += linesFound.join('\n');
     textFound = applyCorrection(textFound, applyDictionary);
-    textFound = _postProcessText(textFound);
+    textFound = postProcessText(textFound);
 
     return textFound.trim();
   }
@@ -465,32 +487,38 @@ class Textify {
     const double percentageNeeded = 0.5;
     const int totalChecks = 4;
 
-    List<CharacterDefinition> qualifiedTemplates = characterDefinitions
-        .definitions
-        .where((final CharacterDefinition template) {
-          if (supportedCharacters.isNotEmpty &&
-              !supportedCharacters.contains(template.character)) {
-            return false;
-          }
+    final Map<String, double> structuralMatchByCharacter = {};
+    final List<CharacterDefinition> qualifiedTemplates =
+        <CharacterDefinition>[];
+    for (final CharacterDefinition template
+        in characterDefinitions.definitions) {
+      if (supportedCharacters.isNotEmpty &&
+          !supportedCharacters.contains(template.character)) {
+        continue;
+      }
 
-          int matchingChecks = 0;
-          if (numberOfEnclosure == template.enclosures) {
-            matchingChecks++;
-          }
-          if (punctuation == template.isPunctuation) {
-            matchingChecks++;
-          }
-          if (hasVerticalLineOnTheLeftSide == template.lineLeft) {
-            matchingChecks++;
-          }
-          if (hasVerticalLineOnTheRightSide == template.lineRight) {
-            matchingChecks++;
-          }
+      int matchingChecks = 0;
+      if (numberOfEnclosure == template.enclosures) {
+        matchingChecks++;
+      }
+      if (punctuation == template.isPunctuation) {
+        matchingChecks++;
+      }
+      if (hasVerticalLineOnTheLeftSide == template.lineLeft) {
+        matchingChecks++;
+      }
+      if (hasVerticalLineOnTheRightSide == template.lineRight) {
+        matchingChecks++;
+      }
 
-          final double matchPercentage = matchingChecks / totalChecks;
-          return matchPercentage >= percentageNeeded;
-        })
-        .toList();
+      final double matchPercentage = matchingChecks / totalChecks;
+      if (matchPercentage < percentageNeeded) {
+        continue;
+      }
+
+      qualifiedTemplates.add(template);
+      structuralMatchByCharacter[template.character] = matchPercentage;
+    }
 
     final Artifact resizedArtifact = artifact.createNormalizeMatrix(
       templateWidth,
@@ -508,6 +536,7 @@ class Textify {
     );
 
     scores.sort((a, b) => b.score.compareTo(a.score));
+    _applyStructuralTieBreak(scores, structuralMatchByCharacter);
     if (resizedArtifact.hasLowerRightStroke()) {
       _promoteRWhenLowerRightStroke(scores);
     }
@@ -517,6 +546,92 @@ class Textify {
       resizedArtifact.countVerticalStems(),
     );
     return scores;
+  }
+
+  /// Resolves near-ties by preferring candidates with stronger structure matches.
+  ///
+  /// This helps disambiguate lookalikes such as `B` vs `D` when pixel distance
+  /// is very close but one candidate better matches enclosure/line features.
+  static void _applyStructuralTieBreak(
+    List<ScoreMatch> scores,
+    Map<String, double> structuralMatchByCharacter,
+  ) {
+    if (scores.length < _minimumTieBreakCandidates) {
+      return;
+    }
+
+    final double bestScore = scores.first.score;
+    final int topCategory = _characterCategory(scores.first.character);
+    final bool topIsUppercase = isUppercaseLetter(scores.first.character);
+    final bool topIsLowercase = isLowercaseLetter(scores.first.character);
+    int bestIndex = 0;
+    double bestStructural =
+        structuralMatchByCharacter[scores.first.character] ?? 0;
+
+    for (int i = 1; i < scores.length; i++) {
+      final ScoreMatch candidate = scores[i];
+      if ((bestScore - candidate.score) > _structuralTieBreakDelta) {
+        break;
+      }
+
+      final int category = _characterCategory(candidate.character);
+      if (category != topCategory) {
+        continue;
+      }
+      if (category == _characterCategoryLetter &&
+          !_matchesLetterCase(
+            candidate.character,
+            topIsUppercase,
+            topIsLowercase,
+          )) {
+        continue;
+      }
+
+      final double structural =
+          structuralMatchByCharacter[candidate.character] ?? 0;
+      final bool strongerStructural =
+          structural > (bestStructural + _scoreEqualityTolerance);
+      final bool sameStructuralBetterScore =
+          (structural - bestStructural).abs() <= _scoreEqualityTolerance &&
+          candidate.score > scores[bestIndex].score;
+      if (strongerStructural || sameStructuralBetterScore) {
+        bestIndex = i;
+        bestStructural = structural;
+      }
+    }
+
+    if (bestIndex == 0) {
+      return;
+    }
+
+    final ScoreMatch selected = scores.removeAt(bestIndex);
+    scores.insert(0, selected);
+  }
+
+  /// Returns true when candidate letter casing is compatible with top score.
+  static bool _matchesLetterCase(
+    String candidate,
+    bool topIsUppercase,
+    bool topIsLowercase,
+  ) {
+    if (topIsUppercase) {
+      return isUppercaseLetter(candidate);
+    }
+    if (topIsLowercase) {
+      return isLowercaseLetter(candidate);
+    }
+    return true;
+  }
+
+  /// Classifies recognized candidates into broad groups for tie-break safety.
+  static int _characterCategory(String character) {
+    if (isLetter(character)) {
+      return _characterCategoryLetter;
+    }
+    if (isDigit(character)) {
+      return _characterCategoryDigit;
+    }
+    return _characterCategoryOther;
   }
 
   /// Prefers `R/r` over `P/p` when a lower-right stroke is detected.
@@ -594,394 +709,3 @@ class Textify {
     return completer.future;
   }
 }
-
-/// Applies final normalization passes to OCR text output.
-String _postProcessText(String text) {
-  if (text.isEmpty) {
-    return text;
-  }
-
-  final List<String> lines = text.split('\n');
-  final List<String> processed = <String>[];
-  for (final String line in lines) {
-    String value = _normalizeLineCase(line);
-    value = _normalizeNumericGaps(value);
-    value = _normalizeDigitSegments(value);
-    processed.add(value);
-  }
-
-  final List<String> merged = _mergeNoiseLines(processed);
-  final String joined = merged.join('\n');
-  final String normalized = _normalizePunctuationHeavyText(joined);
-  final String lettersFixed = _normalizeLetterConfusions(normalized);
-  return _normalizePunctuationSpacing(lettersFixed);
-}
-
-/// Normalizes dominant line casing while preserving mixed-case lines.
-String _normalizeLineCase(String line) {
-  int letters = 0;
-  int upper = 0;
-  int lower = 0;
-  int? firstLetterCode;
-
-  for (int i = 0; i < line.length; i++) {
-    final int code = line.codeUnitAt(i);
-    if (_isUpper(code)) {
-      letters++;
-      upper++;
-      firstLetterCode ??= code;
-    } else if (_isLower(code)) {
-      letters++;
-      lower++;
-      firstLetterCode ??= code;
-    }
-  }
-
-  if (letters < _minLettersForCaseNormalization) {
-    return line;
-  }
-
-  final double upperRatio = upper / letters;
-  final double lowerRatio = lower / letters;
-
-  if (upperRatio >= _dominantCaseRatio) {
-    return line.toUpperCase();
-  }
-  if (lowerRatio >= _dominantCaseRatio && firstLetterCode != null) {
-    if (_isLower(firstLetterCode)) {
-      return _sentenceCase(line);
-    }
-    return line;
-  }
-
-  return line;
-}
-
-/// Corrects letter-like confusions inside digit-dominant token segments.
-String _normalizeDigitSegments(String line) {
-  final StringBuffer out = StringBuffer();
-  final StringBuffer buffer = StringBuffer();
-
-  void flushBuffer() {
-    if (buffer.isEmpty) {
-      return;
-    }
-    String segment = buffer.toString();
-    buffer.clear();
-
-    int digits = 0;
-    int letters = 0;
-    for (int i = 0; i < segment.length; i++) {
-      final int code = segment.codeUnitAt(i);
-      if (_isDigit(code)) {
-        digits++;
-      } else if (_isLetter(code)) {
-        letters++;
-      }
-    }
-
-    if (digits > 0 && digits >= letters) {
-      final StringBuffer mapped = StringBuffer();
-      for (int i = 0; i < segment.length; i++) {
-        final String ch = segment[i];
-        mapped.write(_digitConfusionMap[ch] ?? ch);
-      }
-      segment = mapped.toString();
-    }
-
-    out.write(segment);
-  }
-
-  for (int i = 0; i < line.length; i++) {
-    final int code = line.codeUnitAt(i);
-    if (_isLetter(code) || _isDigit(code)) {
-      buffer.writeCharCode(code);
-    } else {
-      flushBuffer();
-      out.writeCharCode(code);
-    }
-  }
-  flushBuffer();
-
-  return out.toString();
-}
-
-/// Repairs noisy separators and spacing in numeric expressions.
-String _normalizeNumericGaps(String line) {
-  if (line.isEmpty) {
-    return line;
-  }
-
-  bool hasNonDigitToken = false;
-  for (int i = 0; i < line.length; i++) {
-    final int code = line.codeUnitAt(i);
-    if (!_isDigit(code) &&
-        code != _spaceCodeUnit &&
-        code != _tabCodeUnit &&
-        code != _lineFeedCodeUnit &&
-        code != _carriageReturnCodeUnit) {
-      hasNonDigitToken = true;
-      break;
-    }
-  }
-
-  final StringBuffer buffer = StringBuffer();
-  for (int i = 0; i < line.length; i++) {
-    final String ch = line[i];
-    final int code = ch.codeUnitAt(0);
-    final bool prevDigit = i > 0 && _isDigit(line.codeUnitAt(i - 1));
-    final bool nextDigit =
-        i + 1 < line.length && _isDigit(line.codeUnitAt(i + 1));
-
-    if (_digitNonAlnumMap.containsKey(ch) && (prevDigit || nextDigit)) {
-      buffer.write(_digitNonAlnumMap[ch]);
-      continue;
-    }
-
-    if (code == _spaceCodeUnit ||
-        code == _tabCodeUnit ||
-        code == _lineFeedCodeUnit ||
-        code == _carriageReturnCodeUnit) {
-      buffer.write(ch);
-      continue;
-    }
-
-    buffer.write(ch);
-  }
-
-  final String withMappedNonAlnum = buffer.toString();
-
-  if (!hasNonDigitToken) {
-    return withMappedNonAlnum.replaceAll(RegExp(r'\s+'), '');
-  }
-
-  return withMappedNonAlnum.replaceAllMapped(
-    RegExp(r'(\d)\s+([A-Za-z0-9])(?=\d)'),
-    (Match match) {
-      final String left = match.group(_regexGroupFirst) ?? '';
-      final String mid = match.group(_regexGroupSecond) ?? '';
-      final String mapped = _digitConfusionMap[mid] ?? mid;
-      return '$left.$mapped';
-    },
-  );
-}
-
-/// Merges short noise-only lines into the following content line when useful.
-List<String> _mergeNoiseLines(List<String> lines) {
-  if (lines.isEmpty) {
-    return lines;
-  }
-
-  final List<String> merged = <String>[];
-  int i = 0;
-  while (i < lines.length) {
-    final String current = lines[i];
-    if (_isNoiseLine(current)) {
-      final List<String> noise = <String>[];
-      int j = i;
-      while (j < lines.length && _isNoiseLine(lines[j])) {
-        noise.add(lines[j]);
-        j++;
-      }
-
-      if (j < lines.length) {
-        String next = lines[j];
-        final String prefix = _inferPrefixFromNoise(noise, next);
-        if (prefix.isNotEmpty) {
-          next = '$prefix$next';
-        }
-        lines[j] = next;
-      }
-      i = j;
-      continue;
-    }
-
-    merged.add(current);
-    i++;
-  }
-
-  return merged;
-}
-
-/// Returns true when a line appears to be OCR noise rather than content.
-bool _isNoiseLine(String line) {
-  final String trimmed = line.trim();
-  if (trimmed.isEmpty) {
-    return true;
-  }
-  if (trimmed.length > _maxNoiseLineLength) {
-    return false;
-  }
-
-  for (int i = 0; i < trimmed.length; i++) {
-    final int code = trimmed.codeUnitAt(i);
-    if (_isLetter(code) || _isDigit(code)) {
-      if (!_noiseLetters.contains(trimmed[i])) {
-        return false;
-      }
-      continue;
-    }
-    if (!_noisePunctuation.contains(trimmed[i])) {
-      return false;
-    }
-  }
-  return true;
-}
-
-/// Infers a missing leading letter from nearby vertical/horizontal noise marks.
-String _inferPrefixFromNoise(List<String> noiseLines, String nextLine) {
-  if (nextLine.isEmpty) {
-    return '';
-  }
-  final int firstCode = nextLine.codeUnitAt(0);
-  if (!_isLower(firstCode)) {
-    return '';
-  }
-
-  bool hasVertical = false;
-  bool hasHorizontal = false;
-  for (final String line in noiseLines) {
-    for (int i = 0; i < line.length; i++) {
-      final String ch = line[i];
-      if (_noiseVertical.contains(ch)) {
-        hasVertical = true;
-      }
-      if (_noiseHorizontal.contains(ch)) {
-        hasHorizontal = true;
-      }
-    }
-  }
-
-  if (hasVertical && hasHorizontal) {
-    return 'T';
-  }
-  if (hasVertical) {
-    return 'I';
-  }
-  return '';
-}
-
-/// Collapses whitespace when text is dominated by punctuation artifacts.
-String _normalizePunctuationHeavyText(String text) {
-  int alnum = 0;
-  int nonWhitespace = 0;
-  for (int i = 0; i < text.length; i++) {
-    final int code = text.codeUnitAt(i);
-    if (code != _spaceCodeUnit &&
-        code != _tabCodeUnit &&
-        code != _lineFeedCodeUnit &&
-        code != _carriageReturnCodeUnit) {
-      nonWhitespace++;
-    }
-    if (_isLetter(code) || _isDigit(code)) {
-      alnum++;
-    }
-  }
-
-  if (text.isEmpty || nonWhitespace == 0) {
-    return text;
-  }
-
-  final double ratio = alnum / nonWhitespace;
-  if (ratio < _punctuationHeavyRatioThreshold) {
-    return text.replaceAll(RegExp(r'\s+'), '');
-  }
-  return text;
-}
-
-/// Removes invalid spaces before punctuation and closing brackets.
-String _normalizePunctuationSpacing(String text) {
-  if (text.isEmpty) {
-    return text;
-  }
-
-  String value = text.replaceAllMapped(
-    RegExp(r'\s+([,.;:!?])'),
-    (match) => match.group(1) ?? '',
-  );
-  value = value.replaceAllMapped(
-    RegExp(r'\s+([)\]\}])'),
-    (match) => match.group(1) ?? '',
-  );
-  return value;
-}
-
-/// Fixes known letter-shape confusions produced by OCR segmentation.
-String _normalizeLetterConfusions(String text) {
-  if (text.isEmpty) {
-    return text;
-  }
-
-  // Common split of 'H' into 'I]' when the crossbar is faint.
-  return text.replaceAllMapped(
-    RegExp(r'([A-Za-z])I\]([A-Za-z])'),
-    (match) =>
-        '${match.group(_regexGroupFirst)}H${match.group(_regexGroupSecond)}',
-  );
-}
-
-bool _isUpper(int code) =>
-    code >= _uppercaseACodeUnit && code <= _uppercaseZCodeUnit;
-bool _isLower(int code) =>
-    code >= _lowercaseACodeUnit && code <= _lowercaseZCodeUnit;
-bool _isLetter(int code) => _isUpper(code) || _isLower(code);
-bool _isDigit(int code) =>
-    code >= _digitZeroCodeUnit && code <= _digitNineCodeUnit;
-
-/// Uppercases only the first alphabetic character in a line.
-String _sentenceCase(String line) {
-  final StringBuffer buffer = StringBuffer();
-  bool capitalized = false;
-  for (int i = 0; i < line.length; i++) {
-    final String ch = line[i];
-    final int code = ch.codeUnitAt(0);
-    if (!capitalized && _isLetter(code)) {
-      buffer.writeCharCode(_isLower(code) ? code - _asciiCaseOffset : code);
-      capitalized = true;
-      continue;
-    }
-    buffer.write(ch);
-  }
-  return buffer.toString();
-}
-
-const Map<String, String> _digitConfusionMap = {
-  'O': '0',
-  'o': '0',
-  'I': '1',
-  'l': '1',
-  'L': '1',
-  't': '1',
-  'T': '1',
-  'Z': '2',
-  'z': '2',
-  'A': '8',
-  'a': '8',
-  'S': '5',
-  's': '5',
-};
-
-const Map<String, String> _digitNonAlnumMap = {
-  ']': '1',
-  '[': '1',
-  '|': '1',
-  '!': '1',
-};
-
-const Set<String> _noiseLetters = {'i', 'l', 'I', 'L', 't', 'T'};
-
-const Set<String> _noisePunctuation = {
-  '*',
-  '-',
-  '_',
-  '|',
-  '!',
-  '\'',
-  '`',
-  '.',
-  ',',
-};
-
-const Set<String> _noiseVertical = {'i', 'l', 'I', 'L', '|', '!'};
-
-const Set<String> _noiseHorizontal = {'*', '-', '_'};

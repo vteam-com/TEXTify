@@ -13,10 +13,12 @@ class Panel2Toolbar extends StatefulWidget {
     required this.showRegions,
     required this.onShowRegionsChanged,
     //
-    // attempToExtractWideArtifacts
+    // attemptToExtractWideArtifacts
     //
     required this.tryToExtractWideArtifacts,
     required this.onTryToExtractWideArtifactsChanged,
+    required this.excludeLongLines,
+    required this.onExcludeLongLinesChanged,
     //
     // histogram
     //
@@ -27,17 +29,31 @@ class Panel2Toolbar extends StatefulWidget {
     //
     required this.kernelSizeDilate,
     required this.onDelateChanged,
+    required this.matchingThreshold,
+    required this.onMatchingThresholdChanged,
+    required this.maxProcessingTimeMs,
+    required this.onMaxProcessingTimeChanged,
     required this.onReset,
   });
+
+  static const int timeoutStepMs = 1000;
+  static const int timeoutMinMs = 1000;
+
   final ViewAs viewAsStep;
   final Function(ViewAs) onViewChanged;
   final TransformationController transformationController;
   final bool showRegions;
   final bool tryToExtractWideArtifacts;
+  final bool excludeLongLines;
   final Function(bool) onTryToExtractWideArtifactsChanged;
+  final Function(bool) onExcludeLongLinesChanged;
   final bool showHistograms;
   final int kernelSizeDilate;
   final Function(int) onDelateChanged;
+  final double matchingThreshold;
+  final Function(double) onMatchingThresholdChanged;
+  final int maxProcessingTimeMs;
+  final Function(int) onMaxProcessingTimeChanged;
   final Function(bool) onShowRegionsChanged;
   final Function(bool) onShowHistogramsChanged;
   final Function onReset;
@@ -156,6 +172,58 @@ class _Panel2ToolbarState extends State<Panel2Toolbar>
                   ),
                 ],
               ),
+              Row(
+                children: [
+                  const Text('Exclude Lines'),
+                  Checkbox(
+                    value: widget.excludeLongLines,
+                    onChanged: (value) =>
+                        widget.onExcludeLongLinesChanged(value!),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+        IntrinsicWidth(
+          child: Row(
+            spacing: 10,
+            children: [
+              const Text('Match'),
+              SizedBox(
+                width: 160,
+                child: Slider(
+                  min: 0.0,
+                  max: 1.0,
+                  divisions: 20,
+                  value: widget.matchingThreshold,
+                  onChanged: widget.onMatchingThresholdChanged,
+                ),
+              ),
+              Text(widget.matchingThreshold.toStringAsFixed(2)),
+            ],
+          ),
+        ),
+        IntrinsicWidth(
+          child: Row(
+            spacing: 10,
+            children: [
+              _buildButton('-', () {
+                final int next =
+                    widget.maxProcessingTimeMs - Panel2Toolbar.timeoutStepMs;
+                if (next >= Panel2Toolbar.timeoutMinMs) {
+                  widget.onMaxProcessingTimeChanged(next);
+                }
+              }),
+              Text(
+                'Timeout\n${widget.maxProcessingTimeMs}ms',
+                textAlign: TextAlign.center,
+              ),
+              _buildButton('+', () {
+                widget.onMaxProcessingTimeChanged(
+                  widget.maxProcessingTimeMs + Panel2Toolbar.timeoutStepMs,
+                );
+              }),
             ],
           ),
         ),

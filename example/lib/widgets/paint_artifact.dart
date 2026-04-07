@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:textify/artifact.dart';
+import 'package:textify/artifact_analysis.dart';
 import 'package:textify_dashboard/widgets/paint_grid.dart';
 
 /// A widget that displays an artifact with its details.

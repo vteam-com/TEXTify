@@ -1,3 +1,6 @@
+// ignore: fcheck_hardcode_strings
+// ignore: fcheck_code_size
+
 /// This library is part of the Textify package.
 /// Contains a set of common English words used for dictionary-based text correction.
 library;

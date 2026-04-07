@@ -1,3 +1,5 @@
+library;
+
 /// Configuration options for Textify OCR processing.
 ///
 /// This class provides customizable settings that control various aspects

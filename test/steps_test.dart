@@ -4,6 +4,9 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:textify/bands.dart';
 import 'package:textify/textify.dart';
+import 'package:textify/artifact_morphology.dart' as morphology;
+import 'package:textify/artifact_region.dart';
+import 'package:textify/artifact_serialize.dart';
 import 'package:textify/models/textify_config.dart';
 import 'package:textify/image_helpers.dart';
 
@@ -169,7 +172,7 @@ Future<void> testFromImage(
   int kernelSize =
       dilateFactor ?? computeKernelSize(image.width, image.height, 0.02);
 
-  final Artifact imageAsMatrixDilated = Artifact.dilateArtifact(
+  final Artifact imageAsMatrixDilated = morphology.dilateArtifact(
     matrixImage: matrixSourceImage,
     kernelSize: kernelSize,
   );

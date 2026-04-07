@@ -5,6 +5,7 @@
 library;
 
 import 'dart:convert';
+
 import 'package:flutter/services.dart';
 import 'package:textify/artifact.dart';
 import 'package:textify/character_definition.dart';
@@ -24,6 +25,9 @@ class CharacterDefinitions {
   /// The list of character definitions.
   List<CharacterDefinition> _definitions = [];
 
+  /// Cached JSON string to avoid repeated serialization.
+  String _cachedJsonString = '';
+
   /// Returns the number of character definitions.
   int get count => _definitions.length;
 
@@ -32,6 +36,7 @@ class CharacterDefinitions {
   /// [definition] The character definition to add.
   void addDefinition(final CharacterDefinition definition) {
     _definitions.add(definition);
+    _cachedJsonString = '';
   }
 
   /// Returns an unmodifiable list of all character definitions.
@@ -48,6 +53,7 @@ class CharacterDefinitions {
     _definitions = jsonList
         .map((json) => CharacterDefinition.fromJson(json))
         .toList();
+    _cachedJsonString = jsonString;
   }
 
   /// Retrieves a specific character definition.
@@ -141,6 +147,9 @@ class CharacterDefinitions {
   ///
   /// Returns a JSON string representation of all character definitions.
   String toJsonString() {
+    if (_cachedJsonString.isNotEmpty) {
+      return _cachedJsonString;
+    }
     _sortDefinitions();
 
     final Map<String, dynamic> matricesMap = {
@@ -149,7 +158,8 @@ class CharacterDefinitions {
           .toList(),
     };
 
-    return jsonEncode(matricesMap);
+    _cachedJsonString = jsonEncode(matricesMap);
+    return _cachedJsonString;
   }
 
   /// Updates or inserts a template matrix for a given character and font.
@@ -185,6 +195,7 @@ class CharacterDefinitions {
         matrices: [matrix],
       );
       _definitions.add(newDefinition);
+      _cachedJsonString = '';
       return true;
     } else {
       final int existingMatrixIndex = found.matrices.indexWhere(
@@ -196,6 +207,7 @@ class CharacterDefinitions {
       } else {
         found.matrices[existingMatrixIndex] = matrix;
       }
+      _cachedJsonString = '';
       return false;
     }
   }

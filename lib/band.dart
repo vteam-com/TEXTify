@@ -6,6 +6,9 @@ import 'dart:math';
 
 import 'package:flutter/widgets.dart';
 import 'package:textify/artifact.dart';
+import 'package:textify/artifact_grid_transform.dart';
+import 'package:textify/artifact_region.dart';
+import 'package:textify/artifact_splitting.dart' as splitting;
 import 'package:textify/image_helpers.dart';
 
 export 'package:textify/artifact.dart';
@@ -278,7 +281,7 @@ class Band {
     final bool allowSoftValleys =
         artifactToSplit.cols >= (averageWidth * _minWideSplitRatio).round();
     // Get columns where to split the artifact
-    List<int> splitColumns = Artifact.artifactValleysOffsets(
+    List<int> splitColumns = splitting.artifactValleysOffsets(
       artifactToSplit,
       allowSoftValleys: allowSoftValleys,
     );
@@ -288,7 +291,7 @@ class Band {
       return [];
     }
 
-    List<Artifact> artifactsFromColumns = Artifact.splitArtifactByColumns(
+    List<Artifact> artifactsFromColumns = splitting.splitArtifactByColumns(
       artifactToSplit,
       splitColumns,
     );

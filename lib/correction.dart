@@ -4,6 +4,8 @@
 library;
 
 import 'dart:math';
+
+import 'package:textify/char_utils.dart';
 import 'package:textify/models/english_words.dart';
 
 /// Utility class to analyze character statistics in text.
@@ -464,42 +466,4 @@ String normalizeCasingOfParagraph(final String input) {
   }
 
   return result.toString();
-}
-
-/// Checks whether the given string is all uppercase.
-///
-/// This function takes a [String] [str] and returns `true` if the string contains only
-/// uppercase characters, and `false` otherwise.
-bool isUpperCase(final String str) {
-  return str == str.toUpperCase();
-}
-
-/// Checks whether the given string is a digit from 0 to 9.
-///
-/// This function takes a [String] and returns `true` if the string represents a
-/// digit from 0 to 9, and `false` otherwise.
-bool isDigit(final String char) {
-  const List<String> digits = [
-    '0',
-    '1',
-    '2',
-    '3',
-    '4',
-    '5',
-    '6',
-    '7',
-    '8',
-    '9',
-  ];
-  return digits.contains(char);
-}
-
-/// Checks whether the given character is a letter.
-///
-/// This function takes a [String] representing a single [character] and returns
-/// `true` if the character is a letter (uppercase or lowercase), and `false`
-/// otherwise.
-bool isLetter(final String character) {
-  // use this trick to see if the character can have different casing
-  return character.toLowerCase() != character.toUpperCase();
 }

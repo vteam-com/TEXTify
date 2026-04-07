@@ -2,6 +2,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:textify/artifact.dart';
+import 'package:textify/artifact_grid_transform.dart';
 import 'package:textify/character_definition.dart';
 import 'package:textify/image_helpers.dart';
 import 'package:textify/models/textify_config.dart';

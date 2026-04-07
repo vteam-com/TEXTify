@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:textify/artifact.dart';
+import 'package:textify/artifact_analysis.dart';
+import 'package:textify/artifact_grid_transform.dart';
+import 'package:textify/artifact_region.dart';
+import 'package:textify/artifact_serialize.dart';
 import 'package:textify/character_definitions.dart';
 import 'package:textify/models/score_match.dart';
 import 'package:textify/textify.dart';

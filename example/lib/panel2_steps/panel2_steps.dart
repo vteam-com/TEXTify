@@ -4,9 +4,9 @@ import 'dart:ui' as ui;
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:textify/artifact.dart';
 import 'package:textify/image_helpers.dart';
 import 'package:textify/textify.dart';
+import 'package:textify_dashboard/background_ocr.dart';
 import 'package:textify_dashboard/generate_samples/generate_image.dart';
 import 'package:textify_dashboard/panel1_source/debounce.dart';
 import 'package:textify_dashboard/panel1_source/panel1_content.dart';
@@ -22,8 +22,14 @@ class PanelSteps extends StatefulWidget {
     required this.regions,
     required this.tryToExtractWideArtifacts,
     required this.onInnerSplitChanged,
+    required this.excludeLongLines,
+    required this.onExcludeLongLinesChanged,
     required this.kernelSizeDilate,
     required this.displayChoicesChanged,
+    required this.matchingThreshold,
+    required this.onMatchingThresholdChanged,
+    required this.maxProcessingTimeMs,
+    required this.onMaxProcessingTimeChanged,
     required this.onReset,
     required this.transformationController,
   });
@@ -32,8 +38,14 @@ class PanelSteps extends StatefulWidget {
   final List<IntRect> regions;
   final bool tryToExtractWideArtifacts;
   final Function(bool) onInnerSplitChanged;
+  final bool excludeLongLines;
+  final Function(bool) onExcludeLongLinesChanged;
   final int kernelSizeDilate;
   final Function(int) displayChoicesChanged;
+  final double matchingThreshold;
+  final Function(double) onMatchingThresholdChanged;
+  final int maxProcessingTimeMs;
+  final Function(int) onMaxProcessingTimeChanged;
   final Function onReset;
   final TransformationController transformationController;
 
@@ -101,6 +113,8 @@ class _PanelStepsState extends State<PanelSteps> {
         //
         tryToExtractWideArtifacts: widget.tryToExtractWideArtifacts,
         onTryToExtractWideArtifactsChanged: widget.onInnerSplitChanged,
+        excludeLongLines: widget.excludeLongLines,
+        onExcludeLongLinesChanged: widget.onExcludeLongLinesChanged,
 
         //
         // Histogram
@@ -117,6 +131,10 @@ class _PanelStepsState extends State<PanelSteps> {
         //
         kernelSizeDilate: widget.kernelSizeDilate,
         onDelateChanged: widget.displayChoicesChanged,
+        matchingThreshold: widget.matchingThreshold,
+        onMatchingThresholdChanged: widget.onMatchingThresholdChanged,
+        maxProcessingTimeMs: widget.maxProcessingTimeMs,
+        onMaxProcessingTimeChanged: widget.onMaxProcessingTimeChanged,
 
         onReset: widget.onReset,
       ),
@@ -193,33 +211,26 @@ class _PanelStepsState extends State<PanelSteps> {
       }
 
       //
-      // Task 1 - Convert to B&W
+      // Task 1 - Convert to B&W (lightweight, OK on main isolate)
       //
       final ui.Image imageBW = await imageToBlackOnWhite(widget.imageSource!);
 
       //
-      // Task 2 - Convert to binary grid
+      // Task 2-5 - Heavy processing on background isolate
       //
-      final Artifact binaryImage = await Artifact.artifactFromImage(imageBW);
-      final Artifact dilatedMatrix = Artifact.dilateArtifact(
-        matrixImage: binaryImage,
+      final StepProcessingResult result =
+          await processImageForStepsWithBackgroundIsolate(
+        image: imageBW,
         kernelSize: widget.kernelSizeDilate,
       );
 
       //
-      // Task 3 - Dilated
+      // Convert dilated matrix back to image for display
       //
-      final imageDilated = await imageFromMatrix(dilatedMatrix);
+      final imageDilated = await imageFromMatrix(result.dilatedImage);
 
-      //
-      // Task 4 - Find Regions
-      //
-      _regions = dilatedMatrix.findSubRegions();
-
-      //
-      // Task 5 - Histograms
-      //
-      _regionsHistograms = getHistogramOfRegions(binaryImage, _regions);
+      _regions = result.regions;
+      _regionsHistograms = result.regionHistograms;
       _imageBW = imageBW;
       _imageDilated = imageDilated;
 
@@ -229,45 +240,6 @@ class _PanelStepsState extends State<PanelSteps> {
         });
       }
     });
-  }
-
-  List<List<int>> getHistogramOfRegions(
-    final Artifact binaryImage,
-    List<IntRect> regions,
-  ) {
-    List<List<int>> regionsHistograms = [];
-
-    for (final IntRect region in regions) {
-      regionsHistograms.add(getHistogramOfRegion(binaryImage, region));
-    }
-    return regionsHistograms;
-  }
-
-  /// Calculates the histogram of a binary image region.
-  ///
-  /// Iterates over the specified [region] of the [binaryImage] and counts the
-  /// number of set pixels in each column, storing the results in a list.
-  ///
-  /// Parameters:
-  /// - [binaryImage]: The binary image to analyze.
-  /// - [region]: The rectangular region of the image to analyze.
-  ///
-  /// Returns:
-  /// A list of integers representing the histogram of the specified region.
-  List<int> getHistogramOfRegion(final Artifact binaryImage, IntRect region) {
-    final List<int> histogram = [];
-    int col = 0;
-    for (int x = region.left.toInt(); x < region.right.toInt(); x++) {
-      histogram.add(0);
-      for (int y = region.top.toInt(); y < region.bottom.toInt(); y++) {
-        if (binaryImage.cellGet(x, y)) {
-          histogram[col]++;
-        }
-      }
-      col++;
-    }
-
-    return histogram;
   }
 
   ui.Image drawRectanglesOnImage(

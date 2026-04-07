@@ -2,10 +2,12 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:textify/artifact.dart';
+import 'package:textify/artifact_grid_transform.dart';
+import 'package:textify/artifact_serialize.dart';
 import 'package:textify/character_definition.dart';
-import 'package:textify/image_helpers.dart';
 import 'package:textify/models/textify_config.dart';
 import 'package:textify/textify.dart';
+import 'package:textify_dashboard/background_ocr.dart';
 import 'package:textify_dashboard/generate_samples/generate_image.dart';
 import 'package:textify_dashboard/panel1_source/image_source_generated.dart';
 import 'package:textify_dashboard/widgets/gap.dart';
@@ -276,18 +278,17 @@ class CharacterGenerationBodyState extends State<CharacterGenerationBody> {
       fontSize: imageSettings.fontSize.toInt(),
     );
 
-    // Apply image processing pipeline
-    final ui.Image imageOptimized = await imageToBlackOnWhite(newImageSource);
-    final Artifact imageAsMatrix =
-        await Artifact.artifactFromImage(imageOptimized);
-
-    // Find artifacts from the binary image
-    textify.extractBandsAndArtifacts(imageAsMatrix);
+    // Run OCR on background isolate to avoid UI freeze
+    final Textify result = await processImageWithBackgroundIsolate(
+      image: newImageSource,
+      config: textify.config,
+      characterDefinitionsJson: Textify.characterDefinitions.toJsonString(),
+    );
 
     // If there is only one band (expected for a single character)
-    if (textify.bands.length == 1) {
+    if (result.bands.length == 1) {
       final List<Artifact> artifactsInTheFirstBand =
-          textify.bands.list.first.artifacts;
+          result.bands.list.first.artifacts;
 
       // Filter out artifacts with empty matrices (spaces)
       final artifactsInTheFirstBandNoSpaces = artifactsInTheFirstBand

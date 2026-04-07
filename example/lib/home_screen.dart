@@ -1,8 +1,10 @@
 import 'dart:math';
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:textify/models/textify_config.dart';
 import 'package:textify/textify.dart';
+import 'package:textify_dashboard/background_ocr.dart';
 import 'package:textify_dashboard/panel1_source/debounce.dart';
 
 import 'package:textify_dashboard/panel1_source/panel1_source.dart';
@@ -44,11 +46,32 @@ class _HomeScreenState extends State<HomeScreen> {
     _textify = Textify(config: _config);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _textify.init().then((_) {
-        _debouceStartConvertImageToText();
-      });
+      _initInBackground();
     });
     _settings.load();
+  }
+
+  Future<void> _initInBackground() async {
+    // Load the raw JSON on the main isolate (async I/O, non-blocking)
+    final String jsonString = await rootBundle.loadString(
+      'packages/textify/assets/matrices.json',
+    );
+
+    // Parse on the main isolate — CharacterDefinitions is a static singleton
+    // that must be populated here. The cache avoids re-serializing later.
+    Textify.characterDefinitions.fromJsonString(jsonString);
+
+    if (mounted) {
+      _debouceStartConvertImageToText();
+    }
+  }
+
+  void _applyConfigAndRefresh(TextifyConfig config) {
+    setState(() {
+      _config = config;
+      _textify = Textify(config: _config);
+      _debouceStartConvertImageToText();
+    });
   }
 
   @override
@@ -126,37 +149,46 @@ class _HomeScreenState extends State<HomeScreen> {
                     tryToExtractWideArtifacts:
                         _textify.config.attemptCharacterSplitting,
                     onInnerSplitChanged: (bool value) {
-                      setState(
-                        () {
-                          _config = _config.copyWith(
-                            attemptCharacterSplitting: value,
-                          );
-                          _textify = Textify(config: _config);
-                          _debouceStartConvertImageToText();
-                        },
+                      _applyConfigAndRefresh(
+                        _config.copyWith(attemptCharacterSplitting: value),
+                      );
+                    },
+                    excludeLongLines: _textify.config.excludeLongLines,
+                    onExcludeLongLinesChanged: (bool value) {
+                      _applyConfigAndRefresh(
+                        _config.copyWith(excludeLongLines: value),
                       );
                     },
                     kernelSizeDilate: _textify.config.dilationSize,
                     displayChoicesChanged: (
                       final int sizeDilate,
                     ) {
-                      setState(
-                        () {
-                          _config = _config.copyWith(
-                            dilationSize: max(0, sizeDilate),
-                          );
-                          _textify = Textify(config: _config);
-                          _debouceStartConvertImageToText();
-                        },
+                      _applyConfigAndRefresh(
+                        _config.copyWith(
+                          dilationSize: max(1, sizeDilate),
+                        ),
+                      );
+                    },
+                    matchingThreshold: _textify.config.matchingThreshold,
+                    onMatchingThresholdChanged: (double value) {
+                      _applyConfigAndRefresh(
+                        _config.copyWith(matchingThreshold: value),
+                      );
+                    },
+                    maxProcessingTimeMs: _textify.config.maxProcessingTimeMs,
+                    onMaxProcessingTimeChanged: (int value) {
+                      _applyConfigAndRefresh(
+                        _config.copyWith(maxProcessingTimeMs: value),
                       );
                     },
                     onReset: () {
                       // Reset
-                      setState(() {
-                        _config = _config.copyWith(dilationSize: 22);
-                        _textify = Textify(config: _config);
-                        centerViewers();
-                      });
+                      _applyConfigAndRefresh(
+                        TextifyConfig.balanced.copyWith(
+                          applyDictionaryCorrection: _settings.applyDictionary,
+                        ),
+                      );
+                      centerViewers();
                     },
                     transformationController: _transformationController,
                   ),
@@ -177,13 +209,11 @@ class _HomeScreenState extends State<HomeScreen> {
                     textify: _textify,
                     settings: _settings,
                     onSettingsChanged: () {
-                      setState(() {
-                        _config = _config.copyWith(
+                      _applyConfigAndRefresh(
+                        _config.copyWith(
                           applyDictionaryCorrection: _settings.applyDictionary,
-                        );
-                        _textify = Textify(config: _config);
-                        _debouceStartConvertImageToText();
-                      });
+                        ),
+                      );
                     },
                   ),
                 ),
@@ -239,14 +269,17 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
     debouncer.run(
-      () {
-        _textify.getTextFromImage(image: _imageSource!).then((_) {
-          if (mounted) {
-            setState(() {
-              // update the ui
-            });
-          }
-        });
+      () async {
+        final result = await processImageWithBackgroundIsolate(
+          image: _imageSource!,
+          config: _config,
+          characterDefinitionsJson: Textify.characterDefinitions.toJsonString(),
+        );
+        if (mounted) {
+          setState(() {
+            _textify = result;
+          });
+        }
       },
     );
   }

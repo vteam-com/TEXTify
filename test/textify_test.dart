@@ -6,6 +6,8 @@ import 'package:textify/character_definition.dart';
 import 'package:textify/correction.dart';
 import 'package:textify/models/score_match.dart';
 import 'package:textify/textify.dart';
+import 'package:textify/artifact_serialize.dart';
+import 'package:textify/artifact_splitting.dart' as splitting;
 import 'package:textify/models/textify_config.dart';
 import 'package:textify/image_helpers.dart';
 
@@ -155,6 +157,31 @@ void main() async {
     );
   });
 
+  test('Convert image with lines and circles', () async {
+    final ui.Image uiImage = await Textify.loadImageFromAssets(
+      'assets/test/lines-circles.png',
+    );
+    final Textify linesInstance = Textify(
+      config: const TextifyConfig(
+        attemptCharacterSplitting: true,
+        applyDictionaryCorrection: false,
+      ),
+    );
+    await linesInstance.init(pathToAssetsDefinition: 'assets/matrices.json');
+    final String text = await linesInstance.getTextFromImage(image: uiImage);
+    expect(
+      text,
+      'HELP BOTH IS IS TEST LN UPPER CASE.\n'
+      'Thiss is a form al ph raise with nu m bar like 123,456.89\n'
+      'DATES\n'
+      '2020-01-02\n'
+      '2021/03/04\n'
+      '2022.O5.05'
+      'The'
+      'End',
+    );
+  });
+
   test('Image with Connected_Letters - REMARKABLE', () async {
     final ui.Image uiImage = await Textify.loadImageFromAssets(
       'assets/test/REMARKABLE_test.png',
@@ -197,7 +224,7 @@ void main() async {
       // Chunk MARKAB
       {
         final chunk1 = suspectedChunks[0];
-        final List<int> valleys = Artifact.artifactValleysOffsets(chunk1);
+        final List<int> valleys = splitting.artifactValleysOffsets(chunk1);
         expect(valleys.length, 5, reason: '$valleys\n');
 
         final List<Artifact> subArtifactsOfChunk1 = band.splitChunk(chunk1);
@@ -274,8 +301,8 @@ void main() async {
         'REMARKABLE, OSLO\n'
         'PINGO DOCE MATOSINHO, MATOSINHOS\n'
         'CONTINENTE BOM DIA, MATOSINHOS\n'
-        'PAB PORT MATO, MATOSINHOS\n'
-        'CAsA DAs UTILIDABES, Guimaraes\n'
+        'PAD PORT MATO, MATOSINHOS\n'
+        'CAsA DAs UTILIDADES, Guimaraes\n'
         'EUROLOJAMATOSINHOS, MATOSINHOS\n'
         'CORES SABORES BOLHAO, PORTO\n'
         'Tuca Cha E Cafe, PORTO';

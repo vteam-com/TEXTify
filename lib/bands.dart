@@ -2,6 +2,7 @@
 /// Provides functionality for managing collections of text bands identified in images.
 library;
 
+import 'package:textify/artifact_grid_transform.dart';
 import 'package:textify/band.dart';
 import 'package:textify/image_helpers.dart';
 

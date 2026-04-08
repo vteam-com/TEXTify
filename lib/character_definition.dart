@@ -3,6 +3,7 @@
 library;
 
 import 'dart:convert';
+import 'dart:math';
 
 import 'package:textify/artifact.dart';
 import 'package:textify/artifact_serialize.dart';
@@ -138,6 +139,103 @@ class CharacterDefinition {
 
   /// List of matrices representing this character's visual pattern.
   final List<Artifact> matrices;
+
+  /// Cached average column histogram (pixel count per column) across all templates.
+  List<double>? _cachedColHistogram;
+
+  /// Cached average row histogram (pixel count per row) across all templates.
+  List<double>? _cachedRowHistogram;
+
+  /// Returns the average column histogram across all template matrices.
+  ///
+  /// Each entry is the average pixel count at that column position.
+  /// Lazily computed and cached.
+  List<double> get averageColHistogram {
+    return _cachedColHistogram ??= _computeAverageHistogram(true);
+  }
+
+  /// Returns the average row histogram across all template matrices.
+  ///
+  /// Each entry is the average pixel count at that row position.
+  /// Lazily computed and cached.
+  List<double> get averageRowHistogram {
+    return _cachedRowHistogram ??= _computeAverageHistogram(false);
+  }
+
+  /// Computes the average histogram across all template matrices.
+  ///
+  /// When [isColumn] is true, returns column-wise pixel counts (per-column).
+  /// When false, returns row-wise pixel counts (per-row).
+  List<double> _computeAverageHistogram(bool isColumn) {
+    if (matrices.isEmpty) {
+      return const [];
+    }
+
+    final int size = isColumn ? templateWidth : templateHeight;
+    final List<double> avgHist = List<double>.filled(size, 0);
+
+    for (final Artifact m in matrices) {
+      for (int i = 0; i < size; i++) {
+        int count = 0;
+        if (isColumn) {
+          for (int y = 0; y < m.rows; y++) {
+            if (i < m.cols && m.cellGet(i, y)) {
+              count++;
+            }
+          }
+        } else {
+          for (int x = 0; x < m.cols; x++) {
+            if (i < m.rows && m.cellGet(x, i)) {
+              count++;
+            }
+          }
+        }
+        avgHist[i] += count;
+      }
+    }
+
+    for (int i = 0; i < size; i++) {
+      avgHist[i] /= matrices.length;
+    }
+
+    return avgHist;
+  }
+
+  /// Computes histogram similarity between this template and an input artifact.
+  ///
+  /// Returns a value between 0.0 and 1.0, where 1.0 is a perfect match.
+  /// Uses L1 (Manhattan) distance normalized by the max possible distance.
+  double histogramSimilarity(List<int> inputColHist, List<int> inputRowHist) {
+    final List<double> templateCol = averageColHistogram;
+    final List<double> templateRow = averageRowHistogram;
+
+    if (templateCol.isEmpty || templateRow.isEmpty) {
+      return 0.0;
+    }
+
+    double colDistance = 0;
+    double colMax = 0;
+    final int colLen = min(inputColHist.length, templateCol.length);
+    for (int i = 0; i < colLen; i++) {
+      colDistance += (inputColHist[i] - templateCol[i]).abs();
+      colMax += max(inputColHist[i].toDouble(), templateCol[i]);
+    }
+
+    double rowDistance = 0;
+    double rowMax = 0;
+    final int rowLen = min(inputRowHist.length, templateRow.length);
+    for (int i = 0; i < rowLen; i++) {
+      rowDistance += (inputRowHist[i] - templateRow[i]).abs();
+      rowMax += max(inputRowHist[i].toDouble(), templateRow[i]);
+    }
+
+    final double totalMax = colMax + rowMax;
+    if (totalMax == 0) {
+      return 0.0;
+    }
+
+    return 1.0 - ((colDistance + rowDistance) / totalMax);
+  }
 
   /// Converts this [CharacterDefinition] to a JSON map.
   ///

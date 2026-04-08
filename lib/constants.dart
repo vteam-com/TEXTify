@@ -28,7 +28,4 @@ class TextifyErrors {
 class OcrTokens {
   static const String upperI = 'I';
   static const String lowerL = 'l';
-  static const String isToken = 'IS';
-  static const String theEnd = 'TheEnd';
-  static const String prefixT = 'T';
 }

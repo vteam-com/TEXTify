@@ -27,6 +27,11 @@ These constraints mean:
 - fcheck output must reach 100% compliant
 - never hardcode specific OCR words/phrases to forced replacements (for example `"HELP" -> "HELLO"`). prefer structural normalization and model/dictionary-driven fixes.
 - never map specific noisy token signatures to fixed target words (for example `IlIe -> The`).
+- never inject fixed words/phrases into output based on surrounding context patterns (for example appending `"TheEnd"` after a date, or converting `"lS"` → `"IS"`).
+- never infer specific letters from noise-line shapes (for example mapping vertical+horizontal noise marks to `"T"`, or vertical noise to `"I"`).
+- never give a specific character (like `H`) preference or special fast-path treatment in template matching or merge logic.
+- post-processing rules must be **generic structural transforms** (whitespace normalization, case normalization, digit/letter confusion maps, punctuation fixes) — never pattern-match on specific words, phrases, or multi-character token sequences to produce a predetermined output.
+- when a test expectation needs to change because a hardcoded fix was removed, update the test to match the honest OCR output — never re-introduce the hack to make the old test pass.
 - image source to test with
   - ./assets/test/bank_statement_test.png
   - ./assets/test/input_test_image.png
@@ -35,6 +40,6 @@ These constraints mean:
 
 ## TESTS
 
-- Test Coverage must not regress, its currently at 83% (update this value if it improves)
+- Test Coverage must not regress, its currently at 99% (update this value if it improves)
 - test result shall be capture in the file test_resutl_<current_version>.txt
-- compare new result Overall char-accuracy: 80% with previouse the result should improve (update this value if it improves)
+- compare new result Overall char-accuracy: 81% with previouse the result should improve (update this value if it improves)

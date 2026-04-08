@@ -3,7 +3,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:textify/artifact_serialize.dart';
 import 'package:textify/bands.dart';
-import 'package:textify/models/int_offset.dart';
 import 'package:textify/models/int_rect.dart';
 
 void main() {
@@ -1129,10 +1128,10 @@ void main() {
   });
 
   group('mergeArtifactsWithTightGaps - actual merge branch', () {
-    test('exercises tight gap branch without merge', () {
+    test('does not merge wide artifacts in tight gap', () {
       final Band band = Band();
 
-      // Several artifacts to establish statistics
+      // Several artifacts to establish statistics (averageWidth = 10)
       for (int i = 0; i < 4; i++) {
         final a = Artifact.fromAsciiDefinition([
           '##########',
@@ -1150,7 +1149,65 @@ void main() {
         band.addArtifact(a);
       }
 
-      // Two narrow artifacts close with gap=1
+      // Two wide artifacts (width=8 > 10*0.7=7) with gap=1 — not narrow
+      final left = Artifact.fromAsciiDefinition([
+        '########',
+        '########',
+        '########',
+        '########',
+        '########',
+        '########',
+        '########',
+        '########',
+        '########',
+        '########',
+      ]);
+      left.setBothLocation(const IntOffset(60, 0));
+
+      final right = Artifact.fromAsciiDefinition([
+        '########',
+        '########',
+        '########',
+        '########',
+        '########',
+        '########',
+        '########',
+        '########',
+        '########',
+        '########',
+      ]);
+      right.setBothLocation(const IntOffset(69, 0));
+
+      band.addArtifact(left);
+      band.addArtifact(right);
+
+      // Wide artifacts should NOT merge (width > narrowThreshold)
+      band.mergeArtifactsWithTightGaps();
+      expect(band.artifacts.length, 6);
+    });
+
+    test('narrow fragments with tight gap enter guard branch', () {
+      final Band band = Band();
+
+      // 4 wide artifacts to establish statistics (averageWidth = 10)
+      for (int i = 0; i < 4; i++) {
+        final a = Artifact.fromAsciiDefinition([
+          '##########',
+          '##########',
+          '##########',
+          '##########',
+          '##########',
+          '##########',
+          '##########',
+          '##########',
+          '##########',
+          '##########',
+        ]);
+        a.setBothLocation(IntOffset(i * 14, 0));
+        band.addArtifact(a);
+      }
+
+      // Two narrow fragments (width=3 <= 10*0.7=7) with gap=1
       final left = Artifact.fromAsciiDefinition([
         '###',
         '###',
@@ -1182,7 +1239,7 @@ void main() {
       band.addArtifact(left);
       band.addArtifact(right);
 
-      // Exercises the gap branch even if merge doesn't happen
+      // Gap >= 0 means no horizontal overlap, so no merge occurs
       band.mergeArtifactsWithTightGaps();
       expect(band.artifacts.length, 6);
     });
@@ -1442,6 +1499,58 @@ void main() {
 
       // Only the block should remain; the short line is discarded
       expect(band.artifacts.length, greaterThanOrEqualTo(1));
+    });
+  });
+
+  group('getBandsOfArtifacts', () {
+    test('processes regions into bands', () {
+      // Create a source image with two text-like blocks at different rows
+      final source = Artifact(40, 30);
+      // Block 1 at top-left
+      for (int y = 2; y < 10; y++) {
+        for (int x = 2; x < 12; x++) {
+          source.cellSet(x, y, true);
+        }
+      }
+      // Block 2 at bottom-right
+      for (int y = 18; y < 26; y++) {
+        for (int x = 22; x < 32; x++) {
+          source.cellSet(x, y, true);
+        }
+      }
+
+      final regions = [
+        IntRect.fromLTWH(0, 0, 40, 14),
+        IntRect.fromLTWH(0, 14, 40, 16),
+      ];
+
+      final bands = Bands.getBandsOfArtifacts(source, regions, false);
+      expect(bands.length, greaterThanOrEqualTo(1));
+      expect(bands.list.isNotEmpty, true);
+    });
+
+    test('with innerSplit enabled', () {
+      final source = Artifact(50, 20);
+      for (int y = 2; y < 16; y++) {
+        for (int x = 2; x < 15; x++) {
+          source.cellSet(x, y, true);
+        }
+        // A second block
+        for (int x = 25; x < 38; x++) {
+          source.cellSet(x, y, true);
+        }
+      }
+
+      final regions = [IntRect.fromLTWH(0, 0, 50, 20)];
+
+      final bands = Bands.getBandsOfArtifacts(source, regions, true);
+      expect(bands.length, greaterThanOrEqualTo(1));
+    });
+
+    test('empty regions returns empty bands', () {
+      final source = Artifact(10, 10);
+      final bands = Bands.getBandsOfArtifacts(source, [], false);
+      expect(bands.length, 0);
     });
   });
 }

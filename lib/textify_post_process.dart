@@ -13,13 +13,11 @@ const int _lineFeedCodeUnit = 10;
 const int _carriageReturnCodeUnit = 13;
 const int _digitJoinMinCount = 2;
 const int _maxNoiseLineLength = 2;
-const int _minimumNoisySuffixLength = 3;
 const int _fragmentedLineMinimumTokenCount = 4;
 const int _fragmentedLineShortAlphaThreshold = 3;
 const int _fragmentPairMinimumTokenCount = 2;
 const int _fragmentPairShortWordLength = 3;
 const int _fragmentPairLeftLengthWhenRightSingle = 6;
-const int _fragmentPairRightLengthWhenLeftSingle = 2;
 const int _dictionaryCorrectionMinimumTokenLength = 3;
 const double _punctuationHeavyRatioThreshold = 0.3;
 const double _mostlyUppercaseRatioThreshold = 0.75;
@@ -48,16 +46,12 @@ String postProcessText(String text) {
     value = _normalizeDigitSegments(value);
     value = _normalizeDateSeparators(value);
     value = _normalizeFragmentedLine(value);
-    value = _normalizeStructuredPhrases(value);
     processed.add(value);
   }
 
   final List<String> merged = _mergeNoiseLines(processed);
   final String joined = _normalizeShortNoisyLines(merged).join('\n');
-  final String withTrailingNoiseFixed = _normalizeTrailingDateNoise(joined);
-  final String normalized = _normalizePunctuationHeavyText(
-    withTrailingNoiseFixed,
-  );
+  final String normalized = _normalizePunctuationHeavyText(joined);
   final String lettersFixed = _normalizeLetterConfusions(normalized);
   return _normalizePunctuationSpacing(lettersFixed);
 }
@@ -223,6 +217,16 @@ String _normalizeDateSeparators(String line) {
   );
   value = value.replaceAllMapped(RegExp(r'(?<=\d)\s*,\s*(?=\d)'), (_) => ',');
 
+  // Collapse spaces around dots between digits and alphanumeric characters.
+  value = value.replaceAllMapped(
+    RegExp(r'(?<=\d)\s*\.\s*(?=[A-Za-z0-9])'),
+    (_) => '.',
+  );
+  value = value.replaceAllMapped(
+    RegExp(r'(?<=[A-Za-z0-9])\s*\.\s*(?=\d)'),
+    (_) => '.',
+  );
+
   // Collapse split numeric runs like "1 2 3" only when there are 2+ joins.
   final RegExp splitDigits = RegExp(r'(?<=\d)\s+(?=\d)');
   final int joins = splitDigits.allMatches(value).length;
@@ -253,7 +257,6 @@ String _normalizeFragmentedLine(String line) {
     (Match match) =>
         '${match.group(_regexGroupFirst)}${match.group(_regexGroupSecond)}',
   );
-  value = value.replaceAll(RegExp(r'\blS\b'), OcrTokens.isToken);
   value = _mergeLikelyWordFragments(value);
   value = _correctNoisyDictionaryWords(value);
 
@@ -263,70 +266,6 @@ String _normalizeFragmentedLine(String line) {
     value = _sentenceCase(value.toLowerCase());
   }
   return value;
-}
-
-/// Applies constrained corrections for common OCR phrase and date noise.
-String _normalizeStructuredPhrases(String line) {
-  if (line.isEmpty) {
-    return line;
-  }
-
-  String value = line;
-  value = value.replaceAllMapped(
-    RegExp(r'(\d),\s+(\d)'),
-    (Match match) =>
-        '${match.group(_regexGroupFirst)},${match.group(_regexGroupSecond)}',
-  );
-  value = value.replaceAllMapped(
-    RegExp(r'(?<=\d)\s*\.\s*(?=[A-Za-z0-9])'),
-    (_) => '.',
-  );
-  value = value.replaceAllMapped(
-    RegExp(r'(?<=[A-Za-z0-9])\s*\.\s*(?=\d)'),
-    (_) => '.',
-  );
-  value = value.replaceAllMapped(RegExp(r'(?<=\d\.)[Oo]s(?=\.)'), (_) => 'O5');
-  value = value.replaceAllMapped(
-    RegExp(r'^(\d{4}\.[A-Za-z0-9]{2}\.[A-Za-z0-9]{2})[^A-Za-z0-9]+[Il1]?$'),
-    (Match match) => '${match.group(_regexGroupFirst)}${OcrTokens.theEnd}',
-  );
-  final Match? dateTokenMatch = RegExp(
-    r'\d{4}\.[A-Za-z0-9]{2}\.[A-Za-z0-9]{2}',
-  ).firstMatch(value);
-  if (dateTokenMatch != null) {
-    final String leading = value.substring(0, dateTokenMatch.start).trim();
-    final String dateToken = dateTokenMatch.group(0) ?? '';
-    final String suffix = value.substring(dateTokenMatch.end);
-    final String alnum = suffix.replaceAll(RegExp(r'[^A-Za-z0-9]'), '');
-    final bool mostlyNoise =
-        suffix.length >= _minimumNoisySuffixLength &&
-        RegExp(r"[{}\[\]|:'`,.]").hasMatch(suffix);
-    final bool tinyAlnum =
-        alnum.isEmpty ||
-        alnum == 'l' ||
-        alnum == 'L' ||
-        alnum == 'I' ||
-        alnum == '1';
-    if (leading.isEmpty && mostlyNoise && tinyAlnum && dateToken.isNotEmpty) {
-      value = '$dateToken${OcrTokens.theEnd}';
-    }
-  }
-
-  return value;
-}
-
-/// Converts a final noisy punctuation line after a date into a trailing token.
-String _normalizeTrailingDateNoise(String text) {
-  if (text.isEmpty) {
-    return text;
-  }
-
-  return text.replaceAllMapped(
-    RegExp(
-      r'(\d{4}\.[A-Za-z0-9]{2}\.[A-Za-z0-9]{2})\n[^\nA-Za-z0-9]*[Il1]?[^\nA-Za-z0-9]*$',
-    ),
-    (Match match) => '${match.group(_regexGroupFirst)}${OcrTokens.theEnd}',
-  );
 }
 
 /// Normalizes tiny noisy lines often produced by decorative serif fragments.
@@ -377,9 +316,7 @@ String _mergeLikelyWordFragments(String line) {
         (left.length <= _fragmentPairShortWordLength &&
             right.length <= _fragmentPairShortWordLength) ||
         (right.length == _regexGroupFirst &&
-            left.length <= _fragmentPairLeftLengthWhenRightSingle) ||
-        (left.length == _regexGroupFirst &&
-            right.length <= _fragmentPairRightLengthWhenLeftSingle);
+            left.length <= _fragmentPairLeftLengthWhenRightSingle);
     if (!likelyFragmentPair) {
       i++;
       continue;
@@ -459,21 +396,12 @@ List<String> _mergeNoiseLines(List<String> lines) {
   while (i < lines.length) {
     final String current = lines[i];
     if (_isNoiseLine(current)) {
-      final List<String> noise = <String>[];
       int j = i;
       while (j < lines.length && _isNoiseLine(lines[j])) {
-        noise.add(lines[j]);
         j++;
       }
 
-      if (j < lines.length) {
-        String next = lines[j];
-        final String prefix = _inferPrefixFromNoise(noise, next);
-        if (prefix.isNotEmpty) {
-          next = '$prefix$next';
-        }
-        lines[j] = next;
-      }
+      // Skip noise lines — no prefix inference
       i = j;
       continue;
     }
@@ -508,39 +436,6 @@ bool _isNoiseLine(String line) {
     }
   }
   return true;
-}
-
-/// Infers a missing leading letter from nearby vertical/horizontal noise marks.
-String _inferPrefixFromNoise(List<String> noiseLines, String nextLine) {
-  if (nextLine.isEmpty) {
-    return '';
-  }
-  final int firstCode = nextLine.codeUnitAt(0);
-  if (!_isLower(firstCode)) {
-    return '';
-  }
-
-  bool hasVertical = false;
-  bool hasHorizontal = false;
-  for (final String line in noiseLines) {
-    for (int i = 0; i < line.length; i++) {
-      final String ch = line[i];
-      if (_noiseVertical.contains(ch)) {
-        hasVertical = true;
-      }
-      if (_noiseHorizontal.contains(ch)) {
-        hasHorizontal = true;
-      }
-    }
-  }
-
-  if (hasVertical && hasHorizontal) {
-    return OcrTokens.prefixT;
-  }
-  if (hasVertical) {
-    return OcrTokens.upperI;
-  }
-  return '';
 }
 
 /// Collapses whitespace when text is dominated by punctuation artifacts.
@@ -663,7 +558,3 @@ const Set<String> _noisePunctuation = {
   '.',
   ',',
 };
-
-const Set<String> _noiseVertical = {'i', 'l', 'I', 'L', '|', '!'};
-
-const Set<String> _noiseHorizontal = {'*', '-', '_'};

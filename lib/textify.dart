@@ -10,6 +10,7 @@ import 'package:flutter/widgets.dart';
 import 'package:textify/artifact_analysis.dart';
 import 'package:textify/artifact_grid_transform.dart';
 import 'package:textify/artifact_morphology.dart';
+import 'package:textify/artifact_projection.dart';
 import 'package:textify/artifact_region.dart';
 import 'package:textify/bands.dart';
 import 'package:textify/char_utils.dart';
@@ -26,7 +27,6 @@ import 'package:textify/textify_post_process.dart';
 /// Processes images by identifying text regions, organizing them into lines (bands),
 /// and recognizing characters using template matching.
 class Textify {
-  static const double _dilationKernelRatio = 0.02;
   static const double _lowerRightStrokeSwapDelta = 0.06;
   static const double _lowercaseMToUAspectRatioThreshold = 1.05;
   static const double _lowercaseMUScoreDelta = 0.08;
@@ -35,7 +35,6 @@ class Textify {
   static const double _mergeScoreDelta = 0.05;
   static const double _mergeNarrowWidthRatio = 0.6;
   static const double _mergeMaxWidthRatio = 1.3;
-  static const double _mergeHScoreDelta = 0.08;
   static const int _weakArtifactMaxWidth = 10;
   static const double _structuralTieBreakDelta = 0.02;
   static const double _scoreEqualityTolerance = 1e-9;
@@ -178,9 +177,10 @@ class Textify {
   /// [matrixSourceImage] is the binary image to process.
   /// Updates internal state with found regions and text bands.
   ///
-  /// Processes an image to find text regions and organize them into lines.
-  ///
-  /// Steps: dilate image → find regions → group into text lines (bands)
+  /// Uses histogram projection (XY-cut) to segment the image:
+  /// 1. Horizontal projection finds text line rows
+  /// 2. Connected components within each line find individual characters
+  /// 3. Existing merge logic handles multi-component characters (i, j, etc.)
   void extractBandsAndArtifacts(final Artifact matrixSourceImage) {
     clear();
 
@@ -188,33 +188,56 @@ class Textify {
         ? matrixSourceImage.removeDecorativeLineComponents()
         : matrixSourceImage;
 
-    final int maxKernelSize = max(
-      1,
-      min(cleanedSourceImage.cols, cleanedSourceImage.rows),
-    );
-    final int kernelSize =
-        config.dilationSize == TextifyConfig.balanced.dilationSize
-        ? computeKernelSize(
-            cleanedSourceImage.cols,
-            cleanedSourceImage.rows,
-            _dilationKernelRatio,
-          )
-        : config.dilationSize.clamp(1, maxKernelSize);
-    final Artifact dilatedImage = dilateArtifact(
-      matrixImage: cleanedSourceImage,
-      kernelSize: kernelSize,
-    );
+    // Step 1: Find text lines via horizontal projection (replaces dilation)
+    final List<IntRect> textLineRects = findTextLineRects(cleanedSourceImage);
+    regionsFromDilated = textLineRects;
 
-    regionsFromDilated = dilatedImage.findSubRegions();
+    // Step 2: For each text line, use connected components to find characters
+    for (final IntRect lineRect in textLineRects) {
+      final Artifact lineArtifact = cleanedSourceImage.extractSubGrid(
+        rect: lineRect,
+      );
 
-    bands = Bands.getBandsOfArtifacts(
-      cleanedSourceImage,
-      regionsFromDilated,
-      innerSplit,
-    );
+      bands.add(
+        Band.splitArtifactIntoBand(
+          regionMatrix: lineArtifact,
+          offset: lineRect.topLeft,
+        ),
+      );
+    }
+
+    // Clean up bands
+    bands.removeEmptyBands();
+
+    for (final Band band in bands.list) {
+      for (final a in band.artifacts) {
+        a.locationAdjusted = IntOffset(a.locationFound.x, a.locationFound.y);
+      }
+      band.sortArtifactsLeftToRight();
+    }
+
+    Bands.sortVerticallyThenHorizontally(bands.list);
+
+    for (final Band band in bands.list) {
+      band.padVerticallyArtifactToMatchTheBand();
+      if (innerSplit) {
+        band.identifySuspiciousLargeArtifacts();
+      }
+      band.identifySpacesInBand();
+      band.packArtifactLeftToRight();
+    }
   }
 
+  /// Maximum number of candidates to run full Hamming comparison on.
+  static const int _histogramTopK = 15;
+
+  /// Confidence threshold below which the fallback expansion runs.
+  static const double _histogramFallbackThreshold = 0.6;
+
   /// Calculates similarity scores between a matrix and character templates.
+  ///
+  /// Uses histogram pre-ranking to limit expensive Hamming comparisons
+  /// to the top-K most promising candidates.
   ///
   /// [templates] are the character definitions to compare against.
   /// [inputMatrix] is the normalized character image.
@@ -223,15 +246,71 @@ class Textify {
     List<CharacterDefinition> templates,
     Artifact inputMatrix,
   ) {
-    final List<ScoreMatch> scores = [];
+    if (templates.isEmpty) {
+      return const [];
+    }
+
+    // Pre-rank by histogram similarity (cheap: 100 int comparisons each)
+    final List<int> inputColHist = _columnHistogram(inputMatrix);
+    final List<int> inputRowHist = _rowHistogram(inputMatrix);
+
+    final List<_HistogramRankedCandidate> ranked = [];
+    for (int i = 0; i < templates.length; i++) {
+      final double histScore = templates[i].histogramSimilarity(
+        inputColHist,
+        inputRowHist,
+      );
+      ranked.add(_HistogramRankedCandidate(index: i, histScore: histScore));
+    }
+    ranked.sort((a, b) => b.histScore.compareTo(a.histScore));
+
+    // Run Hamming on top-K candidates
+    final int firstBatch = min(_histogramTopK, ranked.length);
+    final List<ScoreMatch> scores = _hammingScoreBatch(
+      templates,
+      inputMatrix,
+      ranked,
+      0,
+      firstBatch,
+    );
+
+    scores.sort((a, b) => b.score.compareTo(a.score));
+
+    // Fallback: if best score is weak, expand to remaining candidates
+    if (scores.isNotEmpty &&
+        scores.first.score < _histogramFallbackThreshold &&
+        firstBatch < ranked.length) {
+      final List<ScoreMatch> fallbackScores = _hammingScoreBatch(
+        templates,
+        inputMatrix,
+        ranked,
+        firstBatch,
+        ranked.length,
+      );
+      scores.addAll(fallbackScores);
+      scores.sort((a, b) => b.score.compareTo(a.score));
+    }
+
+    return scores;
+  }
+
+  /// Runs Hamming distance comparison for a range of ranked candidates.
+  static List<ScoreMatch> _hammingScoreBatch(
+    List<CharacterDefinition> templates,
+    Artifact inputMatrix,
+    List<_HistogramRankedCandidate> ranked,
+    int startIndex,
+    int endIndex,
+  ) {
     final Artifact erodedInput = inputMatrix.erodeSoft();
-    // Calculate average score for each character definition
-    for (final CharacterDefinition template in templates) {
+    final List<ScoreMatch> scores = [];
+
+    for (int r = startIndex; r < endIndex; r++) {
+      final CharacterDefinition template = templates[ranked[r].index];
       double totalScore = 0;
       double bestScore = 0;
       int bestMatrixIndex = 0;
 
-      // Find best match and calculate total score
       for (int i = 0; i < template.matrices.length; i++) {
         final Artifact artifact = template.matrices[i];
         final double scoreOriginal =
@@ -256,7 +335,6 @@ class Textify {
         }
       }
 
-      // Calculate weighted score: 70% best match, 30% average across all templates
       final double avgScore = template.matrices.isEmpty
           ? 0
           : totalScore / template.matrices.length;
@@ -271,8 +349,33 @@ class Textify {
       );
     }
 
-    scores.sort((a, b) => b.score.compareTo(a.score));
     return scores;
+  }
+
+  /// Computes column histogram (pixel count per column) for an artifact.
+  static List<int> _columnHistogram(Artifact artifact) {
+    final List<int> hist = List<int>.filled(artifact.cols, 0);
+    for (int x = 0; x < artifact.cols; x++) {
+      for (int y = 0; y < artifact.rows; y++) {
+        if (artifact.cellGet(x, y)) {
+          hist[x]++;
+        }
+      }
+    }
+    return hist;
+  }
+
+  /// Computes row histogram (pixel count per row) for an artifact.
+  static List<int> _rowHistogram(Artifact artifact) {
+    final List<int> hist = List<int>.filled(artifact.rows, 0);
+    for (int y = 0; y < artifact.rows; y++) {
+      for (int x = 0; x < artifact.cols; x++) {
+        if (artifact.cellGet(x, y)) {
+          hist[y]++;
+        }
+      }
+    }
+    return hist;
   }
 
   /// Converts identified artifacts into text.
@@ -441,26 +544,6 @@ class Textify {
       return false;
     }
 
-    if (bestMergedMatch.character == 'H' || bestMergedMatch.character == 'h') {
-      band.artifacts[index] = merged;
-      band.artifacts.removeAt(index + 1);
-      return true;
-    }
-
-    ScoreMatch? hMatch;
-    for (final ScoreMatch score in mergedScores) {
-      if (score.character == 'H' || score.character == 'h') {
-        hMatch = score;
-        break;
-      }
-    }
-    if (hMatch != null &&
-        hMatch.score >= _mergeScoreThreshold &&
-        (bestMerged - hMatch.score) <= _mergeHScoreDelta) {
-      band.artifacts[index] = merged;
-      band.artifacts.removeAt(index + 1);
-      return true;
-    }
     if ((bestMerged - bestIndividual) < _mergeScoreDelta) {
       return false;
     }
@@ -708,4 +791,18 @@ class Textify {
         );
     return completer.future;
   }
+}
+
+/// Internal helper for histogram-based candidate ranking.
+class _HistogramRankedCandidate {
+  const _HistogramRankedCandidate({
+    required this.index,
+    required this.histScore,
+  });
+
+  /// Index into the qualified templates list.
+  final int index;
+
+  /// Histogram similarity score (0.0 to 1.0).
+  final double histScore;
 }

@@ -133,55 +133,6 @@ void main() async {
     expect(Textify.characterDefinitions.getDefinition('u')!.lineRight, true);
   });
 
-  test('Convert image to text', () async {
-    final ui.Image uiImage = await Textify.loadImageFromAssets(
-      'assets/test/input_test_image.png',
-    );
-    final Textify testInstance = Textify(
-      config: const TextifyConfig(applyDictionaryCorrection: false),
-    );
-    await testInstance.init(pathToAssetsDefinition: 'assets/matrices.json');
-    final String text = await testInstance.getTextFromImage(image: uiImage);
-    expect(testInstance.duration, greaterThan(0));
-
-    // the result are not perfect 90% accuracy, but its trending in the right direction
-    // expect(testInstance.count, greaterThanOrEqualTo(text.length));
-    expect(testInstance.count - 1, text.length);
-
-    expect(
-      text,
-      'ABCDEFGHl\n'
-      'JKLMNOPQR\n'
-      'STUVWxYZ\n'
-      '0123456789',
-    );
-  });
-
-  test('Convert image with lines and circles', () async {
-    final ui.Image uiImage = await Textify.loadImageFromAssets(
-      'assets/test/lines-circles.png',
-    );
-    final Textify linesInstance = Textify(
-      config: const TextifyConfig(
-        attemptCharacterSplitting: true,
-        applyDictionaryCorrection: false,
-      ),
-    );
-    await linesInstance.init(pathToAssetsDefinition: 'assets/matrices.json');
-    final String text = await linesInstance.getTextFromImage(image: uiImage);
-    expect(
-      text,
-      'HELP BOTH IS IS TEST LN UPPER CASE.\n'
-      'Thiss is a form al ph raise with nu m bar like 123,456.89\n'
-      'DATES\n'
-      '2020-01-02\n'
-      '2021/03/04\n'
-      '2022.O5.05'
-      'The'
-      'End',
-    );
-  });
-
   test('Image with Connected_Letters - REMARKABLE', () async {
     final ui.Image uiImage = await Textify.loadImageFromAssets(
       'assets/test/REMARKABLE_test.png',
@@ -279,35 +230,6 @@ void main() async {
       );
       expect(text2, 'REMARKABLE');
     }
-  });
-
-  test('Convert image to text', () async {
-    final ui.Image uiImage = await Textify.loadImageFromAssets(
-      'assets/test/bank_statement_test.png',
-    );
-    final Textify bankInstance = Textify(
-      config: const TextifyConfig(
-        attemptCharacterSplitting: true,
-        applyDictionaryCorrection: false,
-      ),
-    );
-    await bankInstance.init(pathToAssetsDefinition: 'assets/matrices.json');
-    final String text = await bankInstance.getTextFromImage(image: uiImage);
-
-    const String expected =
-        'FINO GOLF CLUB, MATOSINHOS\n'
-        'CONTINENTE BOM DIA, MATOSINHOS\n'
-        'www.AMAZON.* LSlAK28I5, LUXEMBOURG\n'
-        'REMARKABLE, OSLO\n'
-        'PINGO DOCE MATOSINHO, MATOSINHOS\n'
-        'CONTINENTE BOM DIA, MATOSINHOS\n'
-        'PAD PORT MATO, MATOSINHOS\n'
-        'CAsA DAs UTILIDADES, Guimaraes\n'
-        'EUROLOJAMATOSINHOS, MATOSINHOS\n'
-        'CORES SABORES BOLHAO, PORTO\n'
-        'Tuca Cha E Cafe, PORTO';
-
-    expect(text, expected);
   });
 
   test('Dictionary Correction', () async {

@@ -178,24 +178,6 @@ Future<Uint8List> imageToUint8List(final Image image) async {
   return data?.buffer.asUint8List() ?? Uint8List(0);
 }
 
-/// Computes the appropriate kernel size for dilation based on image dimensions.
-///
-/// This function calculates a kernel size proportional to the image dimensions,
-/// which is useful for morphological operations like dilation.
-///
-/// Parameters:
-/// - [width]: The width of the image in pixels.
-/// - [height]: The height of the image in pixels.
-/// - [scaleFactor]: A scaling factor that determines how the kernel size relates
-///   to image dimensions. Typically a small value (e.g., 0.01-0.05).
-///
-/// Returns:
-/// An integer representing the computed kernel size, clamped between 1 and the image width.
-int computeKernelSize(int width, int height, double scaleFactor) {
-  assert(height != 0);
-  return (scaleFactor * width).round().clamp(1, width);
-}
-
 /// Creates a new [Image] from a [Uint8List] of pixel data.
 ///
 /// This function takes a [Uint8List] containing the pixel data, the [width],

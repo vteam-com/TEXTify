@@ -421,30 +421,10 @@ class Band {
       final Artifact right = artifacts[i + 1];
 
       final int gap = right.rectFound.left - left.rectFound.right;
+      // When gap >= 0, rects cannot overlap horizontally so the tight-gap
+      // branch is a no-op. This guard runs only for non-negative small gaps.
       if (gap >= 0 && gap <= tightGapThreshold) {
-        final IntRect overlap = left.rectFound.intersect(right.rectFound);
-        if (!overlap.isEmpty) {
-          final int minHeight = min(
-            left.rectFound.height,
-            right.rectFound.height,
-          );
-          final double overlapRatio = minHeight == 0
-              ? 0
-              : overlap.height / minHeight;
-
-          final double narrowThreshold = averageWidth * _similarWidthLowerRatio;
-          final bool leftNarrow = left.rectFound.width <= narrowThreshold;
-          final bool rightNarrow = right.rectFound.width <= narrowThreshold;
-
-          if (overlapRatio >= _mergeOverlapThreshold &&
-              leftNarrow &&
-              rightNarrow) {
-            left.mergeArtifact(right);
-            artifacts.removeAt(i + 1);
-            clearStats();
-            continue;
-          }
-        }
+        // Future: consider vertical-overlap merging for split glyphs.
       }
       i++;
     }

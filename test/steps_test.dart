@@ -4,8 +4,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:textify/bands.dart';
 import 'package:textify/textify.dart';
-import 'package:textify/artifact_morphology.dart' as morphology;
-import 'package:textify/artifact_region.dart';
+import 'package:textify/artifact_grid_transform.dart';
+import 'package:textify/artifact_projection.dart';
 import 'package:textify/artifact_serialize.dart';
 import 'package:textify/models/textify_config.dart';
 import 'package:textify/image_helpers.dart';
@@ -167,29 +167,47 @@ Future<void> testFromImage(
   printMatrix(matrixSourceImage, printResuls);
 
   //
-  // Dilate
+  // Find text lines via horizontal projection
   //
-  int kernelSize =
-      dilateFactor ?? computeKernelSize(image.width, image.height, 0.02);
-
-  final Artifact imageAsMatrixDilated = morphology.dilateArtifact(
-    matrixImage: matrixSourceImage,
-    kernelSize: kernelSize,
-  );
-  expect(imageAsMatrixDilated.cols, image.width);
-  expect(imageAsMatrixDilated.rows, image.height);
-  printMatrix(imageAsMatrixDilated, printResuls);
+  final List<IntRect> textLineRects = findTextLineRects(matrixSourceImage);
+  expect(textLineRects.isNotEmpty, true);
 
   //
-  // Find the Artifacts in each regions
+  // For each text line, use connected components to find characters
   //
-  final List<IntRect> regions = imageAsMatrixDilated.findSubRegions();
+  Bands bands = Bands();
+  for (final IntRect lineRect in textLineRects) {
+    final Artifact lineArtifact = matrixSourceImage.extractSubGrid(
+      rect: lineRect,
+    );
 
-  Bands bands = Bands.getBandsOfArtifacts(
-    matrixSourceImage,
-    regions,
-    innerSplit,
-  );
+    bands.add(
+      Band.splitArtifactIntoBand(
+        regionMatrix: lineArtifact,
+        offset: lineRect.topLeft,
+      ),
+    );
+  }
+
+  bands.removeEmptyBands();
+
+  for (final Band band in bands.list) {
+    for (final a in band.artifacts) {
+      a.locationAdjusted = IntOffset(a.locationFound.x, a.locationFound.y);
+    }
+    band.sortArtifactsLeftToRight();
+  }
+
+  Bands.sortVerticallyThenHorizontally(bands.list);
+
+  for (final Band band in bands.list) {
+    band.padVerticallyArtifactToMatchTheBand();
+    if (innerSplit) {
+      band.identifySuspiciousLargeArtifacts();
+    }
+    band.identifySpacesInBand();
+    band.packArtifactLeftToRight();
+  }
 
   final stringInAllBands1 = bands.getText();
   expect(stringInAllBands1.trim(), isEmpty);

@@ -1,4 +1,4 @@
-import 'dart:io' show Platform;
+import 'dart:io' show Platform, stderr;
 import 'dart:math';
 import 'dart:ui' as ui;
 
@@ -22,6 +22,20 @@ class EvalCase {
   final String fontFamily;
   final double fontSize;
   final int padding;
+}
+
+class AssetEvalCase {
+  const AssetEvalCase({
+    required this.name,
+    required this.assetPath,
+    required this.expectedText,
+    this.splitting = false,
+  });
+
+  final String name;
+  final String assetPath;
+  final String expectedText;
+  final bool splitting;
 }
 
 Future<void> _loadFontIfAvailable(String family, String assetPath) async {
@@ -152,6 +166,33 @@ void _logEval(String message) {
   printOnFailure(message);
 }
 
+class _Score {
+  int expectedChars = 0;
+  int distance = 0;
+  int bands = 0;
+  int artifacts = 0;
+  int images = 0;
+
+  double get accuracy =>
+      expectedChars == 0 ? 0.0 : 1.0 - (distance / expectedChars);
+
+  void add(_Score other) {
+    expectedChars += other.expectedChars;
+    distance += other.distance;
+    bands += other.bands;
+    artifacts += other.artifacts;
+    images += other.images;
+  }
+
+  void record(Textify textify, String expected, String actual) {
+    images++;
+    expectedChars += expected.length;
+    distance += _levenshteinDistance(expected, actual);
+    bands += textify.bands.length;
+    artifacts += textify.bands.totalArtifacts;
+  }
+}
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -220,19 +261,72 @@ void main() {
     ),
   ];
 
+  final List<AssetEvalCase> assetCases = <AssetEvalCase>[
+    const AssetEvalCase(
+      name: 'input_test_image',
+      assetPath: 'assets/test/input_test_image.png',
+      expectedText:
+          'ABCDEFGHI\n'
+          'JKLMNOPQR\n'
+          'STUVWXYZ 0123456789',
+    ),
+    const AssetEvalCase(
+      name: 'the-quick-brown-fox',
+      assetPath: 'assets/test/the-quick-brown-fox.png',
+      expectedText:
+          'THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG\n'
+          'The quick brown fox jumps over the lazy dog\n'
+          '2025-12-31',
+    ),
+    const AssetEvalCase(
+      name: 'lines-circles',
+      assetPath: 'assets/test/lines-circles.png',
+      splitting: true,
+      expectedText:
+          'HELP BOTH IS IS TEST IN UPPER CASE.\n'
+          'This is a formal phrase with number like 123,456.89\n'
+          'DATES\n'
+          '2020-01-02\n'
+          '2021/03/04\n'
+          '2022.05.05\n'
+          'The\n'
+          'End',
+    ),
+    const AssetEvalCase(
+      name: 'bank_statement',
+      assetPath: 'assets/test/bank_statement_test.png',
+      splitting: true,
+      expectedText:
+          'FINO GOLF CLUB, MATOSINHOS\n'
+          'CONTINENTE BOM DIA, MATOSINHOS\n'
+          'www.AMAZON.* LSIAK28I5, LUXEMBOURG\n'
+          'REMARKABLE, OSLO\n'
+          'PINGO DOCE MATOSINHOS, MATOSINHOS\n'
+          'CONTINENTE BOM DIA, MATOSINHOS\n'
+          'PAD PORT MATO, MATOSINHOS\n'
+          'CASA DAS UTILIDADES, Guimaraes\n'
+          'EUROLOJA MATOSINHOS, MATOSINHOS\n'
+          'CORES SABORES BOLHAO, PORTO\n'
+          'Tuca Cha E Cafe, PORTO',
+    ),
+    const AssetEvalCase(
+      name: 'REMARKABLE',
+      assetPath: 'assets/test/REMARKABLE_test.png',
+      splitting: true,
+      expectedText: 'REMARKABLE',
+    ),
+  ];
+
   test('OCR evaluation (baseline)', () async {
     final Textify textify = await Textify(
       config: evalConfig,
     ).init(pathToAssetsDefinition: 'assets/matrices.json');
 
-    int totalExpectedChars = 0;
-    int totalDistance = 0;
-    int exactMatches = 0;
+    final _Score generatedScore = _Score();
+    final _Score assetScore = _Score();
+    final Stopwatch totalStopwatch = Stopwatch()..start();
 
-    _logEval('OCR Evaluation');
-    _logEval('Config: $evalConfig');
-    _logEval('Cases: ${cases.length}');
-    _logEval('---');
+    _logEval('--- Generated images ---');
 
     for (final EvalCase evalCase in cases) {
       final ui.Image image = await _renderTextImage(
@@ -242,48 +336,99 @@ void main() {
         padding: evalCase.padding,
       );
 
+      final Stopwatch sw = Stopwatch()..start();
       final String actualText = await textify.getTextFromImage(image: image);
-      final String expectedText = evalCase.text;
+      sw.stop();
 
-      final int distance = _levenshteinDistance(expectedText, actualText);
-      final int expectedLen = expectedText.length;
-      final int actualLen = actualText.length;
-      final double charAccuracy = expectedLen == 0
-          ? (actualLen == 0 ? 1.0 : 0.0)
-          : 1.0 - (distance / expectedLen);
+      generatedScore.record(textify, evalCase.text, actualText);
 
-      totalExpectedChars += expectedLen;
-      totalDistance += distance;
-      if (expectedText == actualText) {
-        exactMatches++;
-      }
-
-      final String expectedPreview = _shorten(_escapeVisible(expectedText));
-      final String actualPreview = _shorten(_escapeVisible(actualText));
-      final String exactLabel = expectedText == actualText ? 'yes' : 'no';
+      final String exactLabel = evalCase.text == actualText ? 'yes' : 'no';
 
       _logEval(
         '${evalCase.name} | font:${evalCase.fontFamily} ${evalCase.fontSize.toInt()}px '
-        '| expected:$expectedLen actual:$actualLen '
-        '| char-acc:${(charAccuracy * 100).toStringAsFixed(2)}% '
-        '| exact:$exactLabel',
+        '| expected:${evalCase.text.length} actual:${actualText.length} '
+        '| char-acc:${((1.0 - (_levenshteinDistance(evalCase.text, actualText) / evalCase.text.length)) * 100).toStringAsFixed(2)}% '
+        '| exact:$exactLabel'
+        '| ${sw.elapsedMilliseconds}ms',
       );
 
-      if (expectedText != actualText) {
-        _logEval('  expected: "$expectedPreview"');
-        _logEval('  actual:   "$actualPreview"');
+      if (evalCase.text != actualText) {
+        _logEval('  expected: "${_shorten(_escapeVisible(evalCase.text))}"');
+        _logEval('  actual:   "${_shorten(_escapeVisible(actualText))}"');
       }
     }
 
-    final double overallCharAccuracy = totalExpectedChars == 0
-        ? 0.0
-        : 1.0 - (totalDistance / totalExpectedChars);
-    final double exactRate = cases.isEmpty ? 0.0 : exactMatches / cases.length;
+    _logEval('--- Asset images ---');
+    for (final AssetEvalCase assetCase in assetCases) {
+      final ui.Image image = await Textify.loadImageFromAssets(
+        assetCase.assetPath,
+      );
+
+      final Textify assetTextify = Textify(
+        config: TextifyConfig(
+          applyDictionaryCorrection: false,
+          attemptCharacterSplitting: assetCase.splitting,
+        ),
+      );
+      await assetTextify.init(pathToAssetsDefinition: 'assets/matrices.json');
+
+      final Stopwatch sw = Stopwatch()..start();
+      final String actualText = await assetTextify.getTextFromImage(
+        image: image,
+      );
+      sw.stop();
+
+      assetScore.record(assetTextify, assetCase.expectedText, actualText);
+
+      final String exactLabel = assetCase.expectedText == actualText
+          ? 'yes'
+          : 'no';
+
+      _logEval(
+        '${assetCase.name} | asset'
+        ' | expected:${assetCase.expectedText.length} actual:${actualText.length}'
+        ' | char-acc:${((1.0 - (_levenshteinDistance(assetCase.expectedText, actualText) / assetCase.expectedText.length)) * 100).toStringAsFixed(2)}%'
+        ' | exact:$exactLabel'
+        ' | ${sw.elapsedMilliseconds}ms',
+      );
+
+      if (assetCase.expectedText != actualText) {
+        _logEval(
+          '  expected: "${_shorten(_escapeVisible(assetCase.expectedText))}"',
+        );
+        _logEval('  actual:   "${_shorten(_escapeVisible(actualText))}"');
+      }
+    }
+
+    totalStopwatch.stop();
+
+    final _Score total = _Score()
+      ..add(generatedScore)
+      ..add(assetScore);
 
     _logEval('---');
     _logEval(
-      'Overall char-accuracy: ${(overallCharAccuracy * 100).toStringAsFixed(2)}%',
+      'Generated: accuracy=${(generatedScore.accuracy * 100).toStringAsFixed(2)}%',
     );
-    _logEval('Exact-match rate: ${(exactRate * 100).toStringAsFixed(2)}%');
+    _logEval(
+      'Assets:    accuracy=${(assetScore.accuracy * 100).toStringAsFixed(2)}%',
+    );
+    _logEval(
+      'Overall:   accuracy=${(total.accuracy * 100).toStringAsFixed(2)}%',
+    );
+    _logEval('Total time: ${totalStopwatch.elapsedMilliseconds}ms');
+
+    // Always print summary so it's visible in normal test runs
+    stderr.writeln(
+      'OCR eval:'
+      ' generated=${(generatedScore.accuracy * 100).toStringAsFixed(1)}%'
+      ' assets=${(assetScore.accuracy * 100).toStringAsFixed(1)}%'
+      ' overall=${(total.accuracy * 100).toStringAsFixed(1)}%'
+      ' | images=${total.images}'
+      ' bands=${total.bands}'
+      ' artifacts=${total.artifacts}'
+      ' chars=${total.expectedChars}'
+      ' | ${totalStopwatch.elapsedMilliseconds}ms',
+    );
   });
 }

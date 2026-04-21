@@ -177,10 +177,10 @@
         <g id='Node_textify_config.dart'>
           <rect x="639" y="819" width="292" height="72" rx="8" ry="8" class="nodeFile"/>
         </g>
-        <g id='Node_int_offset.dart'>
+        <g id='Node_english_words.dart'>
           <rect x="189" y="899" width="292" height="72" rx="8" ry="8" class="nodeFile"/>
         </g>
-        <g id='Node_english_words.dart'>
+        <g id='Node_int_offset.dart'>
           <rect x="489" y="899" width="292" height="72" rx="8" ry="8" class="nodeFile"/>
         </g>
         <g id='Node_score_match.dart'>
@@ -364,7 +364,7 @@ character_definition.dart</title>
 ⬇
 char_utils.dart</title>
     </path>
-    <path d="M1215 440 C 1230 677,490 678, 505 915" fill="none" class="line">
+    <path d="M1215 440 C 1230 677,190 678, 205 915" fill="none" class="line">
       <title>correction.dart
 ⬇
 english_words.dart</title>
@@ -374,7 +374,7 @@ english_words.dart</title>
 ⬇
 int_rect.dart</title>
     </path>
-    <path d="M615 875 C 625 895,195 895, 205 915" fill="none" class="line">
+    <path d="M615 875 C 625 895,495 895, 505 915" fill="none" class="line">
       <title>int_rect.dart
 ⬇
 int_offset.dart</title>
@@ -388,6 +388,11 @@ constants.dart</title>
       <title>textify_post_process.dart
 ⬇
 correction.dart</title>
+    </path>
+    <path d="M1515 360 C 1533 637,187 638, 205 915" fill="none" class="line">
+      <title>textify_post_process.dart
+⬇
+english_words.dart</title>
     </path>
     <path d="M915 280 C 925 420,495 420, 505 560" fill="none" class="line">
       <title>textify.dart
@@ -594,11 +599,12 @@ artifact_morphology.dart</title>
       <g id='Counters_textify_post_process.dart'>
         <g>
           <circle cx="1515" cy="360" r="10" fill="green"/>
-          <text x="1515" y="360" fill="white" font-size="10" text-anchor="middle" dominant-baseline="central">2</text>
+          <text x="1515" y="360" fill="white" font-size="10" text-anchor="middle" dominant-baseline="central">3</text>
           <title>textify_post_process.dart
 ⬇
 1 /lib/constants.dart
-2 /lib/correction.dart</title>
+2 /lib/correction.dart
+3 /lib/models/english_words.dart</title>
         </g>
         <g>
           <circle cx="1255" cy="320" r="10" fill="blue"/>
@@ -852,23 +858,24 @@ int_rect.dart</title>
 textify_config.dart</title>
           </g>
         </g>
-        <g id='Counters_int_offset.dart'>
+        <g id='Counters_english_words.dart'>
           <g>
             <circle cx="205" cy="915" r="10" fill="blue"/>
             <text x="205" y="915" fill="white" font-size="10" text-anchor="middle" dominant-baseline="central">2</text>
+            <title>1 /lib/correction.dart
+2 /lib/textify_post_process.dart
+⬇
+english_words.dart</title>
+          </g>
+        </g>
+        <g id='Counters_int_offset.dart'>
+          <g>
+            <circle cx="505" cy="915" r="10" fill="blue"/>
+            <text x="505" y="915" fill="white" font-size="10" text-anchor="middle" dominant-baseline="central">2</text>
             <title>1 /lib/models/int_rect.dart
 2 /lib/models/int_rect.dart
 ⬇
 int_offset.dart</title>
-          </g>
-        </g>
-        <g id='Counters_english_words.dart'>
-          <g>
-            <circle cx="505" cy="915" r="10" fill="blue"/>
-            <text x="505" y="915" fill="white" font-size="10" text-anchor="middle" dominant-baseline="central">1</text>
-            <title>1 /lib/correction.dart
-⬇
-english_words.dart</title>
           </g>
         </g>
         <g id='Counters_score_match.dart'>
@@ -973,11 +980,11 @@ char_utils.dart</title>
         <g id='Labels_textify_config.dart'>
           <text class="nodeName" x="785" y="855" font-size="120%">textify_config.dart</text>
         </g>
-        <g id='Labels_int_offset.dart'>
-          <text class="nodeName" x="335" y="935" font-size="120%">int_offset.dart</text>
-        </g>
         <g id='Labels_english_words.dart'>
-          <text class="nodeName" x="635" y="935" font-size="120%">english_words.dart</text>
+          <text class="nodeName" x="335" y="935" font-size="120%">english_words.dart</text>
+        </g>
+        <g id='Labels_int_offset.dart'>
+          <text class="nodeName" x="635" y="935" font-size="120%">int_offset.dart</text>
         </g>
         <g id='Labels_score_match.dart'>
           <text class="nodeName" x="935" y="935" font-size="120%">score_match.dart</text>

@@ -277,14 +277,42 @@ double compareStringPercentage(String str1, String str2) {
     return 0.0;
   }
 
-  int minLength = str1.length < str2.length ? str1.length : str2.length;
-  int matchCount = 0;
+  final int distance = _levenshteinDistance(str1, str2);
+  final int maxLen = str1.length > str2.length ? str1.length : str2.length;
+  return ((1.0 - distance / maxLen) * 100).clamp(0.0, 100.0);
+}
 
-  for (int i = 0; i < minLength; i++) {
-    if (str1[i] == str2[i]) {
-      matchCount++;
-    }
+/// Calculates the minimum number of single-character edits (insertions,
+/// deletions, substitutions) needed to transform [a] into [b].
+int _levenshteinDistance(String a, String b) {
+  if (a == b) {
+    return 0;
+  }
+  if (a.isEmpty) {
+    return b.length;
+  }
+  if (b.isEmpty) {
+    return a.length;
   }
 
-  return (matchCount / str1.length) * 100;
+  final int m = a.length;
+  final int n = b.length;
+  List<int> previous = List<int>.generate(n + 1, (i) => i);
+  List<int> current = List<int>.filled(n + 1, 0);
+
+  for (int i = 1; i <= m; i++) {
+    current[0] = i;
+    for (int j = 1; j <= n; j++) {
+      final int cost = a[i - 1] == b[j - 1] ? 0 : 1;
+      current[j] = [
+        previous[j] + 1,
+        current[j - 1] + 1,
+        previous[j - 1] + cost,
+      ].reduce((a, b) => a < b ? a : b);
+    }
+    final List<int> temp = previous;
+    previous = current;
+    current = temp;
+  }
+  return previous[n];
 }

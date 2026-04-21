@@ -1,0 +1,77 @@
+00:00 +0: loading /Users/jp/src/github/vteam/textify/test/z_ocr_eval_test.dart
+00:00 +0: (setUpAll)
+00:00 +0: OCR evaluation (baseline)
+--- Generated images ---
+upper-alpha | font:Roboto 24px | expected:43 actual:43 | char-acc:100.00% | exact:yes| 88ms
+upper-alpha-helvetica | font:Helvetica 24px | expected:43 actual:44 | char-acc:95.35% | exact:no| 64ms
+  expected: "THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG"
+  actual:   "THE QUICK BROWN FOX JUMPS OVER THE LJXZY DOG"
+upper-alpha-arial | font:Arial 24px | expected:43 actual:44 | char-acc:79.07% | exact:no| 46ms
+  expected: "THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG"
+  actual:   "THE QulcK BROWN FOX JuMPs ovER THE [.AZY DOG"
+upper-alpha-times | font:Times New Roman 24px | expected:43 actual:48 | char-acc:53.49% | exact:no| 205ms
+  expected: "THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG"
+  actual:   "THE QMCK BROWN EOX clljml)s ov]zR cIzTJE LAZYDOG"
+lower-alpha | font:Roboto 24px | expected:43 actual:42 | char-acc:93.02% | exact:no| 32ms
+  expected: "the quick brown fox jumps over the lazy dog"
+  actual:   "The qulck brown foxjumps over the lazy dog"
+digits | font:Courier 24px | expected:10 actual:10 | char-acc:90.00% | exact:no| 24ms
+  expected: "0123456789"
+  actual:   "0123456759"
+mixed-1 | font:Courier 24px | expected:14 actual:13 | char-acc:85.71% | exact:no| 26ms
+  expected: "INV-2025/12/31"
+  actual:   "INV2o25/12/31"
+punctuation | font:Courier 24px | expected:24 actual:23 | char-acc:75.00% | exact:no| 48ms
+  expected: "(){}[]<>/\,;:.!@#$&*-+=?"
+  actual:   "(){}[]<>/\';I.le#*&*+=?"
+multi-line | font:Roboto 22px | expected:36 actual:36 | char-acc:94.44% | exact:no| 66ms
+  expected: "Order: 12345\nTotal: 67.89\nStatus: OK"
+  actual:   "Order: 12345\nTotal: 67.89\nStatusr oK"
+--- Asset images ---
+input_test_image | asset | expected:39 actual:39 | char-acc:100.00% | exact:yes | 122ms
+the-quick-brown-fox | asset | expected:98 actual:98 | char-acc:98.98% | exact:no | 197ms
+  expected: "THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG\nThe quick brown fox jumps over the lazy dog\n2025-12-31"
+  actual:   "THE QUTCK BROWN FOX JUMPS OVER THE LAZY DOG\nThe quick brown fox jumps over the lazy dog\n2025-12-31"
+lines-circles | asset | expected:134 actual:145 | char-acc:79.10% | exact:no | 350ms
+  expected: "HELLO THIS IS A TEST IN UPPER CASE.\nThis is a normal phrase with number like 123,456.89\nDATES\n2020-01-02\n2021/03/..."
+  actual:   "HELP BOTH LS LS TEST LN UPPER CASE.\nThiss is a form al ph raise with nu m bar like 123,456.89\nDATES\n2020-01-02\n20..."
+bank_statement | asset | expected:314 actual:312 | char-acc:99.36% | exact:no | 452ms
+  expected: "FINO GOLF CLUB, MATOSINHOS\nCONTINENTE BOM DIA, MATOSINHOS\nwww.AMAZON.* LSIAK28I5, LUXEMBOURG\nREMARKABLE, OSLO\nPIN..."
+  actual:   "FINO GOLF CLUB, MATOSINHOS\nCONTINENTE BOM DIA, MATOSINHOS\nwww.AMAZON.* LSIAK28I5, LUXEMBOURG\nREMARKABLE, OSLO\nPIN..."
+REMARKABLE | asset | expected:10 actual:10 | char-acc:100.00% | exact:yes | 77ms
+address-block | asset | expected:53 actual:54 | char-acc:98.11% | exact:no | 46ms
+  expected: "350 MAIN STREET\nSAN FRANCISCO, CA 94105\nUNITED STATES"
+  actual:   "350 MAIN STREET\nSAN FRANCISCO, CA 941.05\nUNITED STATES"
+receipt-items | asset | expected:76 actual:71 | char-acc:67.11% | exact:no | 184ms
+  expected: "ITEM QTY PRICE\nWidget A 3 12.99\nWidget B 1 7.50\nGadget C 2 24.00\nTOTAL 57.48"
+  actual:   "ltzx QTY prlcz\nWidgefa 312.99\nWidgefs t 7.50\nCadgefc 224-00\nTOTAL 57,45"
+mixed-case-sentence | asset | expected:61 actual:61 | char-acc:91.80% | exact:no | 57ms
+  expected: "OpenAI Released GPT In 2020.\nVersion 4 Arrived In March 2023."
+  actual:   "OpenAl Released GPT ln 2020.\nVerslon 4 Arrlved ln March 2023."
+single-line-large | asset | expected:20 actual:22 | char-acc:90.00% | exact:no | 33ms
+  expected: "WAREHOUSE PICKUP 9AM"
+  actual:   "WAREH OUSE PICKU P 9AM"
+numbers-grid | asset | expected:44 actual:40 | char-acc:81.82% | exact:no | 172ms
+  expected: "1001 2002 3003\n4004 5005 6006\n7007 8008 9009"
+  actual:   "LOOL 2002 3003\n400450056006\n700780089009"
+small-text-dense | asset | expected:88 actual:85 | char-acc:79.55% | exact:no | 259ms
+  expected: "Name: John Smith\nDate: 2025-06-15\nReference: TX-98432\nAmount: 1,250.75\nStatus: CONFIRMED"
+  actual:   "Name:John Smlth\nOate: zoz5-06-15\nReference:Tx-98432\nAmount:],z5o.75\nStatus: coNrlRMFo"
+uppercase-short-words | asset | expected:40 actual:40 | char-acc:100.00% | exact:yes | 32ms
+title-case-names | asset | expected:40 actual:42 | char-acc:85.00% | exact:no | 73ms
+  expected: "Alice Johnson\nBob Williams\nCharlie Brown"
+  actual:   "Alice Jol]JlSon\nBob williams\nCharlie Brown"
+codes-and-ids | asset | expected:56 actual:56 | char-acc:82.14% | exact:no | 98ms
+  expected: "ORD-20250615-0042\nSKU: AB12CD34EF56\nLOT: 2025/Q2/BATCH07"
+  actual:   "ORD+20250615+0042\nSKUI ABI2cD34zP56\nLOTI 2025/Q2/BATcHo7"
+paragraph-helvetica | asset | expected:90 actual:90 | char-acc:85.56% | exact:no | 148ms
+  expected: "Payment received on 03/15/2025.\nYour balance is now 0.00 USD.\nThank you for your purchase."
+  actual:   "Paymont rocolvod on 03/15/2025.\nYour balanco IS now O.OO USD.\nThank you tor your purchaso."
+---
+Generated: accuracy=84.95%
+Assets:    accuracy=89.77%
+Overall:   accuracy=88.78%
+Total time: 3205ms
+Shell: OCR eval: generated=84.9% assets=89.8% overall=88.8% | images=24 bands=67 artifacts=1518 chars=1462 | 3205ms
+00:03 +1: (tearDownAll)
+00:03 +1: All tests passed!

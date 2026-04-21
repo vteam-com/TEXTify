@@ -283,8 +283,8 @@ void main() {
       assetPath: 'assets/test/lines-circles.png',
       splitting: true,
       expectedText:
-          'HELP BOTH IS IS TEST IN UPPER CASE.\n'
-          'This is a formal phrase with number like 123,456.89\n'
+          'HELLO THIS IS A TEST IN UPPER CASE.\n'
+          'This is a normal phrase with number like 123,456.89\n'
           'DATES\n'
           '2020-01-02\n'
           '2021/03/04\n'
@@ -314,6 +314,86 @@ void main() {
       assetPath: 'assets/test/REMARKABLE_test.png',
       splitting: true,
       expectedText: 'REMARKABLE',
+    ),
+    // --- 10 generated test images ---
+    const AssetEvalCase(
+      name: 'address-block',
+      assetPath: 'assets/test/address-block.png',
+      expectedText:
+          '350 MAIN STREET\n'
+          'SAN FRANCISCO, CA 94105\n'
+          'UNITED STATES',
+    ),
+    const AssetEvalCase(
+      name: 'receipt-items',
+      assetPath: 'assets/test/receipt-items.png',
+      expectedText:
+          'ITEM QTY PRICE\n'
+          'Widget A 3 12.99\n'
+          'Widget B 1 7.50\n'
+          'Gadget C 2 24.00\n'
+          'TOTAL 57.48',
+    ),
+    const AssetEvalCase(
+      name: 'mixed-case-sentence',
+      assetPath: 'assets/test/mixed-case-sentence.png',
+      expectedText:
+          'OpenAI Released GPT In 2020.\n'
+          'Version 4 Arrived In March 2023.',
+    ),
+    const AssetEvalCase(
+      name: 'single-line-large',
+      assetPath: 'assets/test/single-line-large.png',
+      expectedText: 'WAREHOUSE PICKUP 9AM',
+    ),
+    const AssetEvalCase(
+      name: 'numbers-grid',
+      assetPath: 'assets/test/numbers-grid.png',
+      expectedText:
+          '1001 2002 3003\n'
+          '4004 5005 6006\n'
+          '7007 8008 9009',
+    ),
+    const AssetEvalCase(
+      name: 'small-text-dense',
+      assetPath: 'assets/test/small-text-dense.png',
+      expectedText:
+          'Name: John Smith\n'
+          'Date: 2025-06-15\n'
+          'Reference: TX-98432\n'
+          'Amount: 1,250.75\n'
+          'Status: CONFIRMED',
+    ),
+    const AssetEvalCase(
+      name: 'uppercase-short-words',
+      assetPath: 'assets/test/uppercase-short-words.png',
+      expectedText:
+          'GO BIG OR GO HOME\n'
+          'BE THE BEST YOU CAN BE',
+    ),
+    const AssetEvalCase(
+      name: 'title-case-names',
+      assetPath: 'assets/test/title-case-names.png',
+      expectedText:
+          'Alice Johnson\n'
+          'Bob Williams\n'
+          'Charlie Brown',
+    ),
+    const AssetEvalCase(
+      name: 'codes-and-ids',
+      assetPath: 'assets/test/codes-and-ids.png',
+      expectedText:
+          'ORD-20250615-0042\n'
+          'SKU: AB12CD34EF56\n'
+          'LOT: 2025/Q2/BATCH07',
+    ),
+    const AssetEvalCase(
+      name: 'paragraph-helvetica',
+      assetPath: 'assets/test/paragraph-helvetica.png',
+      expectedText:
+          'Payment received on 03/15/2025.\n'
+          'Your balance is now 0.00 USD.\n'
+          'Thank you for your purchase.',
     ),
   ];
 

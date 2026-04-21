@@ -31,6 +31,10 @@ class Textify {
   static const double _lowercaseMToUAspectRatioThreshold = 1.05;
   static const double _lowercaseMUScoreDelta = 0.08;
   static const int _lowercaseMToUStemThreshold = 2;
+  static const double _letterOverPunctuationDelta = 0.05;
+  static const double _letterDominanceRatio = 0.6;
+  static const double _bandContextPromotionDelta = 0.22;
+  static const int _mergeGapWidthDivisor = 2;
   static const double _mergeScoreThreshold = 0.6;
   static const double _mergeScoreDelta = 0.05;
   static const double _mergeNarrowWidthRatio = 0.6;
@@ -459,6 +463,8 @@ class Textify {
 
       // Build the final line from processed artifacts
       band.sortArtifactsLeftToRight();
+      _reMergeConsecutiveVerticalStrokes(band);
+      _refinePunctuationInLetterContext(band);
       for (final Artifact artifact in band.artifacts) {
         line += artifact.matchingCharacter;
       }
@@ -511,7 +517,7 @@ class Textify {
         (current.rectFound.width + next.rectFound.width + gap) <=
             (avgWidth * _mergeMaxWidthRatio);
 
-    if (!lineLikePair && !narrowPair && !widthEligible) {
+    if (!lineLikePair && !narrowPair && !widthEligible && gap > 1) {
       return false;
     }
 
@@ -620,6 +626,7 @@ class Textify {
 
     scores.sort((a, b) => b.score.compareTo(a.score));
     _applyStructuralTieBreak(scores, structuralMatchByCharacter);
+    _promoteLetterOverPunctuation(scores);
     if (resizedArtifact.hasLowerRightStroke()) {
       _promoteRWhenLowerRightStroke(scores);
     }
@@ -776,6 +783,158 @@ class Textify {
       scores.insert(0, u);
     }
   }
+
+  /// Prefers a letter over punctuation/symbol when scores are close.
+  ///
+  /// Text images overwhelmingly contain letters. When a bracket or symbol
+  /// wins by a tiny margin over a letter with matching structural features,
+  /// the letter is almost always the correct reading.
+  static void _promoteLetterOverPunctuation(List<ScoreMatch> scores) {
+    if (scores.length < _minimumTieBreakCandidates) {
+      return;
+    }
+
+    final ScoreMatch top = scores.first;
+    if (isLetter(top.character) || isDigit(top.character)) {
+      return;
+    }
+
+    // Top is punctuation/symbol — look for a close letter alternative
+    for (int i = 1; i < scores.length; i++) {
+      final ScoreMatch candidate = scores[i];
+      if ((top.score - candidate.score) > _letterOverPunctuationDelta) {
+        break;
+      }
+      if (isLetter(candidate.character)) {
+        final ScoreMatch letter = scores.removeAt(i);
+        scores.insert(0, letter);
+        return;
+      }
+    }
+  }
+
+  /// Re-evaluates punctuation/symbol matches when surrounded by letters.
+  ///
+  /// When a band is dominated by letter characters, isolated punctuation
+  /// matches are likely OCR misreads. This pass re-scores those artifacts
+  /// and promotes the best letter alternative if one exists.
+  void _refinePunctuationInLetterContext(Band band) {
+    final List<Artifact> artifacts = band.artifacts;
+    if (artifacts.length < _minimumTieBreakCandidates) {
+      return;
+    }
+
+    // Count how many matched characters are letters
+    int letterCount = 0;
+    for (final Artifact a in artifacts) {
+      if (isLetter(a.matchingCharacter)) {
+        letterCount++;
+      }
+    }
+
+    // Only act when band is predominantly letters
+    if (letterCount < artifacts.length * _letterDominanceRatio) {
+      return;
+    }
+
+    for (int i = 0; i < artifacts.length; i++) {
+      final Artifact artifact = artifacts[i];
+      if (isLetter(artifact.matchingCharacter) ||
+          isDigit(artifact.matchingCharacter) ||
+          artifact.matchingCharacter == ' ' ||
+          _isVerticalStrokeChar(artifact.matchingCharacter)) {
+        continue;
+      }
+
+      // Check if neighbors are letters
+      final bool leftIsLetter =
+          i > 0 && isLetter(artifacts[i - 1].matchingCharacter);
+      final bool rightIsLetter =
+          i < artifacts.length - 1 &&
+          isLetter(artifacts[i + 1].matchingCharacter);
+      if (!leftIsLetter && !rightIsLetter) {
+        continue;
+      }
+
+      // Re-score and pick best letter only if competitive with original
+      final double originalScore = artifact.matchingScore;
+      final List<ScoreMatch> scores = getMatchingScoresOfNormalizedMatrix(
+        artifact,
+      );
+      for (final ScoreMatch score in scores) {
+        if (isLetter(score.character) &&
+            (originalScore - score.score) <= _bandContextPromotionDelta) {
+          artifact.matchingCharacter = score.character;
+          artifact.matchingScore = score.score;
+          break;
+        }
+      }
+    }
+  }
+
+  /// Re-merges consecutive narrow vertical-stroke artifacts (e.g. two 'I's)
+  /// that may be halves of a split character like 'H'.
+  ///
+  /// After matching, two narrow artifacts both scoring as 'I' may actually
+  /// be a single character whose crossbar was too faint to connect them.
+  /// This pass tries merging each pair and accepts if the merged score
+  /// is better than either individual.
+  void _reMergeConsecutiveVerticalStrokes(Band band) {
+    final int avgWidth = band.averageWidth;
+    if (avgWidth <= 0) {
+      return;
+    }
+
+    for (int i = 0; i < band.artifacts.length - 1; i++) {
+      final Artifact current = band.artifacts[i];
+      final Artifact next = band.artifacts[i + 1];
+
+      if (!_isVerticalStrokeChar(current.matchingCharacter) ||
+          !_isVerticalStrokeChar(next.matchingCharacter)) {
+        continue;
+      }
+
+      // Both must be narrow relative to the band average
+      if (current.rectFound.width > avgWidth * _mergeNarrowWidthRatio ||
+          next.rectFound.width > avgWidth * _mergeNarrowWidthRatio) {
+        continue;
+      }
+
+      // Gap must be reasonable
+      final int gap = next.rectFound.left - current.rectFound.right;
+      if (gap < 0 || gap > avgWidth ~/ _mergeGapWidthDivisor) {
+        continue;
+      }
+
+      final Artifact merged = Artifact.fromMatrix(current);
+      merged.mergeArtifact(next);
+
+      final List<ScoreMatch> mergedScores = getMatchingScoresOfNormalizedMatrix(
+        merged,
+      );
+      if (mergedScores.isEmpty ||
+          mergedScores.first.score < _mergeScoreThreshold) {
+        continue;
+      }
+
+      // Only accept if the merged result is a different character
+      if (mergedScores.first.character == 'I') {
+        continue;
+      }
+
+      // Accept the merge
+      merged.matchingCharacter = mergedScores.first.character;
+      merged.matchingScore = mergedScores.first.score;
+      band.artifacts[i] = merged;
+      band.artifacts.removeAt(i + 1);
+      i--; // Re-check from same position
+    }
+  }
+
+  /// Whether a character is a vertical-stroke glyph (I, l, |, 1) that could
+  /// be half of a split two-stroke character like 'H'.
+  static bool _isVerticalStrokeChar(String ch) =>
+      ch == 'I' || ch == 'l' || ch == '|' || ch == '1' || ch == ']';
 
   /// Loads an image from the asset bundle.
   ///

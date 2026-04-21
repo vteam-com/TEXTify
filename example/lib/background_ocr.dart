@@ -6,22 +6,18 @@ import 'package:flutter/foundation.dart';
 import 'package:textify/artifact.dart';
 import 'package:textify/artifact_morphology.dart' as morphology;
 import 'package:textify/artifact_region.dart';
-import 'package:textify/models/int_rect.dart';
+import 'package:textify/image_helpers.dart';
 import 'package:textify/models/textify_config.dart';
 import 'package:textify/textify.dart';
 
 const int _bytesPerPixel = 4;
 const int _maxChannelValue = 255;
-const int _grayscaleLevels = 256;
-const int _grayscaleMidpoint = 128;
 const int _channelOffsetRed = 0;
 const int _channelOffsetGreen = 1;
 const int _channelOffsetBlue = 2;
 const double _redLumaWeight = 0.299;
 const double _greenLumaWeight = 0.587;
 const double _blueLumaWeight = 0.114;
-const int _matrixCellOff = 0;
-const int _matrixCellOn = 1;
 
 class StepProcessingResult {
   const StepProcessingResult({
@@ -147,85 +143,42 @@ Artifact _artifactFromRgbaBytes(Uint8List rgbaBytes, int width, int height) {
     );
   }
 
-  final Uint8List grayscale = Uint8List(pixelCount);
-  final List<int> histogram = List<int>.filled(_grayscaleLevels, 0);
-  int sumAll = 0;
-
-  int rgbaIndex = 0;
-  for (int pixel = 0; pixel < pixelCount; pixel++) {
-    final int r = rgbaBytes[rgbaIndex + _channelOffsetRed];
-    final int g = rgbaBytes[rgbaIndex + _channelOffsetGreen];
-    final int b = rgbaBytes[rgbaIndex + _channelOffsetBlue];
-    rgbaIndex += _bytesPerPixel;
+  // Convert to grayscale in RGBA format (matching imageToBlackOnWhite path)
+  final Uint8List grayscaleRgba = Uint8List(expectedBytes);
+  for (int i = 0; i < expectedBytes; i += _bytesPerPixel) {
+    final int r = rgbaBytes[i + _channelOffsetRed];
+    final int g = rgbaBytes[i + _channelOffsetGreen];
+    final int b = rgbaBytes[i + _channelOffsetBlue];
 
     final int gray =
         (_redLumaWeight * r + _greenLumaWeight * g + _blueLumaWeight * b)
             .toInt()
             .clamp(0, _maxChannelValue);
-    grayscale[pixel] = gray;
-    histogram[gray] += 1;
-    sumAll += gray;
+    grayscaleRgba[i + _channelOffsetRed] = gray;
+    grayscaleRgba[i + _channelOffsetGreen] = gray;
+    grayscaleRgba[i + _channelOffsetBlue] = gray;
+    grayscaleRgba[i + 3] = _maxChannelValue;
   }
 
-  final int threshold = _computeOtsuThreshold(
-    histogram: histogram,
-    totalPixels: pixelCount,
-    sumAll: sumAll,
+  // Use the same threshold algorithm as the library
+  final int threshold = computeAdaptiveThreshold(
+    grayscaleRgba,
+    width,
+    height,
   );
 
-  final Uint8List binaryMatrix = Uint8List(pixelCount);
-  for (int pixel = 0; pixel < pixelCount; pixel++) {
-    binaryMatrix[pixel] =
-        grayscale[pixel] > threshold ? _matrixCellOff : _matrixCellOn;
+  // Apply binary threshold and create Artifact via the same path
+  final Uint8List bwPixels = Uint8List(expectedBytes);
+  for (int i = 0; i < expectedBytes; i += _bytesPerPixel) {
+    final int gray = grayscaleRgba[i];
+    final int newColor = gray > threshold ? _maxChannelValue : 0;
+    bwPixels[i + _channelOffsetRed] = newColor;
+    bwPixels[i + _channelOffsetGreen] = newColor;
+    bwPixels[i + _channelOffsetBlue] = newColor;
+    bwPixels[i + 3] = _maxChannelValue;
   }
 
-  final Artifact artifact = Artifact(width, height);
-  artifact.setGrid(binaryMatrix, width);
-  return artifact;
-}
-
-int _computeOtsuThreshold({
-  required List<int> histogram,
-  required int totalPixels,
-  required int sumAll,
-}) {
-  if (totalPixels == 0) {
-    return _grayscaleMidpoint;
-  }
-
-  int sumBackground = 0;
-  int weightBackground = 0;
-  double maxBetween = -1;
-  int bestThreshold = _grayscaleMidpoint;
-
-  for (int threshold = 0; threshold < _grayscaleLevels; threshold++) {
-    weightBackground += histogram[threshold];
-    if (weightBackground == 0) {
-      continue;
-    }
-
-    final int weightForeground = totalPixels - weightBackground;
-    if (weightForeground == 0) {
-      break;
-    }
-
-    sumBackground += threshold * histogram[threshold];
-    final int sumForeground = sumAll - sumBackground;
-
-    final double meanBackground = sumBackground / weightBackground;
-    final double meanForeground = sumForeground / weightForeground;
-    final double between = weightBackground *
-        weightForeground *
-        (meanBackground - meanForeground) *
-        (meanBackground - meanForeground);
-
-    if (between > maxBetween) {
-      maxBetween = between;
-      bestThreshold = threshold;
-    }
-  }
-
-  return bestThreshold;
+  return Artifact.fromUint8List(bwPixels, width);
 }
 
 List<List<int>> _getHistograms(Artifact binaryImage, List<IntRect> regions) {

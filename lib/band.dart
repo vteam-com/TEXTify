@@ -43,7 +43,13 @@ class Band {
   static const double _spaceMinWidthRatio = 0.4;
   static const double _spaceGapJumpRatio = 1.8;
   static const int _gapMidpointDivisor = 2;
+  static const double _maxJumpThresholdWidthRatio = 2.0;
+  static const int _minGapsForJumpCap = 4;
+  static const int _maxIntValue = 0x7FFFFFFF;
   static const int _maxDistanceSentinel = 1 << 30;
+  static const double _tightGapMinVerticalOverlapRatio = 0.75;
+  static const double _tightGapMaxMergedWidthRatio = 1.2;
+  static const double _tightGapSmallToLargeAreaRatio = 0.45;
 
   static const double _mergeOverlapThreshold = 0.8;
 
@@ -421,13 +427,43 @@ class Band {
       final Artifact right = artifacts[i + 1];
 
       final int gap = right.rectFound.left - left.rectFound.right;
-      // When gap >= 0, rects cannot overlap horizontally so the tight-gap
-      // branch is a no-op. This guard runs only for non-negative small gaps.
       if (gap >= 0 && gap <= tightGapThreshold) {
-        // Future: consider vertical-overlap merging for split glyphs.
+        final IntRect overlap = left.rectFound.intersect(right.rectFound);
+        final int overlapHeight = overlap.isEmpty ? 0 : overlap.height;
+        final int minHeight = min(
+          left.rectFound.height,
+          right.rectFound.height,
+        );
+        final double verticalOverlapRatio = minHeight <= 0
+            ? 0
+            : overlapHeight / minHeight;
+
+        final int leftArea = left.rectFound.width * left.rectFound.height;
+        final int rightArea = right.rectFound.width * right.rectFound.height;
+        final int smallerArea = min(leftArea, rightArea);
+        final int largerArea = max(leftArea, rightArea);
+        final double areaRatio = largerArea <= 0 ? 0 : smallerArea / largerArea;
+
+        final int mergedWidth = right.rectFound.right - left.rectFound.left;
+        final bool widthAcceptable =
+            mergedWidth <= (averageWidth * _tightGapMaxMergedWidthRatio);
+        final bool tinyAttachment =
+            areaRatio <= _tightGapSmallToLargeAreaRatio ||
+            left.discardableContent() ||
+            right.discardableContent();
+
+        if (verticalOverlapRatio >= _tightGapMinVerticalOverlapRatio &&
+            widthAcceptable &&
+            tinyAttachment) {
+          left.mergeArtifact(right);
+          artifacts.removeAt(i + 1);
+          continue;
+        }
       }
       i++;
     }
+
+    clearStats();
   }
 
   /// Merges discardable artifacts (tiny or line-like) into nearby neighbors
@@ -696,46 +732,35 @@ class Band {
     }
 
     gaps.sort();
-    final int jumpThreshold = _tryJumpThreshold(gaps);
+
+    // Cap the jump threshold at a reasonable multiple of average character width.
+    // Multi-scale gap distributions (e.g., monospace text with 1-, 2-, and 6-space
+    // gaps) can cause the algorithm to pick the top-end jump, producing an
+    // unreasonably high threshold that misses smaller but valid spaces.
+    // Only apply the cap when there are enough gaps for the median-based
+    // fallback to produce a reliable threshold.
+    final int maxReasonable = max(
+      _minSpaceWidth,
+      (averageWidth * _maxJumpThresholdWidthRatio).round(),
+    );
+    final int jumpThreshold = tryJumpThreshold(gaps, maxReasonable);
     if (jumpThreshold > 0) {
       return max(_minSpaceWidth, jumpThreshold);
+    }
+
+    // If the uncapped best jump is valid but exceeded the cap,
+    // and we have very few gaps (cap may be unreliable), accept it.
+    if (gaps.length < _minGapsForJumpCap) {
+      final int uncapped = tryJumpThreshold(gaps, _maxIntValue);
+      if (uncapped > 0) {
+        return max(_minSpaceWidth, uncapped);
+      }
     }
 
     final int medianGap = gaps[gaps.length ~/ 2];
     final int thresholdFromGaps = (medianGap * _spaceMedianMultiplier).round();
     final int thresholdFromWidth = (averageWidth * _spaceMinWidthRatio).round();
     return max(_minSpaceWidth, max(thresholdFromGaps, thresholdFromWidth));
-  }
-
-  /// Returns a threshold when sorted gaps show a clear jump in spacing.
-  static int _tryJumpThreshold(List<int> gaps) {
-    if (gaps.length < _minArtifactsForSpaceDetection) {
-      return 0;
-    }
-
-    double bestRatio = 1.0;
-    int bestIndex = -1;
-
-    for (int i = 1; i < gaps.length; i++) {
-      final int prev = gaps[i - 1];
-      final int current = gaps[i];
-      if (prev <= 0) {
-        continue;
-      }
-
-      final double ratio = current / prev;
-      if (ratio > bestRatio) {
-        bestRatio = ratio;
-        bestIndex = i;
-      }
-    }
-
-    if (bestIndex < 0 || bestRatio < _spaceGapJumpRatio) {
-      return 0;
-    }
-
-    return ((gaps[bestIndex - 1] + gaps[bestIndex]) / _gapMidpointDivisor)
-        .round();
   }
 
   /// Inserts a space artifact at a specified position in the artifacts list.
@@ -908,4 +933,49 @@ class Band {
 
     return title;
   }
+}
+
+/// Returns a threshold when sorted gaps show a clear jump in spacing.
+///
+/// Finds the largest ratio jump in the sorted gaps where the resulting
+/// threshold does not exceed [maxThreshold]. This prevents multi-scale gap
+/// distributions from pushing the threshold too high.
+int tryJumpThreshold(
+  List<int> gaps,
+  int maxThreshold, {
+  int minGapCount = Band._minArtifactsForSpaceDetection,
+  double minJumpRatio = Band._spaceGapJumpRatio,
+  int midpointDivisor = Band._gapMidpointDivisor,
+}) {
+  if (gaps.length < minGapCount) {
+    return 0;
+  }
+
+  double bestRatio = 1.0;
+  int bestIndex = -1;
+
+  for (int i = 1; i < gaps.length; i++) {
+    final int prev = gaps[i - 1];
+    final int current = gaps[i];
+    if (prev <= 0) {
+      continue;
+    }
+
+    final double ratio = current / prev;
+    if (ratio <= bestRatio) {
+      continue;
+    }
+
+    final int candidate = ((prev + current) / midpointDivisor).round();
+    if (candidate <= maxThreshold) {
+      bestRatio = ratio;
+      bestIndex = i;
+    }
+  }
+
+  if (bestIndex < 0 || bestRatio < minJumpRatio) {
+    return 0;
+  }
+
+  return ((gaps[bestIndex - 1] + gaps[bestIndex]) / midpointDivisor).round();
 }

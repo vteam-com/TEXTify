@@ -42,4 +42,4 @@ These constraints mean:
 
 - Test Coverage must not regress, its currently at 99% (update this value if it improves)
 - test result shall be capture in the file test_resutl_<current_version>.txt
-- compare new result Overall char-accuracy: 81% with previouse the result should improve (update this value if it improves)
+- compare new result Overall char-accuracy: 91% with previouse the result should improve (update this value if it improves)

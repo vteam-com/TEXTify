@@ -99,6 +99,47 @@ class _ImageSourceSamplesState extends State<ImageSourceSamples> {
       'the-quick-brown-fox.png',
       'THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG\nThe quick brown fox jumps over the lazy dog\n2025-12-31',
     ),
+    // --- 10 generated test images ---
+    ImageData(
+      'address-block.png',
+      '350 MAIN STREET\nSAN FRANCISCO, CA 94105\nUNITED STATES',
+    ),
+    ImageData(
+      'receipt-items.png',
+      'ITEM QTY PRICE\nWidget A 3 12.99\nWidget B 1 7.50\nGadget C 2 24.00\nTOTAL 57.48',
+    ),
+    ImageData(
+      'mixed-case-sentence.png',
+      'OpenAI Released GPT In 2020.\nVersion 4 Arrived In March 2023.',
+    ),
+    ImageData(
+      'single-line-large.png',
+      'WAREHOUSE PICKUP 9AM',
+    ),
+    ImageData(
+      'numbers-grid.png',
+      '1001 2002 3003\n4004 5005 6006\n7007 8008 9009',
+    ),
+    ImageData(
+      'small-text-dense.png',
+      'Name: John Smith\nDate: 2025-06-15\nReference: TX-98432\nAmount: 1,250.75\nStatus: CONFIRMED',
+    ),
+    ImageData(
+      'uppercase-short-words.png',
+      'GO BIG OR GO HOME\nBE THE BEST YOU CAN BE',
+    ),
+    ImageData(
+      'title-case-names.png',
+      'Alice Johnson\nBob Williams\nCharlie Brown',
+    ),
+    ImageData(
+      'codes-and-ids.png',
+      'ORD-20250615-0042\nSKU: AB12CD34EF56\nLOT: 2025/Q2/BATCH07',
+    ),
+    ImageData(
+      'paragraph-helvetica.png',
+      'Payment received on 03/15/2025.\nYour balance is now 0.00 USD.\nThank you for your purchase.',
+    ),
   ];
 
   int _currentIndex = 0;

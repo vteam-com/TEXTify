@@ -21,16 +21,16 @@ tool/graph.sh > /dev/null
 #  ↓------------------  fCheck  ------------------↓
 # Use an ephemeral private directory for this session's fcheck installation
 # (avoid contaminating the user's global pub cache and avoid version conflicts)
-mkdir -p "$PWD/.dart_tool/fcheck_pub_cache"
-export PUB_CACHE="$PWD/.dart_tool/fcheck_pub_cache"
+FCHECK_CACHE="$PWD/.dart_tool/fcheck_pub_cache"
+mkdir -p "$FCHECK_CACHE"
 
 # Install the pinned version into the isolated cache, then run it.
 # Note: `dart pub cache exec` doesn't exist on all Dart SDK versions; `pub global run` does.
-dart pub global activate fcheck 1.1.3 > /dev/null
+PUB_CACHE="$FCHECK_CACHE" dart pub global activate fcheck 1.1.3 > /dev/null
 
-dart pub global run fcheck --svg --fix --list full
+PUB_CACHE="$FCHECK_CACHE" dart pub global run fcheck --svg --fix --list full
 
 #  ↓------------------  Log result %  ------------------↓
 VERSION=$(grep '^version:' pubspec.yaml | sed 's/version: *//' | tr '.' '_')
-TEXTIFY_TEST_VERBOSE=1 flutter test test/ocr_eval_test.dart -r expanded \
+TEXTIFY_TEST_VERBOSE=1 flutter test test/z_ocr_eval_test.dart -r expanded \
   > ./test/test_results_$VERSION.txt

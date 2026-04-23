@@ -72,6 +72,16 @@ void main() {
       expect(result, 'Hello world');
     });
 
+    test(
+      'dictionary correction keeps word length and supports i/l confusion',
+      () {
+        const String input = 'heii';
+        final String result = applyCorrection(input, true);
+        expect(result.length, input.length);
+        expect(result.toLowerCase(), isNot('hello'));
+      },
+    );
+
     test('applyCorrection handles multi-line text', () {
       const String input = 'Hell0 W0rld\nG00d M0rning';
       final String result = applyCorrection(input, true);
@@ -116,7 +126,31 @@ void main() {
 
         // Test case 4: Word with different length than suggestion
         String result4 = findClosestMatchingWordInDictionary('helloz');
-        expect(result4, 'hello'); // Should handle different length words
+        expect(result4, 'hello'); // Raw finder may return different length.
+      },
+    );
+
+    test(
+      'applyDictionaryCorrectionOnSingleSentence rejects different-length fallback',
+      () {
+        const Map<String, List<String>> correctionLetters = {
+          '0': ['O', 'o', 'B', '8'],
+          '5': ['S', 's'],
+          'l': ['L', '1', 'i', '!'],
+          'i': ['l', 'I', '1', '!'],
+          'I': ['l', 'i', '1', '!'],
+          'S': ['5'],
+          'o': ['D', '0'],
+          'O': ['D', '0'],
+          '!': ['T', 'I', 'i', 'l', '1'],
+          '@': ['A', 'a'],
+        };
+
+        final String result = applyDictionaryCorrectionOnSingleSentence(
+          'helloz',
+          correctionLetters,
+        );
+        expect(result, 'Helloz');
       },
     );
   });

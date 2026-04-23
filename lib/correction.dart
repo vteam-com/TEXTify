@@ -8,6 +8,9 @@ import 'dart:math';
 import 'package:textify/char_utils.dart';
 import 'package:textify/models/english_words.dart';
 
+const int _minDictionaryTokenLength = 2;
+const int _maxDictionaryFallbackDistance = 1;
+
 /// Utility class to analyze character statistics in text.
 ///
 /// This class counts the number of letters and digits in a given text,
@@ -35,6 +38,9 @@ class CharacterStats {
   /// The count of lower case characters in the analyzed text.
   int lowercase = 0;
 
+  /// The count of punctuation/symbol characters in the analyzed text.
+  int punctuation = 0;
+
   /// Clear the counters tracked by [inspect].
   void reset() {
     letters = 0;
@@ -42,6 +48,7 @@ class CharacterStats {
     spaces = 0;
     uppercase = 0;
     lowercase = 0;
+    punctuation = 0;
   }
 
   /// Analyzes the [text] and updates letter and digit counts.
@@ -61,13 +68,21 @@ class CharacterStats {
         } else {
           lowercase++;
         }
-      } else {
+      } else if (isDigit(char)) {
+        digits++;
         uppercase++;
-        if (isDigit(char)) {
-          digits++;
-        }
+      } else {
+        punctuation++;
+        uppercase++;
       }
     }
+  }
+
+  /// Returns true if the token is primarily punctuation/symbols.
+  bool mostlyPunctuation() {
+    final int total = letters + digits + punctuation;
+    if (total == 0) return false;
+    return punctuation > (letters + digits);
   }
 
   /// Returns true if the analyzed text contains more digits than letters.
@@ -78,12 +93,12 @@ class CharacterStats {
     return digits > letters;
   }
 
-  /// Returns true if the analyzed text contains more uppercase than lowercase letters.
-  ///
-  /// This method helps determine whether a string should be treated as
-  /// primarily uppercase for casing normalization purposes.
+  static const double _mostlyUppercaseThreshold = 0.9;
+
+  /// Returns true if the analyzed text is overwhelmingly uppercase (90%+).
   bool mostlyUppercase() {
-    return letters > 0 && uppercase > lowercase;
+    if (letters == 0) return false;
+    return (uppercase / letters) >= _mostlyUppercaseThreshold;
   }
 }
 
@@ -105,6 +120,8 @@ String applyCorrection(
     '0': ['O', 'o', 'B', '8'],
     '5': ['S', 's'],
     'l': ['L', '1', 'i', '!'],
+    'i': ['l', 'I', '1', '!'],
+    'I': ['l', 'i', '1', '!'],
     'S': ['5'],
     'o': ['D', '0'],
     'O': ['D', '0'],
@@ -155,10 +172,11 @@ String applyDictionaryCorrectionOnSingleSentence(
 
   for (int i = 0; i < words.length; i++) {
     String word = words[i];
-    if (word.length > 1 &&
+    if (word.length >= _minDictionaryTokenLength &&
         !['.', ',', '!', '?', ';', ':', ' '].contains(word)) {
-      // No need to process numbers
-      if (!CharacterStats(word).mostlyDigits()) {
+      final stats = CharacterStats(word);
+      // No need to process numbers or symbol-heavy tokens
+      if (!stats.mostlyDigits() && !stats.mostlyPunctuation()) {
         //
         // Try direct dictionary match first
         //
@@ -188,8 +206,17 @@ String applyDictionaryCorrectionOnSingleSentence(
           }
 
           if (!foundMatch) {
-            // If no direct match after substitutions, find closest match
-            modifiedWord = findClosestMatchingWordInDictionary(word);
+            // If no direct match after substitutions, find a conservative
+            // same-length near match to avoid over-correcting tokens.
+            final String suggestion = findClosestMatchingWordInDictionary(word);
+            final int distance = levenshteinDistance(
+              word.toLowerCase(),
+              suggestion.toLowerCase(),
+            );
+            if (suggestion.length == word.length &&
+                distance <= _maxDictionaryFallbackDistance) {
+              modifiedWord = suggestion;
+            }
           }
 
           words[i] = modifiedWord;
@@ -394,40 +421,46 @@ int levenshteinDistance(final String s1, final String s2) {
 
 /// Processes a sentence and applies appropriate casing rules.
 ///
-/// This function takes a sentence string and applies the following rules:
-/// - If most letters are uppercase, converts the entire sentence to uppercase
-/// - Otherwise, capitalizes the first letter and converts the rest to lowercase
-///
+/// This function takes a sentence string and ensures the first letter is capitalized.
 /// Returns the processed sentence with normalized casing.
 String normalizeCasingOfSentence(final String sentence) {
   if (sentence.isEmpty) {
     return sentence;
   }
 
-  StringBuffer result = StringBuffer();
-  CharacterStats stats = CharacterStats(sentence);
-
-  // If most letters in the sentence are uppercase, convert the whole sentence to uppercase
-  if (stats.mostlyUppercase()) {
-    return sentence.toUpperCase();
-  } else {
-    // Find the first letter in the sentence to capitalize
-    int firstLetterIndex = sentence
-        .split('')
-        .indexWhere((char) => isLetter(char));
-
-    if (firstLetterIndex != -1) {
-      // Capitalize the first letter and lowercase the rest
-      result.write(sentence.substring(0, firstLetterIndex));
-      result.write(sentence[firstLetterIndex].toUpperCase());
-      result.write(sentence.substring(firstLetterIndex + 1).toLowerCase());
-    } else {
-      // No letters found, just append the sentence
-      result.write(sentence);
+  // Count letters to determine dominant case
+  int upper = 0;
+  int lower = 0;
+  for (int i = 0; i < sentence.length; i++) {
+    final String char = sentence[i];
+    if (isUppercaseLetter(char)) {
+      upper++;
+    } else if (isLowercaseLetter(char)) {
+      lower++;
     }
   }
 
-  return result.toString();
+  // If the sentence is mostly uppercase, preserve it (e.g., "HELLO WORLD")
+  if (upper > lower && upper > 1) {
+    return sentence;
+  }
+
+  final String trimmed = sentence.trimLeft();
+  if (trimmed.isEmpty) {
+    return sentence;
+  }
+
+  final int offset = sentence.length - trimmed.length;
+  final String content = trimmed.toLowerCase();
+  final String firstChar = content[0];
+
+  if (isLetter(firstChar)) {
+    return sentence.substring(0, offset) +
+        firstChar.toUpperCase() +
+        content.substring(1);
+  }
+
+  return sentence.substring(0, offset) + content;
 }
 
 /// Normalizes the casing of the input string by processing each sentence.

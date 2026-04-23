@@ -1,0 +1,315 @@
+00:00 +0: loading /Users/jp/src/github/vteam/textify/test/z_ocr_eval_test.dart
+00:00 +0: /Users/jp/src/github/vteam/textify/test/artifact_region_test.dart: floodFillToRect single connected region returns its bounding rect
+00:00 +1: /Users/jp/src/github/vteam/textify/test/artifact_region_test.dart: floodFillToRect out of bounds start returns degenerate rect
+00:00 +2: /Users/jp/src/github/vteam/textify/test/artifact_region_test.dart: floodFillToRect start on empty pixel returns degenerate rect
+00:00 +3: /Users/jp/src/github/vteam/textify/test/artifact_region_test.dart: floodFillToRect L-shaped region bounding box
+00:00 +4: /Users/jp/src/github/vteam/textify/test/artifact_region_test.dart: floodFillToRect pixel at bottom-right corner
+00:00 +5: /Users/jp/src/github/vteam/textify/test/correction_test.dart: Text Correction Tests isUpperCase, isDigit, isLetter utility functions
+00:00 +6: /Users/jp/src/github/vteam/textify/test/correction_test.dart: Text Correction Tests isUpperCase, isDigit, isLetter utility functions
+00:00 +7: /Users/jp/src/github/vteam/textify/test/correction_test.dart: Text Correction Tests isUpperCase, isDigit, isLetter utility functions
+00:00 +8: /Users/jp/src/github/vteam/textify/test/correction_test.dart: Text Correction Tests isUpperCase, isDigit, isLetter utility functions
+00:00 +9: /Users/jp/src/github/vteam/textify/test/correction_test.dart: Text Correction Tests isUpperCase, isDigit, isLetter utility functions
+00:00 +10: /Users/jp/src/github/vteam/textify/test/correction_test.dart: Text Correction Tests isUpperCase, isDigit, isLetter utility functions
+00:00 +11: /Users/jp/src/github/vteam/textify/test/correction_test.dart: Text Correction Tests isUpperCase, isDigit, isLetter utility functions
+00:00 +12: /Users/jp/src/github/vteam/textify/test/correction_test.dart: Text Correction Tests isUpperCase, isDigit, isLetter utility functions
+00:00 +13: /Users/jp/src/github/vteam/textify/test/correction_test.dart: Text Correction Tests isUpperCase, isDigit, isLetter utility functions
+00:00 +14: /Users/jp/src/github/vteam/textify/test/correction_test.dart: Text Correction Tests CharacterStats tracks spaces and counters
+00:00 +15: /Users/jp/src/github/vteam/textify/test/correction_test.dart: Text Correction Tests applyCorrection with dictionary disabled
+00:00 +16: /Users/jp/src/github/vteam/textify/test/correction_test.dart: Text Correction Tests wordReplaceDigit0 converts 0 to O/o in text contexts
+00:00 +17: /Users/jp/src/github/vteam/textify/test/correction_test.dart: Text Correction Tests digitCorrection converts letter-like characters to digits
+00:00 +18: /Users/jp/src/github/vteam/textify/test/correction_test.dart: Text Correction Tests applyCorrection with dictionary disabled
+00:00 +19: /Users/jp/src/github/vteam/textify/test/correction_test.dart: Text Correction Tests applyCorrection with dictionary enabled with not input error
+00:00 +20: /Users/jp/src/github/vteam/textify/test/correction_test.dart: Text Correction Tests applyCorrection with dictionary enabled with input error text
+00:00 +21: /Users/jp/src/github/vteam/textify/test/rectangle_test.dart: IntOffset constructor defaults to zero
+00:00 +22: /Users/jp/src/github/vteam/textify/test/rectangle_test.dart: IntOffset constructor defaults to zero
+00:00 +23: /Users/jp/src/github/vteam/textify/test/rectangle_test.dart: IntOffset constructor defaults to zero
+00:00 +24: /Users/jp/src/github/vteam/textify/test/rectangle_test.dart: IntOffset constructor defaults to zero
+00:00 +25: /Users/jp/src/github/vteam/textify/test/rectangle_test.dart: IntOffset constructor defaults to zero
+00:00 +26: /Users/jp/src/github/vteam/textify/test/rectangle_test.dart: IntOffset constructor defaults to zero
+00:00 +27: /Users/jp/src/github/vteam/textify/test/rectangle_test.dart: IntOffset constructor with values
+00:00 +28: /Users/jp/src/github/vteam/textify/test/rectangle_test.dart: IntOffset addition operator
+00:00 +29: /Users/jp/src/github/vteam/textify/test/rectangle_test.dart: IntOffset subtraction operator
+00:00 +30: /Users/jp/src/github/vteam/textify/test/rectangle_test.dart: IntOffset multiplication operator
+00:00 +31: /Users/jp/src/github/vteam/textify/test/rectangle_test.dart: IntOffset division operator
+00:00 +32: /Users/jp/src/github/vteam/textify/test/rectangle_test.dart: IntOffset equality
+00:00 +33: /Users/jp/src/github/vteam/textify/test/rectangle_test.dart: IntOffset toString
+00:00 +34: /Users/jp/src/github/vteam/textify/test/rectangle_test.dart: IntOffset translate
+00:00 +35: /Users/jp/src/github/vteam/textify/test/rectangle_test.dart: IntOffset hashcode
+00:00 +36: /Users/jp/src/github/vteam/textify/test/rectangle_test.dart: IntRect default constructor initializes with zeros
+00:00 +37: /Users/jp/src/github/vteam/textify/test/rectangle_test.dart: IntRect constructor with values
+00:00 +38: /Users/jp/src/github/vteam/textify/test/rectangle_test.dart: IntRect fromLTRB factory constructor
+00:00 +39: /Users/jp/src/github/vteam/textify/test/rectangle_test.dart: IntRect fromLTWH factory constructor
+00:00 +40: /Users/jp/src/github/vteam/textify/test/rectangle_test.dart: IntRect fromCenter factory constructor
+00:00 +41: /Users/jp/src/github/vteam/textify/test/rectangle_test.dart: IntRect zero static field
+00:00 +42: /Users/jp/src/github/vteam/textify/test/rectangle_test.dart: IntRect computed properties
+00:00 +43: /Users/jp/src/github/vteam/textify/test/rectangle_test.dart: IntRect isEmpty property
+00:00 +44: /Users/jp/src/github/vteam/textify/test/rectangle_test.dart: IntRect contains method
+00:00 +45: /Users/jp/src/github/vteam/textify/test/artifact_morphology_test.dart: dilateArtifact single pixel expands to kernel-sized block
+00:00 +46: /Users/jp/src/github/vteam/textify/test/artifact_morphology_test.dart: dilateArtifact single pixel expands to kernel-sized block
+00:00 +47: /Users/jp/src/github/vteam/textify/test/artifact_morphology_test.dart: dilateArtifact single pixel expands to kernel-sized block
+00:00 +48: /Users/jp/src/github/vteam/textify/test/artifact_morphology_test.dart: dilateArtifact single pixel expands to kernel-sized block
+00:00 +49: /Users/jp/src/github/vteam/textify/test/artifact_morphology_test.dart: dilateArtifact single pixel expands to kernel-sized block
+00:00 +50: /Users/jp/src/github/vteam/textify/test/artifact_morphology_test.dart: dilateArtifact single pixel expands to kernel-sized block
+00:00 +51: /Users/jp/src/github/vteam/textify/test/artifact_morphology_test.dart: dilateArtifact single pixel expands to kernel-sized block
+00:00 +52: /Users/jp/src/github/vteam/textify/test/artifact_morphology_test.dart: dilateArtifact single pixel expands to kernel-sized block
+00:00 +53: /Users/jp/src/github/vteam/textify/test/artifact_morphology_test.dart: dilateArtifact single pixel expands to kernel-sized block
+00:00 +54: /Users/jp/src/github/vteam/textify/test/artifact_morphology_test.dart: dilateArtifact single pixel expands to kernel-sized block
+00:00 +55: /Users/jp/src/github/vteam/textify/test/artifact_morphology_test.dart: dilateArtifact empty image stays empty
+00:00 +56: /Users/jp/src/github/vteam/textify/test/artifact_morphology_test.dart: dilateArtifact kernel size 1 produces identical output
+00:00 +57: /Users/jp/src/github/vteam/textify/test/artifact_morphology_test.dart: dilateArtifact pixel at corner expands within bounds
+00:00 +58: /Users/jp/src/github/vteam/textify/test/artifact_morphology_test.dart: dilateArtifact pixel at bottom-right corner
+00:00 +59: /Users/jp/src/github/vteam/textify/test/artifact_morphology_test.dart: dilateArtifact large kernel connects nearby pixels
+00:00 +60: /Users/jp/src/github/vteam/textify/test/artifact_morphology_test.dart: erodeSoft empty artifact stays empty
+00:00 +61: /Users/jp/src/github/vteam/textify/test/artifact_morphology_test.dart: erodeSoft solid block preserves interior
+00:00 +62: /Users/jp/src/github/vteam/textify/test/artifact_morphology_test.dart: erodeSoft isolated pixel is removed
+00:00 +63: /Users/jp/src/github/vteam/textify/test/artifact_morphology_test.dart: erodeSoft thin line is thinned
+00:00 +64: /Users/jp/src/github/vteam/textify/test/artifact_morphology_test.dart: erodeSoft corner pixel with few neighbors is removed
+00:00 +65: /Users/jp/src/github/vteam/textify/test/artifact_morphology_test.dart: erodeSoft L-shape corner with enough neighbors survives
+00:00 +66: /Users/jp/src/github/vteam/textify/test/artifact_morphology_test.dart: removeDecorativeLineComponents empty artifact returns empty
+00:00 +67: /Users/jp/src/github/vteam/textify/test/artifact_morphology_test.dart: removeDecorativeLineComponents no decorative lines preserves content
+00:00 +68: /Users/jp/src/github/vteam/textify/test/artifact_morphology_test.dart: removeDecorativeLineComponents horizontal line is removed when it spans enough width
+00:00 +69: /Users/jp/src/github/vteam/textify/test/artifact_morphology_test.dart: removeDecorativeLineComponents vertical line is removed when it spans enough height
+00:00 +70: /Users/jp/src/github/vteam/textify/test/artifact_morphology_test.dart: removeDecorativeLineComponents dense large blob is removed
+00:00 +71: /Users/jp/src/github/vteam/textify/test/artifact_morphology_test.dart: removeDecorativeLineComponents small component is not removed
+00:00 +72: /Users/jp/src/github/vteam/textify/test/bands_test.dart: mergeBandsHorizontally handles single band
+00:00 +73: /Users/jp/src/github/vteam/textify/test/bands_test.dart: mergeBandsHorizontally merges multiple empty bands in sequence
+00:00 +74: /Users/jp/src/github/vteam/textify/test/bands_test.dart: mergeBandsHorizontally merges adjacent bands with vertical alignment
+00:00 +75: /Users/jp/src/github/vteam/textify/test/bands_test.dart: mergeBandsHorizontally does not merge bands with large horizontal gap
+00:00 +76: /Users/jp/src/github/vteam/textify/test/bands_test.dart: sorting of band sorts bands by vertical position first
+00:00 +77: /Users/jp/src/github/vteam/textify/test/bands_test.dart: sorting of band sorts bands horizontally when at same vertical position
+00:00 +78: /Users/jp/src/github/vteam/textify/test/bands_test.dart: sorting of band sortVerticallyThenHorizontally sorts bands horizontally when on same vertical line
+00:00 +79: /Users/jp/src/github/vteam/textify/test/bands_test.dart: sorting of band maintains order for bands at exact same position
+00:00 +80: /Users/jp/src/github/vteam/textify/test/bands_test.dart: sorting of band handles empty bands list
+00:00 +81: /Users/jp/src/github/vteam/textify/test/bands_test.dart: splitChunk splits artifact with clear column separation
+00:00 +82: /Users/jp/src/github/vteam/textify/test/bands_test.dart: splitChunk getWideChunks handles two artifacts with similar widths
+00:00 +83: /Users/jp/src/github/vteam/textify/test/bands_test.dart: splitChunk returns empty list when artifact cannot be split
+00:00 +84: /Users/jp/src/github/vteam/textify/test/bands_test.dart: splitChunk splits artifact with multiple column separations
+00:00 +85: /Users/jp/src/github/vteam/textify/test/bands_test.dart: getText returns concatenated matching characters
+00:00 +86: /Users/jp/src/github/vteam/textify/test/bands_test.dart: getText returns empty string for empty band
+00:00 +87: /Users/jp/src/github/vteam/textify/test/bands_test.dart: updateStatistics computes averageKerning and averageWidth for multiple artifacts
+00:00 +88: /Users/jp/src/github/vteam/textify/test/bands_test.dart: updateStatistics returns -1 kerning for single artifact
+00:00 +89: /Users/jp/src/github/vteam/textify/test/bands_test.dart: updateStatistics returns -1 kerning for zero artifacts
+00:00 +90: /Users/jp/src/github/vteam/textify/test/bands_test.dart: addArtifacts and removeEmptyArtifacts addArtifacts adds multiple artifacts
+00:00 +91: /Users/jp/src/github/vteam/textify/test/bands_test.dart: addArtifacts and removeEmptyArtifacts removeEmptyArtifacts removes empties
+00:00 +92: /Users/jp/src/github/vteam/textify/test/bands_test.dart: sortArtifactsLeftToRight sorts by adjusted left position
+00:00 +93: /Users/jp/src/github/vteam/textify/test/artifact_test.dart: Artifact Tests Artifact from ASCII definition
+00:00 +94: /Users/jp/src/github/vteam/textify/test/artifact_test.dart: Artifact Tests Artifact from ASCII definition
+00:00 +95: /Users/jp/src/github/vteam/textify/test/artifact_test.dart: Artifact Tests Artifact from ASCII definition
+00:00 +96: /Users/jp/src/github/vteam/textify/test/artifact_test.dart: Artifact Tests Artifact from ASCII definition
+00:00 +97: /Users/jp/src/github/vteam/textify/test/artifact_test.dart: Artifact Tests Artifact from ASCII definition
+00:00 +98: /Users/jp/src/github/vteam/textify/test/artifact_test.dart: Artifact Tests Artifact from ASCII definition
+00:00 +99: /Users/jp/src/github/vteam/textify/test/artifact_test.dart: Artifact Tests Artifact from ASCII definition
+00:00 +100: /Users/jp/src/github/vteam/textify/test/artifact_test.dart: Artifact Tests Artifact from ASCII definition
+00:00 +101: /Users/jp/src/github/vteam/textify/test/artifact_test.dart: Artifact Tests Artifact from ASCII definition
+00:00 +102: /Users/jp/src/github/vteam/textify/test/artifact_test.dart: Artifact Tests Artifact from ASCII definition
+00:00 +103: /Users/jp/src/github/vteam/textify/test/artifact_test.dart: Artifact Tests Artifact from ASCII definition
+00:00 +104: /Users/jp/src/github/vteam/textify/test/artifact_test.dart: Artifact Tests Artifact from ASCII definition
+00:00 +105: /Users/jp/src/github/vteam/textify/test/bands_test.dart: packArtifactLeftToRight repositions artifacts left to right
+00:00 +106: /Users/jp/src/github/vteam/textify/test/artifact_test.dart: Artifact Merging Tests Empty Artifact
+00:00 +107: /Users/jp/src/github/vteam/textify/test/artifact_test.dart: Artifact Merging Tests Empty Artifact
+00:00 +108: /Users/jp/src/github/vteam/textify/test/artifact_test.dart: Artifact Merging Tests Empty Artifact
+00:00 +109: /Users/jp/src/github/vteam/textify/test/artifact_test.dart: Artifact Merging Tests Empty Artifact
+00:00 +110: /Users/jp/src/github/vteam/textify/test/bands_test.dart: padVerticallyArtifactToMatchTheBand pads artifacts to uniform height
+00:00 +111: /Users/jp/src/github/vteam/textify/test/artifact_test.dart: Artifact Merging Tests Merging 2 overlapping artifacts
+00:00 +112: /Users/jp/src/github/vteam/textify/test/bands_test.dart: mergeArtifactsBasedOnVerticalAlignment merges overlapping artifacts
+00:00 +113: /Users/jp/src/github/vteam/textify/test/artifact_test.dart: Artifact Merging Tests Real test
+00:00 +114: /Users/jp/src/github/vteam/textify/test/bands_test.dart: mergeArtifactsBasedOnVerticalAlignment does not merge non-overlapping artifacts
+00:00 +115: /Users/jp/src/github/vteam/textify/test/artifact_test.dart: Artifact Merging Tests Merging overlapping artifacts in a Band
+00:00 +116: /Users/jp/src/github/vteam/textify/test/artifact_test.dart: Artifact Merging Tests Merging overlapping artifacts in a Band
+00:00 +117: /Users/jp/src/github/vteam/textify/test/artifact_test.dart: Artifact Merging Tests Merging overlapping artifacts in a Band
+00:00 +118: /Users/jp/src/github/vteam/textify/test/bands_test.dart: mergeDiscardableArtifactsIntoNeighbors merges tiny artifacts into nearby large ones
+00:00 +119: /Users/jp/src/github/vteam/textify/test/bands_test.dart: mergeDiscardableArtifactsIntoNeighbors merges tiny artifacts into nearby large ones
+00:00 +120: /Users/jp/src/github/vteam/textify/test/artifact_test.dart: Artifact Padding Tests Padding top and bottom with zeros
+00:00 +121: /Users/jp/src/github/vteam/textify/test/artifact_test.dart: Artifact Padding Tests Padding top and bottom with zeros
+00:00 +122: /Users/jp/src/github/vteam/textify/test/bands_test.dart: mergeDiscardableArtifactsIntoNeighbors does nothing when keep list is empty
+00:00 +123: /Users/jp/src/github/vteam/textify/test/artifact_test.dart: Artifact Padding Tests Padding with zero top padding
+00:00 +124: /Users/jp/src/github/vteam/textify/test/bands_test.dart: identifySuspiciousLargeArtifacts splits wide artifacts
+00:00 +125: /Users/jp/src/github/vteam/textify/test/bands_test.dart: identifySuspiciousLargeArtifacts splits wide artifacts
+00:00 +126: /Users/jp/src/github/vteam/textify/test/artifact_test.dart: Artifact Padding Tests Padding single row artifact
+00:00 +127: /Users/jp/src/github/vteam/textify/test/bands_test.dart: getWideChunks returns empty for 0 or 1 artifacts
+00:00 +128: /Users/jp/src/github/vteam/textify/test/artifact_test.dart: Artifact Padding Tests Padding with large values
+00:00 +129: /Users/jp/src/github/vteam/textify/test/bands_test.dart: getWideChunks uses higher threshold for small sets of 3
+00:00 +130: /Users/jp/src/github/vteam/textify/test/artifact_test.dart: Artifact Trim Tests Trim empty artifact
+00:00 +131: /Users/jp/src/github/vteam/textify/test/bands_test.dart: getWideChunks identifies wide chunks in larger sets
+00:00 +132: /Users/jp/src/github/vteam/textify/test/artifact_test.dart: Artifact Trim Tests Trim artifact with content only in corners
+00:00 +133: /Users/jp/src/github/vteam/textify/test/bands_test.dart: Band.splitArtifactIntoBand creates band from region matrix with sub-artifacts
+00:00 +134: /Users/jp/src/github/vteam/textify/test/bands_test.dart: Band.splitArtifactIntoBand creates band from region matrix with sub-artifacts
+00:00 +135: /Users/jp/src/github/vteam/textify/test/bands_test.dart: Band.splitArtifactIntoBand creates band from region matrix with sub-artifacts
+00:00 +136: /Users/jp/src/github/vteam/textify/test/artifact_test.dart: Artifact Trim Tests Trim artifact with content in single column
+00:00 +137: /Users/jp/src/github/vteam/textify/test/bands_test.dart: Band.splitArtifactIntoBand creates band from empty region
+00:00 +138: /Users/jp/src/github/vteam/textify/test/artifact_test.dart: Artifact Trim Tests Trim artifact with single row content
+00:00 +139: /Users/jp/src/github/vteam/textify/test/bands_test.dart: Band.splitArtifactIntoBand creates band with single solid block
+00:00 +140: /Users/jp/src/github/vteam/textify/test/artifact_test.dart: Artifact Normalization Tests createNormalizeMatrix resizes artifact correctly
+00:00 +141: /Users/jp/src/github/vteam/textify/test/artifact_test.dart: Artifact Normalization Tests createNormalizeMatrix resizes artifact correctly
+00:00 +142: /Users/jp/src/github/vteam/textify/test/bands_test.dart: getBoundingBox computes bounding box using found rects
+00:00 +143: /Users/jp/src/github/vteam/textify/test/artifact_test.dart: calculateThreshold Tests Empty histogram returns -1
+00:00 +144: /Users/jp/src/github/vteam/textify/test/bands_test.dart: toString includes space count when spaces exist
+00:00 +145: /Users/jp/src/github/vteam/textify/test/artifact_test.dart: calculateThreshold Tests Histogram with no valleys uses average height
+00:00 +146: /Users/jp/src/github/vteam/textify/test/bands_test.dart: toString omits space count when no spaces
+00:00 +147: /Users/jp/src/github/vteam/textify/test/bands_test.dart: clearStats resets cached statistics
+00:00 +148: /Users/jp/src/github/vteam/textify/test/artifact_test.dart: calculateThreshold Tests Histogram with valleys adjusts threshold
+00:00 +149: /Users/jp/src/github/vteam/textify/test/bands_test.dart: Band.splitArtifactIntoBand with line artifacts keeps tall line artifacts that meet height threshold
+00:00 +150: /Users/jp/src/github/vteam/textify/test/bands_test.dart: Band.splitArtifactIntoBand with line artifacts keeps tall line artifacts that meet height threshold
+00:00 +151: /Users/jp/src/github/vteam/textify/test/bands_test.dart: mergeArtifactsWithTightGaps - actual merge branch does not merge wide artifacts in tight gap
+00:00 +152: /Users/jp/src/github/vteam/textify/test/bands_test.dart: mergeArtifactsWithTightGaps - actual merge branch narrow fragments with tight gap enter guard branch
+00:00 +153: /Users/jp/src/github/vteam/textify/test/bands_test.dart: mergeDiscardableArtifactsIntoNeighbors edge cases handles line-like discardable artifacts
+00:00 +154: /Users/jp/src/github/vteam/textify/test/utilitites_test.dart: floodFill Tests Basic flood fill on simple matrix
+00:00 +155: /Users/jp/src/github/vteam/textify/test/utilitites_test.dart: floodFill Tests Basic flood fill on simple matrix
+00:00 +156: /Users/jp/src/github/vteam/textify/test/utilitites_test.dart: floodFill Tests Basic flood fill on simple matrix
+00:00 +157: /Users/jp/src/github/vteam/textify/test/utilitites_test.dart: floodFill Tests Basic flood fill on simple matrix
+00:00 +158: /Users/jp/src/github/vteam/textify/test/utilitites_test.dart: floodFill Tests Basic flood fill on simple matrix
+00:00 +159: /Users/jp/src/github/vteam/textify/test/utilitites_test.dart: floodFill Tests Basic flood fill on simple matrix
+00:00 +160: /Users/jp/src/github/vteam/textify/test/utilitites_test.dart: floodFill Tests Basic flood fill on simple matrix
+00:00 +161: /Users/jp/src/github/vteam/textify/test/utilitites_test.dart: floodFill Tests Basic flood fill on simple matrix
+00:00 +162: /Users/jp/src/github/vteam/textify/test/utilitites_test.dart: floodFill Tests Basic flood fill on simple matrix
+00:00 +163: /Users/jp/src/github/vteam/textify/test/utilitites_test.dart: floodFill Tests Basic flood fill on simple matrix
+00:00 +164: /Users/jp/src/github/vteam/textify/test/bands_test.dart: getBandsOfArtifacts processes regions into bands
+00:00 +165: /Users/jp/src/github/vteam/textify/test/utilitites_test.dart: floodFill Tests Flood fill with disconnected regions
+00:00 +166: /Users/jp/src/github/vteam/textify/test/bands_test.dart: getBandsOfArtifacts with innerSplit enabled
+00:00 +167: /Users/jp/src/github/vteam/textify/test/utilitites_test.dart: floodFill Tests Flood fill with out-of-bounds start point
+00:00 +168: /Users/jp/src/github/vteam/textify/test/bands_test.dart: getBandsOfArtifacts empty regions returns empty bands
+00:00 +169: /Users/jp/src/github/vteam/textify/test/utilitites_test.dart: floodFill Tests Flood fill starting on empty pixel
+00:00 +170: /Users/jp/src/github/vteam/textify/test/utilitites_test.dart: artifact Histograms Horizontal Histogram
+00:00 +171: /Users/jp/src/github/vteam/textify/test/utilitites_test.dart: artifact Histograms Vertical Histogram
+00:00 +172: /Users/jp/src/github/vteam/textify/test/utilitites_test.dart: artifact Histograms Horizontal Histogram with empty artifact
+00:00 +173: /Users/jp/src/github/vteam/textify/test/utilitites_test.dart: artifact Histograms Vertical Histogram with empty artifact
+00:00 +174: /Users/jp/src/github/vteam/textify/test/utilitites_test.dart: artifact Histograms Horizontal Histogram with a row filled
+00:00 +175: /Users/jp/src/github/vteam/textify/test/utilitites_test.dart: artifact Histograms Vertical Histogram with a column filled
+00:00 +176: /Users/jp/src/github/vteam/textify/test/utilitites_test.dart: calculateThreshold Tests returns -1 for histograms with less than 3 elements
+00:00 +177: /Users/jp/src/github/vteam/textify/test/utilitites_test.dart: calculateThreshold Tests finds threshold from valleys in histogram
+00:00 +178: /Users/jp/src/github/vteam/textify/test/utilitites_test.dart: calculateThreshold Tests handles histogram with multiple valleys
+00:00 +179: /Users/jp/src/github/vteam/textify/test/utilitites_test.dart: calculateThreshold Tests handles histogram with no valleys
+00:00 +180: /Users/jp/src/github/vteam/textify/test/textify_post_process_test.dart: postProcessText empty string returns empty
+00:00 +181: /Users/jp/src/github/vteam/textify/test/z_ocr_eval_test.dart: (setUpAll)
+00:00 +182: /Users/jp/src/github/vteam/textify/test/z_ocr_eval_test.dart: (setUpAll)
+00:00 +183: /Users/jp/src/github/vteam/textify/test/z_ocr_eval_test.dart: (setUpAll)
+00:00 +184: /Users/jp/src/github/vteam/textify/test/z_ocr_eval_test.dart: (setUpAll)
+00:00 +185: /Users/jp/src/github/vteam/textify/test/z_ocr_eval_test.dart: (setUpAll)
+00:00 +186: /Users/jp/src/github/vteam/textify/test/z_ocr_eval_test.dart: (setUpAll)
+00:00 +187: /Users/jp/src/github/vteam/textify/test/z_ocr_eval_test.dart: (setUpAll)
+00:00 +187: /Users/jp/src/github/vteam/textify/test/textify_post_process_test.dart: fragmented line normalization fragmented uppercase line is merged
+00:00 +188: /Users/jp/src/github/vteam/textify/test/z_ocr_eval_test.dart: OCR evaluation (baseline)
+00:00 +189: /Users/jp/src/github/vteam/textify/test/z_ocr_eval_test.dart: OCR evaluation (baseline)
+00:00 +190: /Users/jp/src/github/vteam/textify/test/z_ocr_eval_test.dart: OCR evaluation (baseline)
+00:00 +191: /Users/jp/src/github/vteam/textify/test/z_ocr_eval_test.dart: OCR evaluation (baseline)
+00:00 +192: /Users/jp/src/github/vteam/textify/test/z_ocr_eval_test.dart: OCR evaluation (baseline)
+00:00 +193: /Users/jp/src/github/vteam/textify/test/z_ocr_eval_test.dart: OCR evaluation (baseline)
+00:00 +194: /Users/jp/src/github/vteam/textify/test/z_ocr_eval_test.dart: OCR evaluation (baseline)
+00:00 +195: /Users/jp/src/github/vteam/textify/test/z_ocr_eval_test.dart: OCR evaluation (baseline)
+00:00 +196: /Users/jp/src/github/vteam/textify/test/z_ocr_eval_test.dart: OCR evaluation (baseline)
+00:00 +197: /Users/jp/src/github/vteam/textify/test/z_ocr_eval_test.dart: OCR evaluation (baseline)
+00:00 +198: /Users/jp/src/github/vteam/textify/test/z_ocr_eval_test.dart: OCR evaluation (baseline)
+00:00 +199: /Users/jp/src/github/vteam/textify/test/z_ocr_eval_test.dart: OCR evaluation (baseline)
+00:00 +200: /Users/jp/src/github/vteam/textify/test/z_ocr_eval_test.dart: OCR evaluation (baseline)
+00:00 +201: /Users/jp/src/github/vteam/textify/test/z_ocr_eval_test.dart: OCR evaluation (baseline)
+00:00 +202: /Users/jp/src/github/vteam/textify/test/z_ocr_eval_test.dart: OCR evaluation (baseline)
+00:00 +203: /Users/jp/src/github/vteam/textify/test/z_ocr_eval_test.dart: OCR evaluation (baseline)
+00:00 +204: /Users/jp/src/github/vteam/textify/test/z_ocr_eval_test.dart: OCR evaluation (baseline)
+00:00 +205: /Users/jp/src/github/vteam/textify/test/z_ocr_eval_test.dart: OCR evaluation (baseline)
+00:00 +206: /Users/jp/src/github/vteam/textify/test/z_ocr_eval_test.dart: OCR evaluation (baseline)
+00:00 +207: /Users/jp/src/github/vteam/textify/test/z_ocr_eval_test.dart: OCR evaluation (baseline)
+00:00 +208: /Users/jp/src/github/vteam/textify/test/z_ocr_eval_test.dart: OCR evaluation (baseline)
+00:00 +209: /Users/jp/src/github/vteam/textify/test/z_ocr_eval_test.dart: OCR evaluation (baseline)
+00:00 +210: /Users/jp/src/github/vteam/textify/test/z_ocr_eval_test.dart: OCR evaluation (baseline)
+00:00 +210 -1: /Users/jp/src/github/vteam/textify/test/z_ocr_eval_test.dart: OCR evaluation (baseline)
+00:00 +210 -1: /Users/jp/src/github/vteam/textify/test/textify_post_process_test.dart: fragmented line regex replacements l between uppercase becomes I in fragmented line [E]
+  Expected: 'AIM CODE'
+    Actual: 'AIBCDE'
+     Which: is different.
+            Expected: AIM CODE
+              Actual: AIBCDE
+                        ^
+             Differ at offset 2
+  
+  package:matcher                                     expect
+  package:flutter_test/src/widget_tester.dart 473:18  expect
+  test/textify_post_process_test.dart 192:7           main.<fn>.<fn>
+  
+00:00 +210 -2: /Users/jp/src/github/vteam/textify/test/z_ocr_eval_test.dart: OCR evaluation (baseline)
+00:00 +210 -2: /Users/jp/src/github/vteam/textify/test/textify_post_process_test.dart: fragmented line regex replacements I between lowercase becomes l in fragmented line [E]
+  Expected: 'Alb code'
+    Actual: 'Alb cde'
+     Which: is different.
+            Expected: Alb code
+              Actual: Alb cde
+                           ^
+             Differ at offset 5
+  
+  package:matcher                                     expect
+  package:flutter_test/src/widget_tester.dart 473:18  expect
+  test/textify_post_process_test.dart 199:7           main.<fn>.<fn>
+  
+00:00 +211 -2: /Users/jp/src/github/vteam/textify/test/z_ocr_eval_test.dart: OCR evaluation (baseline)
+00:00 +212 -2: /Users/jp/src/github/vteam/textify/test/z_ocr_eval_test.dart: OCR evaluation (baseline)
+00:00 +213 -2: /Users/jp/src/github/vteam/textify/test/z_ocr_eval_test.dart: OCR evaluation (baseline)
+00:00 +214 -2: /Users/jp/src/github/vteam/textify/test/z_ocr_eval_test.dart: OCR evaluation (baseline)
+00:00 +215 -2: /Users/jp/src/github/vteam/textify/test/z_ocr_eval_test.dart: OCR evaluation (baseline)
+00:00 +216 -2: /Users/jp/src/github/vteam/textify/test/z_ocr_eval_test.dart: OCR evaluation (baseline)
+00:00 +217 -2: /Users/jp/src/github/vteam/textify/test/z_ocr_eval_test.dart: OCR evaluation (baseline)
+00:00 +218 -2: /Users/jp/src/github/vteam/textify/test/z_ocr_eval_test.dart: OCR evaluation (baseline)
+00:00 +219 -2: /Users/jp/src/github/vteam/textify/test/z_ocr_eval_test.dart: OCR evaluation (baseline)
+00:00 +220 -2: /Users/jp/src/github/vteam/textify/test/z_ocr_eval_test.dart: OCR evaluation (baseline)
+00:00 +221 -2: /Users/jp/src/github/vteam/textify/test/z_ocr_eval_test.dart: OCR evaluation (baseline)
+00:00 +222 -2: /Users/jp/src/github/vteam/textify/test/z_ocr_eval_test.dart: OCR evaluation (baseline)
+00:00 +223 -2: /Users/jp/src/github/vteam/textify/test/z_ocr_eval_test.dart: OCR evaluation (baseline)
+00:00 +224 -2: /Users/jp/src/github/vteam/textify/test/z_ocr_eval_test.dart: OCR evaluation (baseline)
+00:00 +225 -2: /Users/jp/src/github/vteam/textify/test/z_ocr_eval_test.dart: OCR evaluation (baseline)
+00:00 +226 -2: /Users/jp/src/github/vteam/textify/test/z_ocr_eval_test.dart: OCR evaluation (baseline)
+00:00 +227 -2: /Users/jp/src/github/vteam/textify/test/z_ocr_eval_test.dart: OCR evaluation (baseline)
+00:00 +228 -2: /Users/jp/src/github/vteam/textify/test/z_ocr_eval_test.dart: OCR evaluation (baseline)
+00:00 +229 -2: /Users/jp/src/github/vteam/textify/test/z_ocr_eval_test.dart: OCR evaluation (baseline)
+00:00 +230 -2: /Users/jp/src/github/vteam/textify/test/z_ocr_eval_test.dart: OCR evaluation (baseline)
+00:00 +231 -2: /Users/jp/src/github/vteam/textify/test/z_ocr_eval_test.dart: OCR evaluation (baseline)
+00:00 +232 -2: /Users/jp/src/github/vteam/textify/test/z_ocr_eval_test.dart: OCR evaluation (baseline)
+00:00 +233 -2: /Users/jp/src/github/vteam/textify/test/z_ocr_eval_test.dart: OCR evaluation (baseline)
+00:00 +234 -2: /Users/jp/src/github/vteam/textify/test/z_ocr_eval_test.dart: OCR evaluation (baseline)
+00:00 +235 -2: /Users/jp/src/github/vteam/textify/test/z_ocr_eval_test.dart: OCR evaluation (baseline)
+00:00 +236 -2: /Users/jp/src/github/vteam/textify/test/z_ocr_eval_test.dart: OCR evaluation (baseline)
+00:00 +237 -2: /Users/jp/src/github/vteam/textify/test/z_ocr_eval_test.dart: OCR evaluation (baseline)
+00:00 +238 -2: /Users/jp/src/github/vteam/textify/test/z_ocr_eval_test.dart: OCR evaluation (baseline)
+00:00 +239 -2: /Users/jp/src/github/vteam/textify/test/z_ocr_eval_test.dart: OCR evaluation (baseline)
+00:00 +240 -2: /Users/jp/src/github/vteam/textify/test/z_ocr_eval_test.dart: OCR evaluation (baseline)
+00:00 +241 -2: /Users/jp/src/github/vteam/textify/test/z_ocr_eval_test.dart: OCR evaluation (baseline)
+00:00 +242 -2: /Users/jp/src/github/vteam/textify/test/z_ocr_eval_test.dart: OCR evaluation (baseline)
+00:00 +243 -2: /Users/jp/src/github/vteam/textify/test/z_ocr_eval_test.dart: OCR evaluation (baseline)
+00:00 +244 -2: /Users/jp/src/github/vteam/textify/test/z_ocr_eval_test.dart: OCR evaluation (baseline)
+00:00 +245 -2: /Users/jp/src/github/vteam/textify/test/z_ocr_eval_test.dart: OCR evaluation (baseline)
+00:00 +246 -2: /Users/jp/src/github/vteam/textify/test/z_ocr_eval_test.dart: OCR evaluation (baseline)
+00:00 +247 -2: /Users/jp/src/github/vteam/textify/test/z_ocr_eval_test.dart: OCR evaluation (baseline)
+00:00 +248 -2: /Users/jp/src/github/vteam/textify/test/z_ocr_eval_test.dart: OCR evaluation (baseline)
+00:00 +249 -2: /Users/jp/src/github/vteam/textify/test/z_ocr_eval_test.dart: OCR evaluation (baseline)
+00:00 +250 -2: /Users/jp/src/github/vteam/textify/test/z_ocr_eval_test.dart: OCR evaluation (baseline)
+00:00 +251 -2: /Users/jp/src/github/vteam/textify/test/z_ocr_eval_test.dart: OCR evaluation (baseline)
+00:00 +252 -2: /Users/jp/src/github/vteam/textify/test/z_ocr_eval_test.dart: OCR evaluation (baseline)
+00:00 +253 -2: /Users/jp/src/github/vteam/textify/test/z_ocr_eval_test.dart: OCR evaluation (baseline)
+00:00 +254 -2: /Users/jp/src/github/vteam/textify/test/z_ocr_eval_test.dart: OCR evaluation (baseline)
+00:00 +255 -2: /Users/jp/src/github/vteam/textify/test/z_ocr_eval_test.dart: OCR evaluation (baseline)
+00:00 +256 -2: /Users/jp/src/github/vteam/textify/test/z_ocr_eval_test.dart: OCR evaluation (baseline)
+00:00 +257 -2: /Users/jp/src/github/vteam/textify/test/z_ocr_eval_test.dart: OCR evaluation (baseline)
+00:00 +258 -2: /Users/jp/src/github/vteam/textify/test/z_ocr_eval_test.dart: OCR evaluation (baseline)
+00:00 +259 -2: /Users/jp/src/github/vteam/textify/test/z_ocr_eval_test.dart: OCR evaluation (baseline)
+00:00 +260 -2: /Users/jp/src/github/vteam/textify/test/z_ocr_eval_test.dart: OCR evaluation (baseline)
+00:00 +261 -2: /Users/jp/src/github/vteam/textify/test/z_ocr_eval_test.dart: OCR evaluation (baseline)
+00:00 +262 -2: /Users/jp/src/github/vteam/textify/test/z_ocr_eval_test.dart: OCR evaluation (baseline)
+00:00 +263 -2: /Users/jp/src/github/vteam/textify/test/z_ocr_eval_test.dart: OCR evaluation (baseline)
+00:00 +264 -2: /Users/jp/src/github/vteam/textify/test/z_ocr_eval_test.dart: OCR evaluation (baseline)
+00:00 +265 -2: /Users/jp/src/github/vteam/textify/test/z_ocr_eval_test.dart: OCR evaluation (baseline)
+00:00 +266 -2: /Users/jp/src/github/vteam/textify/test/z_ocr_eval_test.dart: OCR evaluation (baseline)
+00:00 +267 -2: /Users/jp/src/github/vteam/textify/test/z_ocr_eval_test.dart: OCR evaluation (baseline)
+00:00 +268 -2: /Users/jp/src/github/vteam/textify/test/z_ocr_eval_test.dart: OCR evaluation (baseline)
+00:00 +269 -2: /Users/jp/src/github/vteam/textify/test/z_ocr_eval_test.dart: OCR evaluation (baseline)
+00:00 +270 -2: /Users/jp/src/github/vteam/textify/test/z_ocr_eval_test.dart: OCR evaluation (baseline)
+00:00 +271 -2: /Users/jp/src/github/vteam/textify/test/z_ocr_eval_test.dart: OCR evaluation (baseline)
+00:00 +272 -2: /Users/jp/src/github/vteam/textify/test/z_ocr_eval_test.dart: OCR evaluation (baseline)
+00:00 +273 -2: /Users/jp/src/github/vteam/textify/test/z_ocr_eval_test.dart: OCR evaluation (baseline)
+00:00 +274 -2: /Users/jp/src/github/vteam/textify/test/z_ocr_eval_test.dart: OCR evaluation (baseline)
+00:00 +275 -2: /Users/jp/src/github/vteam/textify/test/z_ocr_eval_test.dart: OCR evaluation (baseline)
+00:00 +276 -2: /Users/jp/src/github/vteam/textify/test/z_ocr_eval_test.dart: OCR evaluation (baseline)
+00:00 +277 -2: /Users/jp/src/github/vteam/textify/test/z_ocr_eval_test.dart: OCR evaluation (baseline)
+00:00 +278 -2: /Users/jp/src/github/vteam/textify/test/z_ocr_eval_test.dart: OCR evaluation (baseline)
+00:01 +279 -2: /Users/jp/src/github/vteam/textify/test/z_ocr_eval_test.dart: OCR evaluation (baseline)
+00:01 +280 -2: /Users/jp/src/github/vteam/textify/test/z_ocr_eval_test.dart: OCR evaluation (baseline)
+00:01 +281 -2: /Users/jp/src/github/vteam/textify/test/z_ocr_eval_test.dart: OCR evaluation (baseline)
+Shell: OCR eval: generated=83.6% assets=92.4% overall=90.6% | images=24 bands=67 artifacts=1475 chars=1462 | 4083ms
+00:04 +282 -2: /Users/jp/src/github/vteam/textify/test/z_ocr_eval_test.dart: (tearDownAll)
+00:04 +282 -2: Some tests failed.

@@ -278,8 +278,8 @@ double compareStringPercentage(String str1, String str2) {
   }
 
   final int distance = _levenshteinDistance(str1, str2);
-  final int maxLen = str1.length > str2.length ? str1.length : str2.length;
-  return ((1.0 - distance / maxLen) * 100).clamp(0.0, 100.0);
+  final int denominator = str1.length;
+  return ((1.0 - distance / denominator) * 100).clamp(0.0, 100.0);
 }
 
 /// Calculates the minimum number of single-character edits (insertions,

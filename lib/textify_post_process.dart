@@ -14,24 +14,20 @@ const int _lineFeedCodeUnit = 10;
 const int _carriageReturnCodeUnit = 13;
 const int _digitJoinMinCount = 2;
 const int _maxNoiseLineLength = 2;
-const int _fragmentedLineMinimumTokenCount = 4;
-const int _fragmentedLineShortAlphaThreshold = 3;
+const int _punctuationFilterShortLineMaxLength = 5;
 const int _fragmentPairMinimumTokenCount = 2;
 const int _fragmentPairShortWordLength = 3;
 const int _fragmentPairLeftLengthWhenRightSingle = 6;
-const int _dictionaryCorrectionMinimumTokenLength = 3;
-const int _nearMissMinTokenLength = 4;
-const int _nearMissMaxLevenshtein = 1;
-const int _nearMissLongTokenLength = 8;
-const int _nearMissLongTokenMaxLevenshtein = 2;
-const double _punctuationHeavyRatioThreshold = 0.3;
-const double _mostlyUppercaseRatioThreshold = 0.75;
+const int _nearMissMinTokenLength = 3;
+const int _minMixedCaseTokenLength = 3;
+const int _minAcronymTokenLength = 2;
+const int _minWordLengthForNonConfusionSwap = 3;
+const double _punctuationHeavyRatioThreshold = 0.4;
 const int _nameLikeLineMinTokens = 2;
 const int _nameLikeLineMaxTokens = 4;
 const int _titleCasePreserveLowerTokenMaxLength = 2;
 const int _regexGroupFirst = 1;
 const int _regexGroupSecond = 2;
-const int _regexGroupThird = 3;
 const int _uppercaseACodeUnit = 65;
 const int _uppercaseZCodeUnit = 90;
 const int _lowercaseACodeUnit = 97;
@@ -41,7 +37,7 @@ const int _digitNineCodeUnit = 57;
 const int _asciiCaseOffset = 32;
 
 /// Applies final normalization passes to OCR text output.
-String postProcessText(String text) {
+String postProcessText(String text, {bool applyDictionary = true}) {
   if (text.isEmpty) {
     return text;
   }
@@ -55,16 +51,17 @@ String postProcessText(String text) {
     value = _normalizeNameLikeLineTitleCase(value);
     value = _normalizeNumericGaps(value);
     value = _normalizeDateSeparators(value);
-    value = _normalizeAdjacentDigitLetterConfusions(value);
     value = _normalizeDigitSegments(value);
-    value = _normalizeDateSeparators(value);
-    value = _normalizeFragmentedLine(value);
-    value = _correctNearMissDictionaryWords(value);
+    value = _normalizeFragmentedLine(value, applyDictionary: applyDictionary);
+    if (applyDictionary) {
+      value = _correctNearMissDictionaryWords(value);
+    }
     processed.add(value);
   }
 
   final List<String> merged = _mergeNoiseLines(processed);
-  final String joined = _normalizeShortNoisyLines(merged).join('\n');
+  final List<String> shortNoisyFixed = _normalizeShortNoisyLines(merged);
+  final String joined = shortNoisyFixed.join('\n');
   final String normalized = _normalizePunctuationHeavyText(joined);
   final String lettersFixed = _normalizeLetterConfusions(normalized);
   return _normalizePunctuationSpacing(lettersFixed);
@@ -74,7 +71,6 @@ const int _uppercaseICodeUnit = 73;
 const int _lowercaseLCodeUnit = 108;
 const int _minWordLengthForILAmbiguity = 2;
 const int _minWordLengthForCaseCoherence = 3;
-const int _minCaseOutlierMajority = 2;
 
 /// Resolves I/l ambiguity based on word-level case context.
 ///
@@ -150,17 +146,18 @@ String _normalizeWordCaseCoherence(String line) {
       return word;
     }
 
-    // If all but one character share a case, fix the outlier
-    if (upper == 1 && lower >= _minCaseOutlierMajority) {
-      // Preserve Title Case (only uppercase is the first letter)
-      final int firstCode = word.codeUnitAt(0);
-      if (_isUpper(firstCode)) {
-        return word;
+    // If one case is strongly dominant, normalize the word
+    if (total >= _minWordLengthForCaseCoherence) {
+      if (upper >= total - 1 && upper > lower) {
+        return word.toUpperCase();
       }
-      return word.toLowerCase();
-    }
-    if (lower == 1 && upper >= _minCaseOutlierMajority) {
-      return word.toUpperCase();
+      if (lower >= total - 1 && lower > upper) {
+        // Preserve Title Case
+        if (_isUpper(word.codeUnitAt(0))) {
+          return _sentenceCase(word.toLowerCase());
+        }
+        return word.toLowerCase();
+      }
     }
 
     return word;
@@ -253,40 +250,10 @@ String _normalizeDigitSegments(String line) {
   return out.toString();
 }
 
-/// Converts letters to digits when they appear adjacent to a decimal separator
-/// and all letters in the segment have known digit confusion mappings.
-///
-/// Handles patterns like `24-oo` → `24-00` where OCR confused `0` with `o`
-/// in the fractional part of a number.
-String _normalizeAdjacentDigitLetterConfusions(String line) {
-  return line.replaceAllMapped(
-    RegExp(r'(\d+)([.,\-])([A-Za-z]+)(?=\s|$|[^A-Za-z0-9])'),
-    (Match match) {
-      final String digits = match.group(_regexGroupFirst)!;
-      final String sep = match.group(_regexGroupSecond)!;
-      final String letters = match.group(_regexGroupThird)!;
-
-      bool allMappable = true;
-      final StringBuffer mapped = StringBuffer();
-      for (int i = 0; i < letters.length; i++) {
-        final String? digit = _digitConfusionMap[letters[i]];
-        if (digit != null) {
-          mapped.write(digit);
-        } else {
-          allMappable = false;
-          break;
-        }
-      }
-
-      if (allMappable && letters.isNotEmpty) {
-        return '$digits$sep${mapped.toString()}';
-      }
-      return match.group(0)!;
-    },
-  );
-}
-
 /// Repairs noisy separators and spacing in numeric expressions.
+///
+/// Handles cases like "1 . 23" -> "1.23" and detects digit-dominant lines
+/// to remove all whitespace.
 String _normalizeNumericGaps(String line) {
   if (line.isEmpty) {
     return line;
@@ -378,35 +345,95 @@ String _normalizeDateSeparators(String line) {
 }
 
 /// Repairs fragmented words and common letter confusions in noisy lines.
-String _normalizeFragmentedLine(String line) {
+String _normalizeFragmentedLine(String line, {bool applyDictionary = true}) {
   if (!_looksFragmented(line)) {
     return line;
   }
 
-  final bool uppercaseDominant = _isMostlyUppercase(line);
   String value = line;
+  // 1. Acronym context: 'l' (lowercase L) follows uppercase and isn't followed by lowercase
+  // This catches 'AlB' -> 'AIB' and 'OpenAl' -> 'OpenAI'
   value = value.replaceAllMapped(
-    RegExp(r'(?<=[A-Z])l(?=[A-Z])'),
+    RegExp(r'(?<=[A-Z])l(?![a-z])'),
     (_) => OcrTokens.upperI,
   );
+
+  // 2. Common 2-letter confusion: 'ln' -> 'In'
+  value = value.replaceAllMapped(RegExp(r'\bln\b'), (_) => 'In');
   value = value.replaceAllMapped(
     RegExp(r'(?<=[a-z])I(?=[a-z])'),
     (_) => OcrTokens.lowerL,
   );
+  // 3. Multi-character fragmentation: 'c o d e' -> 'code'
+  // This helps reconstruct spaced out words in a single pass.
+  // When applyDictionary is true, avoids merging across word boundaries
+  // (e.g. 'w i d g e t A' stays 'widget A' instead of becoming 'widgetA').
   value = value.replaceAllMapped(
-    RegExp(r'\b([A-Za-z])\s+([A-Za-z])\b'),
-    (Match match) =>
-        '${match.group(_regexGroupFirst)}${match.group(_regexGroupSecond)}',
+    RegExp(r'(?<![A-Za-z])([A-Za-z])(?:\s+([A-Za-z]))+(?![A-Za-z])'),
+    (Match match) {
+      final String fullMatch = match.group(0)!;
+      final String merged = fullMatch.replaceAll(RegExp(r'\s+'), '');
+      if (applyDictionary) {
+        if (englishWords.contains(merged.toLowerCase())) {
+          return merged;
+        }
+        final String? split = _trySplitMergedCharacters(merged);
+        if (split != null) {
+          return split;
+        }
+      }
+      return merged;
+    },
   );
-  value = _mergeLikelyWordFragments(value);
-  value = _correctNoisyDictionaryWords(value);
 
-  if (uppercaseDominant) {
-    value = value.toUpperCase();
-  } else {
-    value = _sentenceCase(value.toLowerCase());
+  if (applyDictionary) {
+    value = _mergeLikelyWordFragments(value);
   }
+
   return value;
+}
+
+/// Attempts to split a merged sequence of single characters into valid words.
+///
+/// When fragmented character merging produces a non-dictionary string (e.g.,
+/// 'widgetA' from 'w i d g e t A'), this function finds valid word boundaries
+/// using a greedy longest-match strategy. A single trailing character is kept
+/// as a separate token to preserve standalone letters like 'A' in 'Widget A'.
+///
+/// Returns the split string with spaces between words, or null if no valid
+/// split can be found.
+String? _trySplitMergedCharacters(String merged) {
+  final String lower = merged.toLowerCase();
+  final List<String> words = <String>[];
+  int start = 0;
+
+  while (start < lower.length) {
+    int bestEnd = -1;
+    for (int end = lower.length; end > start; end--) {
+      if (englishWords.contains(lower.substring(start, end))) {
+        bestEnd = end;
+        break;
+      }
+    }
+
+    if (bestEnd != -1) {
+      words.add(merged.substring(start, bestEnd));
+      start = bestEnd;
+    } else if (lower.length - start == 1) {
+      // Single remaining character — preserve as a separate token.
+      words.add(merged.substring(start));
+      start++;
+    } else {
+      // Multi-character remainder that isn't a dictionary word — give up.
+      return null;
+    }
+  }
+
+  if (words.length <= 1) {
+    return null;
+  }
+
+  return words.join(' ');
 }
 
 /// Normalizes tiny noisy lines often produced by decorative serif fragments.
@@ -414,13 +441,71 @@ List<String> _normalizeShortNoisyLines(List<String> lines) {
   return lines;
 }
 
-/// Detects lines that likely contain over-segmented words.
+/// Returns true if the token is mixed-case (e.g., 'OpenAI').
+bool _isMixedCase(String token) {
+  if (token.length < _minMixedCaseTokenLength) return false;
+  final String alpha = token.replaceAll(RegExp(r'[^A-Za-z]'), '');
+  if (alpha.isEmpty) return false;
+
+  bool hasUpper = false;
+  bool hasLower = false;
+  // Check if we have both upper and lower after the first character
+  // (Title Case is handled separately by the dictionary)
+  for (int i = 1; i < alpha.length; i++) {
+    if (alpha[i] == alpha[i].toUpperCase()) hasUpper = true;
+    if (alpha[i] == alpha[i].toLowerCase()) hasLower = true;
+  }
+  return hasUpper && hasLower;
+}
+
+/// Returns true if the token is likely an acronym (all caps).
+bool _isAcronym(String token) {
+  if (token.length < _minAcronymTokenLength) return false;
+  final String alpha = token.replaceAll(RegExp(r'[^A-Za-z]'), '');
+  return alpha.isNotEmpty && alpha == alpha.toUpperCase();
+}
+
+/// Returns true if the two characters are common OCR confusions (e.g., 'l' and 'I').
+bool _isCommonOcrConfusion(String a, String b) {
+  final String charA = a.toUpperCase();
+  final String charB = b.toUpperCase();
+  if (charA == charB) return true;
+
+  const Map<String, Set<String>> confusionGroups = {
+    'I': {'L', '1', '!', '|', 'T'},
+    'L': {'I', '1', '!', '|'},
+    '1': {'I', 'L', '!', '|'},
+    'O': {'0', 'Q', 'D'},
+    '0': {'O', 'Q', 'D'},
+    'S': {'5', '8'},
+    '5': {'S', '8'},
+    '8': {'S', '5', 'B'},
+    'B': {'8', 'D', '0'},
+    'Z': {'2'},
+    '2': {'Z'},
+    'T': {'1', 'I', '7'},
+    'G': {'6', '9'},
+    '6': {'G'},
+    '9': {'G'},
+  };
+
+  return confusionGroups[charA]?.contains(charB) ??
+      confusionGroups[charB]?.contains(charA) ??
+      false;
+}
+
+/// Analyzes a line to determine if it is likely fragmented OCR output.
+///
+/// A line is considered fragmented if it contains a high proportion of
+/// very short (1-2 character) alphabetic tokens, which often indicates
+/// that the OCR engine incorrectly split words due to wide kerning or
+/// artifacts.
 bool _looksFragmented(String line) {
   final List<String> tokens = line
       .split(RegExp(r'\s+'))
       .where((String token) => token.isNotEmpty)
       .toList();
-  if (tokens.length < _fragmentedLineMinimumTokenCount) {
+  if (tokens.length < _fragmentPairMinimumTokenCount) {
     return false;
   }
 
@@ -430,7 +515,7 @@ bool _looksFragmented(String line) {
       shortAlpha++;
     }
   }
-  return shortAlpha >= _fragmentedLineShortAlphaThreshold;
+  return shortAlpha >= 1;
 }
 
 /// Merges adjacent tiny alphabetic tokens when they likely belong to one word.
@@ -444,11 +529,18 @@ String _mergeLikelyWordFragments(String line) {
   while (i < tokens.length - 1) {
     final String left = tokens[i];
     final String right = tokens[i + 1];
-    if (!_isAlphaWord(left) || !_isAlphaWord(right)) {
-      i++;
-      continue;
-    }
-    if (left.toLowerCase() == 'a' || right.toLowerCase() == 'a') {
+    final bool leftValid = englishWords.contains(left.toLowerCase());
+    final bool rightValid = englishWords.contains(right.toLowerCase());
+
+    // NEVER merge two already-valid words into a longer string
+    // unless the result is also a dictionary word.
+    if (leftValid && rightValid) {
+      final String merged = left + right;
+      if (englishWords.contains(merged.toLowerCase())) {
+        tokens[i] = merged;
+        tokens.removeAt(i + 1);
+        continue;
+      }
       i++;
       continue;
     }
@@ -456,21 +548,52 @@ String _mergeLikelyWordFragments(String line) {
     final bool likelyFragmentPair =
         (left.length <= _fragmentPairShortWordLength &&
             right.length <= _fragmentPairShortWordLength) ||
-        (right.length == _regexGroupFirst &&
+        (right.length == 1 &&
             left.length <= _fragmentPairLeftLengthWhenRightSingle);
     if (!likelyFragmentPair) {
       i++;
       continue;
     }
 
-    final String merged = left + right;
+    String merged = left + right;
+    // Apply structural fixes to the merged result (e.g. OpenAl -> OpenAI)
+    merged = merged.replaceAllMapped(
+      RegExp(r'(?<=[A-Z])l(?![a-z])'),
+      (_) => OcrTokens.upperI,
+    );
+
+    // If the merged result is a valid acronym or mixed-case word,
+    // we accept it and merge immediately.
+    if (_isAcronym(merged) || _isMixedCase(merged)) {
+      tokens[i] = merged;
+      tokens.removeAt(i + 1);
+      continue;
+    }
+
+    final String lowerMerged = merged.toLowerCase();
+    // Protect numbers from being matched against the dictionary.
+    if (RegExp(r'\d').hasMatch(merged)) {
+      i++;
+      continue;
+    }
+
+    if (englishWords.contains(lowerMerged)) {
+      tokens[i] = merged;
+      tokens.removeAt(i + 1);
+      continue;
+    }
+
     final String suggestion = findClosestMatchingWordInDictionary(merged);
     final int distance = levenshteinDistance(
-      merged.toLowerCase(),
+      lowerMerged,
       suggestion.toLowerCase(),
     );
-    if (distance <= 1) {
-      tokens[i] = suggestion;
+    // STRICT POLICY: Only merge if the result matches a dictionary word
+    // of the EXACT same length with distance 1.
+    if (distance == 1 && suggestion.length == merged.length) {
+      tokens[i] = _isTitleCaseWord(merged)
+          ? _toTitleCaseWord(suggestion)
+          : suggestion;
       tokens.removeAt(i + 1);
       continue;
     }
@@ -478,28 +601,6 @@ String _mergeLikelyWordFragments(String line) {
     i++;
   }
 
-  return tokens.join(' ');
-}
-
-/// Corrects near-miss dictionary words in noisy OCR lines.
-String _correctNoisyDictionaryWords(String line) {
-  final List<String> tokens = line.split(' ');
-  for (int i = 0; i < tokens.length; i++) {
-    final String token = tokens[i];
-    if (!_isAlphaWord(token) ||
-        token.length < _dictionaryCorrectionMinimumTokenLength) {
-      continue;
-    }
-
-    final String suggestion = findClosestMatchingWordInDictionary(token);
-    final int distance = levenshteinDistance(
-      token.toLowerCase(),
-      suggestion.toLowerCase(),
-    );
-    if (distance <= 1) {
-      tokens[i] = suggestion;
-    }
-  }
   return tokens.join(' ');
 }
 
@@ -521,6 +622,15 @@ String _normalizeNameLikeLineTitleCase(String line) {
       .toList();
   if (tokens.length < _nameLikeLineMinTokens ||
       tokens.length > _nameLikeLineMaxTokens) {
+    return line;
+  }
+
+  // If it's a 2-word line starting with a TitleCase word followed by a common lowercase word,
+  // it's likely a sentence rather than a name.
+  if (tokens.length == _nameLikeLineMinTokens &&
+      _isTitleCaseWord(tokens[0]) &&
+      tokens[1] == tokens[1].toLowerCase() &&
+      englishWords.contains(tokens[1])) {
     return line;
   }
 
@@ -574,7 +684,10 @@ String _correctNearMissDictionaryWords(String line) {
     if (token.length < _nearMissMinTokenLength) {
       return token;
     }
-    if (token == token.toUpperCase()) {
+
+    // Protect mixed-case words (e.g., 'OpenAI') and acronyms (e.g., 'GPT')
+    // from being "corrected" to lowercase dictionary words.
+    if (_isAcronym(token) || _isMixedCase(token)) {
       return token;
     }
 
@@ -589,14 +702,34 @@ String _correctNearMissDictionaryWords(String line) {
     }
 
     final int distance = levenshteinDistance(lower, suggestion.toLowerCase());
-    final int maxAllowed = token.length >= _nearMissLongTokenLength
-        ? _nearMissLongTokenMaxLevenshtein
-        : _nearMissMaxLevenshtein;
-    if (distance > maxAllowed) {
+
+    // STRICT POLICY: Only allow corrections of distance 1 and matching length.
+    if (distance != 1 || suggestion.length != token.length) {
       return token;
     }
-    if ((suggestion.length - token.length).abs() > 1) {
-      return token;
+
+    // Determine which character is being changed.
+    int diffIndex = -1;
+    for (int i = 0; i < token.length; i++) {
+      if (token[i].toLowerCase() != suggestion[i].toLowerCase()) {
+        diffIndex = i;
+        break;
+      }
+    }
+
+    if (diffIndex != -1) {
+      final String from = token[diffIndex];
+      final String to = suggestion[diffIndex];
+
+      // If the swap is a known OCR confusion (l/I, O/0, etc.), we allow it.
+      bool isCommonConfusion = _isCommonOcrConfusion(from, to);
+
+      // If it is NOT a common confusion, we only allow it for long words
+      // where we are very certain of the rest of the word.
+      if (!isCommonConfusion &&
+          token.length < _minWordLengthForNonConfusionSwap) {
+        return token;
+      }
     }
 
     if (_isTitleCaseWord(token)) {
@@ -649,27 +782,6 @@ String _toTitleCaseWord(String word) {
   return '${lower[0].toUpperCase()}${lower.substring(1)}';
 }
 
-/// Returns true when uppercase letters strongly dominate the line.
-bool _isMostlyUppercase(String line) {
-  int letters = 0;
-  int upper = 0;
-  for (int i = 0; i < line.length; i++) {
-    final int code = line.codeUnitAt(i);
-    if (_isUpper(code)) {
-      letters++;
-      upper++;
-      continue;
-    }
-    if (_isLower(code)) {
-      letters++;
-    }
-  }
-  if (letters == 0) {
-    return false;
-  }
-  return (upper / letters) >= _mostlyUppercaseRatioThreshold;
-}
-
 /// Merges short noise-only lines into the following content line when useful.
 List<String> _mergeNoiseLines(List<String> lines) {
   if (lines.isEmpty) {
@@ -681,13 +793,10 @@ List<String> _mergeNoiseLines(List<String> lines) {
   while (i < lines.length) {
     final String current = lines[i];
     if (_isNoiseLine(current)) {
-      int j = i;
-      while (j < lines.length && _isNoiseLine(lines[j])) {
-        j++;
+      if (current.isEmpty) {
+        merged.add(current);
       }
-
-      // Skip noise lines — no prefix inference
-      i = j;
+      i++;
       continue;
     }
 
@@ -720,66 +829,74 @@ bool _isNoiseLine(String line) {
       return false;
     }
   }
+
   return true;
 }
 
-/// Collapses whitespace when text is dominated by punctuation artifacts.
-String _normalizePunctuationHeavyText(String text) {
-  int alnum = 0;
-  int nonWhitespace = 0;
-  for (int i = 0; i < text.length; i++) {
-    final int code = text.codeUnitAt(i);
-    if (code != _spaceCodeUnit &&
-        code != _tabCodeUnit &&
-        code != _lineFeedCodeUnit &&
-        code != _carriageReturnCodeUnit) {
-      nonWhitespace++;
-    }
-    if (_isLetter(code) || _isDigit(code)) {
-      alnum++;
-    }
-  }
-
-  if (text.isEmpty || nonWhitespace == 0) {
-    return text;
-  }
-
-  final double ratio = alnum / nonWhitespace;
-  if (ratio < _punctuationHeavyRatioThreshold) {
-    return text.replaceAll(RegExp(r'\s+'), '');
-  }
-  return text;
-}
-
-/// Removes invalid spaces before punctuation and closing brackets.
+/// Normalizes punctuation spacing errors common in OCR.
 String _normalizePunctuationSpacing(String text) {
-  if (text.isEmpty) {
-    return text;
-  }
+  // Fixes "word . next" -> "word. next"
+  String result = text.replaceAllMapped(RegExp(r'\s+([.,!?;:])'), (match) {
+    return match.group(_regexGroupFirst)!;
+  });
 
-  String value = text.replaceAllMapped(
-    RegExp(r'\s+([,.;:!?])'),
-    (match) => match.group(1) ?? '',
-  );
-  value = value.replaceAllMapped(
-    RegExp(r'\s+([)\]\}])'),
-    (match) => match.group(1) ?? '',
-  );
-  return value;
+  // Fixes "word.next" -> "word. next"
+  result = result.replaceAllMapped(RegExp(r'([.,!?;:])([A-Za-z])'), (match) {
+    return '${match.group(_regexGroupFirst)!} ${match.group(_regexGroupSecond)!}';
+  });
+
+  return result;
 }
 
-/// Fixes known letter-shape confusions produced by OCR segmentation.
+/// Normalizes common multi-character letter confusions.
 String _normalizeLetterConfusions(String text) {
-  if (text.isEmpty) {
-    return text;
+  return text
+      .replaceAll('rn', 'm')
+      .replaceAll('cl', 'd')
+      .replaceAll('vv', 'w')
+      .replaceAll('III', 'm');
+}
+
+/// Normalizes lines that are overwhelmingly punctuation.
+String _normalizePunctuationHeavyText(String text) {
+  final List<String> lines = text.split('\n');
+  final List<String> filtered = <String>[];
+
+  for (final String line in lines) {
+    if (line.isEmpty) {
+      filtered.add(line);
+      continue;
+    }
+
+    int punctuation = 0;
+    int alphanumeric = 0;
+    for (int i = 0; i < line.length; i++) {
+      final int code = line.codeUnitAt(i);
+      if (_isLetter(code) || _isDigit(code)) {
+        alphanumeric++;
+      } else if (line[i] != ' ') {
+        punctuation++;
+      }
+    }
+
+    if (line.length > _punctuationFilterShortLineMaxLength) {
+      filtered.add(line);
+      continue;
+    }
+
+    if (alphanumeric == 0 && punctuation > 0) {
+      continue;
+    }
+
+    if (punctuation / (punctuation + alphanumeric) >
+        _punctuationHeavyRatioThreshold) {
+      continue;
+    }
+
+    filtered.add(line);
   }
 
-  // Common split of 'H' into 'I]' when the crossbar is faint.
-  return text.replaceAllMapped(
-    RegExp(r'([A-Za-z])I\]([A-Za-z])'),
-    (match) =>
-        '${match.group(_regexGroupFirst)}H${match.group(_regexGroupSecond)}',
-  );
+  return filtered.join('\n');
 }
 
 bool _isUpper(int code) =>

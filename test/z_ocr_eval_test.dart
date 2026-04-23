@@ -193,16 +193,146 @@ class _Score {
   }
 }
 
+Future<void> _runOcrEvaluation({
+  required bool applyDictionaryCorrection,
+  required List<EvalCase> cases,
+  required List<AssetEvalCase> assetCases,
+}) async {
+  final String modeLabel = applyDictionaryCorrection ? 'dict:on ' : 'dict:off';
+
+  final Textify textify = await Textify(
+    config: TextifyConfig(applyDictionaryCorrection: applyDictionaryCorrection),
+  ).init(pathToAssetsDefinition: 'assets/matrices.json');
+
+  final _Score generatedScore = _Score();
+  final _Score assetScore = _Score();
+  final Stopwatch totalStopwatch = Stopwatch()..start();
+
+  _logEval('--- Generated images ($modeLabel) ---');
+
+  for (final EvalCase evalCase in cases) {
+    final ui.Image image = await _renderTextImage(
+      text: evalCase.text,
+      fontFamily: evalCase.fontFamily,
+      fontSize: evalCase.fontSize,
+      padding: evalCase.padding,
+    );
+
+    final Stopwatch sw = Stopwatch()..start();
+    final String actualText = await textify.getTextFromImage(image: image);
+    sw.stop();
+
+    generatedScore.record(textify, evalCase.text, actualText);
+
+    final String exactLabel = evalCase.text == actualText ? 'yes' : 'no';
+
+    _logEval(
+      '${evalCase.name} | font:${evalCase.fontFamily} ${evalCase.fontSize.toInt()}px '
+      '| expected:${evalCase.text.length} actual:${actualText.length} '
+      '| char-acc:${((1.0 - (_levenshteinDistance(evalCase.text, actualText) / evalCase.text.length)) * 100).toStringAsFixed(2)}% '
+      '| exact:$exactLabel'
+      '| ${sw.elapsedMilliseconds}ms',
+    );
+
+    if (evalCase.text != actualText) {
+      _logEval('  expected: "${_shorten(_escapeVisible(evalCase.text))}"');
+      _logEval('  actual:   "${_shorten(_escapeVisible(actualText))}"');
+    }
+  }
+
+  _logEval('--- Asset images ($modeLabel) ---');
+  for (final AssetEvalCase assetCase in assetCases) {
+    final ui.Image image = await Textify.loadImageFromAssets(
+      assetCase.assetPath,
+    );
+
+    final Textify assetTextify = Textify(
+      config: TextifyConfig(
+        applyDictionaryCorrection: applyDictionaryCorrection,
+        attemptCharacterSplitting: assetCase.splitting,
+      ),
+    );
+    await assetTextify.init(pathToAssetsDefinition: 'assets/matrices.json');
+
+    final Stopwatch sw = Stopwatch()..start();
+    final String actualText = await assetTextify.getTextFromImage(image: image);
+    sw.stop();
+
+    assetScore.record(assetTextify, assetCase.expectedText, actualText);
+
+    final String exactLabel = assetCase.expectedText == actualText
+        ? 'yes'
+        : 'no';
+
+    _logEval(
+      '${assetCase.name} | asset'
+      ' | expected:${assetCase.expectedText.length} actual:${actualText.length}'
+      ' | char-acc:${((1.0 - (_levenshteinDistance(assetCase.expectedText, actualText) / assetCase.expectedText.length)) * 100).toStringAsFixed(2)}%'
+      ' | exact:$exactLabel'
+      ' | ${sw.elapsedMilliseconds}ms',
+    );
+
+    if (assetCase.expectedText != actualText) {
+      _logEval(
+        '  expected: "${_shorten(_escapeVisible(assetCase.expectedText))}"',
+      );
+      _logEval('  actual:   "${_shorten(_escapeVisible(actualText))}"');
+    }
+  }
+
+  totalStopwatch.stop();
+
+  final _Score total = _Score()
+    ..add(generatedScore)
+    ..add(assetScore);
+
+  _logEval('--- ($modeLabel) ---');
+  _logEval(
+    'Generated: accuracy=${(generatedScore.accuracy * 100).toStringAsFixed(2)}%',
+  );
+  _logEval(
+    'Assets:    accuracy=${(assetScore.accuracy * 100).toStringAsFixed(2)}%',
+  );
+  _logEval('Overall:   accuracy=${(total.accuracy * 100).toStringAsFixed(2)}%');
+  _logEval('Total time: ${totalStopwatch.elapsedMilliseconds}ms');
+
+  final String generatedPct = (generatedScore.accuracy * 100)
+      .toStringAsFixed(1)
+      .padLeft(5);
+  final String assetsPct = (assetScore.accuracy * 100)
+      .toStringAsFixed(1)
+      .padLeft(5);
+  final String overallPct = (total.accuracy * 100)
+      .toStringAsFixed(1)
+      .padLeft(5);
+  final String imagesCount = total.images.toString().padLeft(3);
+  final String bandsCount = total.bands.toString().padLeft(4);
+  final String artifactsCount = total.artifacts.toString().padLeft(5);
+  final String charsCount = total.expectedChars.toString().padLeft(5);
+  final String elapsedMs = totalStopwatch.elapsedMilliseconds
+      .toString()
+      .padLeft(5);
+
+  // Always print summary so it's visible in normal test runs.
+  stderr.writeln(
+    'OCR eval ($modeLabel):'
+    ' generated=$generatedPct%'
+    ' assets=$assetsPct%'
+    ' overall=$overallPct%'
+    ' | images=$imagesCount'
+    ' bands=$bandsCount'
+    ' artifacts=$artifactsCount'
+    ' chars=$charsCount'
+    ' | ${elapsedMs}ms',
+  );
+}
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   setUpAll(() async {
     await _loadTestFonts();
   });
-
-  const TextifyConfig evalConfig = TextifyConfig(
-    applyDictionaryCorrection: false,
-  );
 
   final List<EvalCase> cases = <EvalCase>[
     const EvalCase(
@@ -397,118 +527,19 @@ void main() {
     ),
   ];
 
-  test('OCR evaluation (baseline)', () async {
-    final Textify textify = await Textify(
-      config: evalConfig,
-    ).init(pathToAssetsDefinition: 'assets/matrices.json');
-
-    final _Score generatedScore = _Score();
-    final _Score assetScore = _Score();
-    final Stopwatch totalStopwatch = Stopwatch()..start();
-
-    _logEval('--- Generated images ---');
-
-    for (final EvalCase evalCase in cases) {
-      final ui.Image image = await _renderTextImage(
-        text: evalCase.text,
-        fontFamily: evalCase.fontFamily,
-        fontSize: evalCase.fontSize,
-        padding: evalCase.padding,
-      );
-
-      final Stopwatch sw = Stopwatch()..start();
-      final String actualText = await textify.getTextFromImage(image: image);
-      sw.stop();
-
-      generatedScore.record(textify, evalCase.text, actualText);
-
-      final String exactLabel = evalCase.text == actualText ? 'yes' : 'no';
-
-      _logEval(
-        '${evalCase.name} | font:${evalCase.fontFamily} ${evalCase.fontSize.toInt()}px '
-        '| expected:${evalCase.text.length} actual:${actualText.length} '
-        '| char-acc:${((1.0 - (_levenshteinDistance(evalCase.text, actualText) / evalCase.text.length)) * 100).toStringAsFixed(2)}% '
-        '| exact:$exactLabel'
-        '| ${sw.elapsedMilliseconds}ms',
-      );
-
-      if (evalCase.text != actualText) {
-        _logEval('  expected: "${_shorten(_escapeVisible(evalCase.text))}"');
-        _logEval('  actual:   "${_shorten(_escapeVisible(actualText))}"');
-      }
-    }
-
-    _logEval('--- Asset images ---');
-    for (final AssetEvalCase assetCase in assetCases) {
-      final ui.Image image = await Textify.loadImageFromAssets(
-        assetCase.assetPath,
-      );
-
-      final Textify assetTextify = Textify(
-        config: TextifyConfig(
-          applyDictionaryCorrection: false,
-          attemptCharacterSplitting: assetCase.splitting,
-        ),
-      );
-      await assetTextify.init(pathToAssetsDefinition: 'assets/matrices.json');
-
-      final Stopwatch sw = Stopwatch()..start();
-      final String actualText = await assetTextify.getTextFromImage(
-        image: image,
-      );
-      sw.stop();
-
-      assetScore.record(assetTextify, assetCase.expectedText, actualText);
-
-      final String exactLabel = assetCase.expectedText == actualText
-          ? 'yes'
-          : 'no';
-
-      _logEval(
-        '${assetCase.name} | asset'
-        ' | expected:${assetCase.expectedText.length} actual:${actualText.length}'
-        ' | char-acc:${((1.0 - (_levenshteinDistance(assetCase.expectedText, actualText) / assetCase.expectedText.length)) * 100).toStringAsFixed(2)}%'
-        ' | exact:$exactLabel'
-        ' | ${sw.elapsedMilliseconds}ms',
-      );
-
-      if (assetCase.expectedText != actualText) {
-        _logEval(
-          '  expected: "${_shorten(_escapeVisible(assetCase.expectedText))}"',
-        );
-        _logEval('  actual:   "${_shorten(_escapeVisible(actualText))}"');
-      }
-    }
-
-    totalStopwatch.stop();
-
-    final _Score total = _Score()
-      ..add(generatedScore)
-      ..add(assetScore);
-
-    _logEval('---');
-    _logEval(
-      'Generated: accuracy=${(generatedScore.accuracy * 100).toStringAsFixed(2)}%',
+  test('OCR evaluation (dictionary off)', () async {
+    await _runOcrEvaluation(
+      applyDictionaryCorrection: false,
+      cases: cases,
+      assetCases: assetCases,
     );
-    _logEval(
-      'Assets:    accuracy=${(assetScore.accuracy * 100).toStringAsFixed(2)}%',
-    );
-    _logEval(
-      'Overall:   accuracy=${(total.accuracy * 100).toStringAsFixed(2)}%',
-    );
-    _logEval('Total time: ${totalStopwatch.elapsedMilliseconds}ms');
+  });
 
-    // Always print summary so it's visible in normal test runs
-    stderr.writeln(
-      'OCR eval:'
-      ' generated=${(generatedScore.accuracy * 100).toStringAsFixed(1)}%'
-      ' assets=${(assetScore.accuracy * 100).toStringAsFixed(1)}%'
-      ' overall=${(total.accuracy * 100).toStringAsFixed(1)}%'
-      ' | images=${total.images}'
-      ' bands=${total.bands}'
-      ' artifacts=${total.artifacts}'
-      ' chars=${total.expectedChars}'
-      ' | ${totalStopwatch.elapsedMilliseconds}ms',
+  test('OCR evaluation (dictionary on)', () async {
+    await _runOcrEvaluation(
+      applyDictionaryCorrection: true,
+      cases: cases,
+      assetCases: assetCases,
     );
   });
 }

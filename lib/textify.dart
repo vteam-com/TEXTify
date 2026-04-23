@@ -474,7 +474,7 @@ class Textify {
 
     textFound += linesFound.join('\n');
     textFound = applyCorrection(textFound, applyDictionary);
-    textFound = postProcessText(textFound);
+    textFound = postProcessText(textFound, applyDictionary: applyDictionary);
 
     return textFound.trim();
   }

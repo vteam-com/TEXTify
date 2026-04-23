@@ -115,9 +115,18 @@ final defaultTextify = Textify(); // Uses TextifyConfig()
 | `dilationSize`              | 22      | Size of dilation kernel. Higher values help connect broken characters but may merge unrelated elements.    |
 | `excludeLongLines`          | true    | Whether to ignore long horizontal/vertical lines that span significant portions of the image.              |
 | `attemptCharacterSplitting` | true    | Whether to attempt splitting characters that appear connected. Improves accuracy but adds processing time. |
-| `applyDictionaryCorrection` | false   | Whether to apply English dictionary correction to improve recognition accuracy.                            |
+| `applyDictionaryCorrection` | false   | Whether to apply English dictionary correction. **Must be false for non-English text.**      |
 | `matchingThreshold`         | 0.4     | Minimum similarity score required for character matching (0.0-1.0). Higher values are more strict.         |
 | `maxProcessingTimeMs`       | 30000   | Maximum processing time in milliseconds before timing out.                                                 |
+
+### Language & Dictionary Support
+
+TEXTify includes a dictionary-based correction system optimized for **English**. 
+
+> [!IMPORTANT]
+> If you are processing non-English text (e.g., Spanish, French, or purely numeric data), you **must** set `applyDictionaryCorrection: false`. 
+> 
+> Enabling this for non-English text will result in the engine attempting to "correct" foreign words into lookalike English words (e.g., "esta" might become "east"), which will degrade accuracy.
 
 ### Performance Tuning
 

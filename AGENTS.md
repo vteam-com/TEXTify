@@ -41,5 +41,10 @@ These constraints mean:
 ## TESTS
 
 - Test Coverage must not regress, its currently at 99% (update this value if it improves)
-- test result shall be capture in the file test_resutl_<current_version>.txt
+- test result shall be capture in the file test_results_<current_version>.txt
 - compare new result Overall char-accuracy: 91% with previouse the result should improve (update this value if it improves)
+
+## Dictionary Policy
+
+- **Configurability**: Every post-processing pass that uses language-specific logic (like the English dictionary) **must** respect the `applyDictionary` flag.
+- **Non-English Support**: Never force English dictionary lookups or "corrections" when `applyDictionary` is false. This allows the engine to be used for other languages (e.g., Spanish) by disabling language-specific heuristics.

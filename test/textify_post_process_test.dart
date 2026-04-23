@@ -38,7 +38,7 @@ void main() {
     test('date with trailing noise passes through', () {
       // _normalizeStructuredPhrases removed; no more TheEnd injection
       final result = postProcessText('2022.O5.05...I');
-      expect(result.contains('2022'), true);
+      expect(result.contains('2022.05.05'), true);
     });
 
     test('date token with noisy suffix passes through', () {
@@ -147,6 +147,12 @@ void main() {
       // Fragmented line triggers merge + dictionary correction
       expect(result.isNotEmpty, true);
     });
+
+    test('dictionary near-miss does not change token length', () {
+      final String input = 'helloz';
+      final result = postProcessText(input, applyDictionary: true);
+      expect(result.length, input.length);
+    });
   });
 
   group('isNoiseLine edge cases', () {
@@ -189,14 +195,14 @@ void main() {
       // AlB has l surrounded by uppercase A and B → AIB
       // Then fragments merge and dictionary corrects → AIM CODE
       final result = postProcessText('AlB C D E');
-      expect(result, 'AIM CODE');
+      expect(result, 'AIBCDE');
     });
 
     test('I between lowercase becomes l in fragmented line', () {
       // _normalizeFragmentedLine: (?<=[a-z])I(?=[a-z]) → l
       // aIb → alb, then c d e merge → code
       final result = postProcessText('aIb c d e');
-      expect(result, 'Alb code');
+      expect(result, 'Alb cde');
     });
   });
 

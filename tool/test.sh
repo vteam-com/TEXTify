@@ -13,5 +13,6 @@ if [ $test_exit -ne 0 ]; then
   exit $test_exit
 fi
 
-grep "OCR eval:" /tmp/textify_test_output.txt | sed 's/^.*OCR eval:/OCR eval:/' || true
+grep -E "OCR eval \(dict:(off|on) *\):" /tmp/textify_test_output.txt \
+  | sed -E 's/^.*(OCR eval \(dict:(off|on) *\):.*)$/\1/' || true
 echo "Coverage: $(lcov --summary coverage/lcov.info 2>&1 | grep 'lines' | sed 's/.*lines[.:]*  *//')"

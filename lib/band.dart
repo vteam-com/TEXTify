@@ -40,7 +40,7 @@ class Band {
   static const int _spaceBorderWidth = 2;
   static const int _minSpaceWidth = 2;
   static const double _spaceMedianMultiplier = 1.6;
-  static const double _spaceMinWidthRatio = 0.4;
+  static const double _spaceMinWidthRatio = 0.5;
   static const double _spaceGapJumpRatio = 1.8;
   static const int _gapMidpointDivisor = 2;
   static const double _maxJumpThresholdWidthRatio = 2.0;
@@ -745,7 +745,8 @@ class Band {
     );
     final int jumpThreshold = tryJumpThreshold(gaps, maxReasonable);
     if (jumpThreshold > 0) {
-      return max(_minSpaceWidth, jumpThreshold);
+      final int minFromWidth = (averageWidth * _spaceMinWidthRatio).round();
+      return max(_minSpaceWidth, max(jumpThreshold, minFromWidth));
     }
 
     // If the uncapped best jump is valid but exceeded the cap,

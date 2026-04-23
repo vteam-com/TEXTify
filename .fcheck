@@ -1,3 +1,4 @@
 input:
   exclude:
     - "**/english_words.dart"
+    - ".dart_tool/**"

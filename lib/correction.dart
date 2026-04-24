@@ -10,6 +10,7 @@ import 'package:textify/models/english_words.dart';
 
 const int _minDictionaryTokenLength = 2;
 const int _maxDictionaryFallbackDistance = 1;
+const int _minFallbackCorrectionLength = 4;
 
 /// Utility class to analyze character statistics in text.
 ///
@@ -205,9 +206,11 @@ String applyDictionaryCorrectionOnSingleSentence(
             }
           }
 
-          if (!foundMatch) {
+          if (!foundMatch && word.length >= _minFallbackCorrectionLength) {
             // If no direct match after substitutions, find a conservative
             // same-length near match to avoid over-correcting tokens.
+            // Only for words long enough that a single-character edit is
+            // proportionally small (≥4 chars = ≤25% change).
             final String suggestion = findClosestMatchingWordInDictionary(word);
             final int distance = levenshteinDistance(
               word.toLowerCase(),
@@ -238,8 +241,8 @@ String applyDictionaryCorrectionOnSingleSentence(
 String findClosestMatchingWordInDictionary(String word) {
   String suggestion = findClosestWord(englishWords, word.toLowerCase());
   String lastChar = word[word.length - 1];
-  if (lastChar == 's' ||
-      lastChar == 'S' && (word.length - 1 == suggestion.length)) {
+  if ((lastChar == 's' || lastChar == 'S') &&
+      word.length - 1 == suggestion.length) {
     suggestion += lastChar;
   }
   // Preserve original casing for unchanged letters
@@ -451,13 +454,25 @@ String normalizeCasingOfSentence(final String sentence) {
   }
 
   final int offset = sentence.length - trimmed.length;
-  final String content = trimmed.toLowerCase();
+  String content = trimmed.toLowerCase();
   final String firstChar = content[0];
 
   if (isLetter(firstChar)) {
-    return sentence.substring(0, offset) +
-        firstChar.toUpperCase() +
-        content.substring(1);
+    content = firstChar.toUpperCase() + content.substring(1);
+  }
+
+  // Restore standalone single uppercase letters from the original text.
+  // Words like "A" (article) and "I" (pronoun) should preserve their
+  // uppercase form even in predominantly lowercase sentences.
+  for (int i = 0; i < content.length && i < trimmed.length; i++) {
+    if (isUppercaseLetter(trimmed[i])) {
+      final bool atStart = i == 0 || !isLetter(trimmed[i - 1]);
+      final bool atEnd = i == trimmed.length - 1 || !isLetter(trimmed[i + 1]);
+      if (atStart && atEnd) {
+        content =
+            content.substring(0, i) + trimmed[i] + content.substring(i + 1);
+      }
+    }
   }
 
   return sentence.substring(0, offset) + content;

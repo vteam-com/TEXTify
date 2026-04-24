@@ -40,7 +40,7 @@ class Band {
   static const int _spaceBorderWidth = 2;
   static const int _minSpaceWidth = 2;
   static const double _spaceMedianMultiplier = 1.6;
-  static const double _spaceMinWidthRatio = 0.5;
+  static const double _spaceMinWidthRatio = 0.3;
   static const double _spaceGapJumpRatio = 1.8;
   static const int _gapMidpointDivisor = 2;
   static const double _maxJumpThresholdWidthRatio = 2.0;
@@ -48,6 +48,12 @@ class Band {
   static const int _maxIntValue = 0x7FFFFFFF;
   static const int _maxDistanceSentinel = 1 << 30;
   static const double _tightGapMinVerticalOverlapRatio = 0.75;
+
+  // Space quality validation: if more than this fraction of words have
+  // ≤ _maxShortWordLength artifacts, the threshold was too low.
+  static const double _maxShortWordRatio = 0.4;
+  static const int _maxShortWordLength = 2;
+  static const int _minWordsForSpaceValidation = 3;
   static const double _tightGapMaxMergedWidthRatio = 1.2;
   static const double _tightGapSmallToLargeAreaRatio = 0.45;
 
@@ -690,7 +696,24 @@ class Band {
 
     // Calculate a threshold based on gap distribution (robust to large spaces)
     final int spaceThreshold = calculateSpaceThreshold(gaps);
+    _insertSpacesAboveThreshold(spaceThreshold);
 
+    // Validate: if too many short words, the threshold was too low.
+    // Retry with a conservative (median-based) threshold.
+    if (_hasExcessiveShortWords()) {
+      artifacts.removeWhere((a) => a.matchingCharacter == ' ');
+      final int conservativeThreshold = _conservativeSpaceThreshold(gaps);
+      if (conservativeThreshold > spaceThreshold) {
+        _insertSpacesAboveThreshold(conservativeThreshold);
+      } else {
+        // Conservative threshold is not higher — the original was reasonable.
+        _insertSpacesAboveThreshold(spaceThreshold);
+      }
+    }
+  }
+
+  /// Inserts space artifacts between characters whose gap exceeds [spaceThreshold].
+  void _insertSpacesAboveThreshold(int spaceThreshold) {
     for (int i = 1; i < artifacts.length; i++) {
       final Artifact leftArtifact = artifacts[i - 1];
       final Artifact rightArtifact = artifacts[i];
@@ -702,7 +725,6 @@ class Band {
       if (gap >= spaceThreshold) {
         final int spaceWidth = (gap - (_spaceBorderWidth * 2)).toInt();
         if (spaceWidth >= _minSpaceWidth) {
-          // this space is big enough
           insertArtifactForSpace(
             artifacts: artifacts,
             insertAtIndex: i,
@@ -717,6 +739,49 @@ class Band {
         }
       }
     }
+  }
+
+  /// Returns true if the current spacing produces too many short words,
+  /// suggesting the space threshold is too low.
+  bool _hasExcessiveShortWords() {
+    int totalWords = 0;
+    int shortWords = 0;
+    int currentWordLength = 0;
+
+    for (final Artifact a in artifacts) {
+      if (a.matchingCharacter == ' ') {
+        if (currentWordLength > 0) {
+          totalWords++;
+          if (currentWordLength <= _maxShortWordLength) {
+            shortWords++;
+          }
+        }
+        currentWordLength = 0;
+      } else {
+        currentWordLength++;
+      }
+    }
+    if (currentWordLength > 0) {
+      totalWords++;
+      if (currentWordLength <= _maxShortWordLength) {
+        shortWords++;
+      }
+    }
+
+    if (totalWords < _minWordsForSpaceValidation) {
+      return false;
+    }
+    return shortWords / totalWords > _maxShortWordRatio;
+  }
+
+  /// Returns a more conservative space threshold using the median gap
+  /// instead of the 33rd percentile.
+  int _conservativeSpaceThreshold(List<int> gaps) {
+    // gaps is already sorted by calculateSpaceThreshold
+    final int baseGap = gaps[gaps.length ~/ 2];
+    final int thresholdFromGaps = (baseGap * _spaceMedianMultiplier).round();
+    final int thresholdFromWidth = (averageWidth * _spaceMinWidthRatio).round();
+    return max(_minSpaceWidth, max(thresholdFromGaps, thresholdFromWidth));
   }
 
   /// Calculates an appropriate threshold for determining if a gap should be considered a space
@@ -758,8 +823,10 @@ class Band {
       }
     }
 
-    final int medianGap = gaps[gaps.length ~/ 2];
-    final int thresholdFromGaps = (medianGap * _spaceMedianMultiplier).round();
+    // Use lower percentile (~33rd) instead of median to avoid contamination
+    // from word-space gaps that inflate the base value in gradual distributions.
+    final int baseGap = gaps[gaps.length ~/ 3];
+    final int thresholdFromGaps = (baseGap * _spaceMedianMultiplier).round();
     final int thresholdFromWidth = (averageWidth * _spaceMinWidthRatio).round();
     return max(_minSpaceWidth, max(thresholdFromGaps, thresholdFromWidth));
   }

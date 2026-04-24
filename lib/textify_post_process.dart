@@ -555,6 +555,18 @@ String _mergeLikelyWordFragments(String line) {
       continue;
     }
 
+    // If the left token is already a valid dictionary word, don't merge
+    // a single trailing character unless the merged result is also in
+    // the dictionary. This protects labels like "Widget A" from being
+    // incorrectly merged into "WidgetA" and then corrected to "Widgets".
+    if (leftValid && right.length == 1) {
+      final String candidateMerge = (left + right).toLowerCase();
+      if (!englishWords.contains(candidateMerge)) {
+        i++;
+        continue;
+      }
+    }
+
     String merged = left + right;
     // Apply structural fixes to the merged result (e.g. OpenAl -> OpenAI)
     merged = merged.replaceAllMapped(
@@ -840,9 +852,20 @@ String _normalizePunctuationSpacing(String text) {
     return match.group(_regexGroupFirst)!;
   });
 
-  // Fixes "word.next" -> "word. next"
+  // Fixes "word.next" -> "word. next" but not "www.AMAZON" (domain-like).
+  // Skip inserting a space when the punctuation is a dot preceded by a
+  // letter AND followed by a letter (domain, URL, or abbreviation pattern).
+  // Numbered lists like "1.Hello" still get a space since the dot follows a digit.
   result = result.replaceAllMapped(RegExp(r'([.,!?;:])([A-Za-z])'), (match) {
-    return '${match.group(_regexGroupFirst)!} ${match.group(_regexGroupSecond)!}';
+    final String punct = match.group(_regexGroupFirst)!;
+    final String letter = match.group(_regexGroupSecond)!;
+    if (punct == '.' && match.start > 0) {
+      final int prevCode = result.codeUnitAt(match.start - 1);
+      if (_isLetter(prevCode)) {
+        return '$punct$letter';
+      }
+    }
+    return '$punct $letter';
   });
 
   return result;

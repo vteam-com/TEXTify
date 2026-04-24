@@ -121,13 +121,13 @@
       <g id='Node_textify.dart'>
         <rect x="639" y="224" width="292" height="72" rx="8" ry="8" class="nodeFile"/>
       </g>
-      <g id='Node_artifact_projection.dart'>
+      <g id='Node_character_definitions.dart'>
         <rect x="39" y="304" width="292" height="72" rx="8" ry="8" class="nodeFile"/>
       </g>
-      <g id='Node_bands.dart'>
+      <g id='Node_artifact_projection.dart'>
         <rect x="339" y="304" width="292" height="72" rx="8" ry="8" class="nodeFile"/>
       </g>
-      <g id='Node_character_definitions.dart'>
+      <g id='Node_bands.dart'>
         <rect x="639" y="304" width="292" height="72" rx="8" ry="8" class="nodeFile"/>
       </g>
       <g id='Node_artifact_morphology.dart'>
@@ -192,9 +192,12 @@
       </g>
     </g>
     <g id='Node_tool'>
-      <rect x="621.5" y="39" width="327" height="142" rx="2" ry="2" class="nodeFolder"/>
+      <rect x="471.5" y="39" width="627" height="142" rx="2" ry="2" class="nodeFolder"/>
+      <g id='Node_update_font_templates_test.dart'>
+        <rect x="489" y="74" width="292" height="72" rx="8" ry="8" class="nodeFile"/>
+      </g>
       <g id='Node_update_times_templates_test.dart'>
-        <rect x="639" y="74" width="292" height="72" rx="8" ry="8" class="nodeFile"/>
+        <rect x="789" y="74" width="292" height="72" rx="8" ry="8" class="nodeFile"/>
       </g>
     </g>
   </g>
@@ -234,22 +237,22 @@ artifact.dart</title>
 ⬇
 image_helpers.dart</title>
     </path>
-    <path d="M315 360 C 325 420,195 420, 205 480" fill="none" class="line">
+    <path d="M615 360 C 625 420,195 420, 205 480" fill="none" class="line">
       <title>artifact_projection.dart
 ⬇
 artifact_grid_transform.dart</title>
     </path>
-    <path d="M315 360 C 325 420,795 420, 805 480" fill="none" class="line">
+    <path d="M615 360 C 625 420,795 420, 805 480" fill="none" class="line">
       <title>artifact_projection.dart
 ⬇
 artifact_splitting.dart</title>
     </path>
-    <path d="M315 360 C 325 500,645 500, 655 640" fill="none" class="line">
+    <path d="M615 360 C 625 500,645 500, 655 640" fill="none" class="line">
       <title>artifact_projection.dart
 ⬇
 artifact.dart</title>
     </path>
-    <path d="M315 360 C 327 540,643 540, 655 720" fill="none" class="line">
+    <path d="M615 360 C 627 540,643 540, 655 720" fill="none" class="line">
       <title>artifact_projection.dart
 ⬇
 image_helpers.dart</title>
@@ -324,17 +327,17 @@ artifact.dart</title>
 ⬇
 image_helpers.dart</title>
     </path>
-    <path d="M615 360 C 625 420,195 420, 205 480" fill="none" class="line">
+    <path d="M915 360 C 925 420,195 420, 205 480" fill="none" class="line">
       <title>bands.dart
 ⬇
 artifact_grid_transform.dart</title>
     </path>
-    <path d="M615 360 C 625 380,345 380, 355 400" fill="none" class="line">
+    <path d="M915 360 C 925 380,345 380, 355 400" fill="none" class="line">
       <title>bands.dart
 ⬇
 band.dart</title>
     </path>
-    <path d="M615 360 C 627 540,643 540, 655 720" fill="none" class="line">
+    <path d="M915 360 C 927 540,643 540, 655 720" fill="none" class="line">
       <title>bands.dart
 ⬇
 image_helpers.dart</title>
@@ -349,12 +352,12 @@ artifact_serialize.dart</title>
 ⬇
 artifact.dart</title>
     </path>
-    <path d="M915 360 C 925 500,645 500, 655 640" fill="none" class="line">
+    <path d="M315 360 C 325 500,645 500, 655 640" fill="none" class="line">
       <title>character_definitions.dart
 ⬇
 artifact.dart</title>
     </path>
-    <path d="M915 360 C 925 380,645 380, 655 400" fill="none" class="line">
+    <path d="M315 360 C 325 380,645 380, 655 400" fill="none" class="line">
       <title>character_definitions.dart
 ⬇
 character_definition.dart</title>
@@ -409,7 +412,7 @@ artifact_grid_transform.dart</title>
 ⬇
 artifact_morphology.dart</title>
     </path>
-    <path d="M915 280 C 925 300,45 300, 55 320" fill="none" class="line">
+    <path d="M915 280 C 925 300,345 300, 355 320" fill="none" class="line">
       <title>textify.dart
 ⬇
 artifact_projection.dart</title>
@@ -419,7 +422,7 @@ artifact_projection.dart</title>
 ⬇
 artifact_region.dart</title>
     </path>
-    <path d="M915 280 C 925 300,345 300, 355 320" fill="none" class="line">
+    <path d="M915 280 C 925 300,645 300, 655 320" fill="none" class="line">
       <title>textify.dart
 ⬇
 bands.dart</title>
@@ -429,7 +432,7 @@ bands.dart</title>
 ⬇
 char_utils.dart</title>
     </path>
-    <path d="M915 280 C 925 300,645 300, 655 320" fill="none" class="line">
+    <path d="M915 280 C 925 300,45 300, 55 320" fill="none" class="line">
       <title>textify.dart
 ⬇
 character_definitions.dart</title>
@@ -464,27 +467,52 @@ textify_config.dart</title>
 ⬇
 textify_post_process.dart</title>
     </path>
-    <path d="M915 130 C 926 305,194 305, 205 480" fill="none" class="line">
+    <path d="M765 130 C 776 305,194 305, 205 480" fill="none" class="line">
+      <title>update_font_templates_test.dart
+⬇
+artifact_grid_transform.dart</title>
+    </path>
+    <path d="M765 130 C 782 385,638 385, 655 640" fill="none" class="line">
+      <title>update_font_templates_test.dart
+⬇
+artifact.dart</title>
+    </path>
+    <path d="M765 130 C 775 225,45 225, 55 320" fill="none" class="line">
+      <title>update_font_templates_test.dart
+⬇
+character_definitions.dart</title>
+    </path>
+    <path d="M765 130 C 784 425,636 425, 655 720" fill="none" class="line">
+      <title>update_font_templates_test.dart
+⬇
+image_helpers.dart</title>
+    </path>
+    <path d="M765 130 C 775 185,645 185, 655 240" fill="none" class="line">
+      <title>update_font_templates_test.dart
+⬇
+textify.dart</title>
+    </path>
+    <path d="M1065 130 C 1076 305,194 305, 205 480" fill="none" class="line">
       <title>update_times_templates_test.dart
 ⬇
 artifact_grid_transform.dart</title>
     </path>
-    <path d="M915 130 C 932 385,638 385, 655 640" fill="none" class="line">
+    <path d="M1065 130 C 1082 385,638 385, 655 640" fill="none" class="line">
       <title>update_times_templates_test.dart
 ⬇
 artifact.dart</title>
     </path>
-    <path d="M915 130 C 925 225,645 225, 655 320" fill="none" class="line">
+    <path d="M1065 130 C 1075 225,45 225, 55 320" fill="none" class="line">
       <title>update_times_templates_test.dart
 ⬇
 character_definitions.dart</title>
     </path>
-    <path d="M915 130 C 934 425,636 425, 655 720" fill="none" class="line">
+    <path d="M1065 130 C 1084 425,636 425, 655 720" fill="none" class="line">
       <title>update_times_templates_test.dart
 ⬇
 image_helpers.dart</title>
     </path>
-    <path d="M915 130 C 925 185,645 185, 655 240" fill="none" class="line">
+    <path d="M1065 130 C 1075 185,645 185, 655 240" fill="none" class="line">
       <title>update_times_templates_test.dart
 ⬇
 textify.dart</title>
@@ -515,16 +543,37 @@ textify.dart</title>
         </g>
         <g>
           <circle cx="655" cy="240" r="10" fill="blue"/>
-          <text x="655" y="240" fill="white" font-size="10" text-anchor="middle" dominant-baseline="central">1</text>
-          <title>1 /tool/update_times_templates_test.dart
+          <text x="655" y="240" fill="white" font-size="10" text-anchor="middle" dominant-baseline="central">2</text>
+          <title>1 /tool/update_font_templates_test.dart
+2 /tool/update_times_templates_test.dart
 ⬇
 textify.dart</title>
         </g>
       </g>
-      <g id='Counters_artifact_projection.dart'>
+      <g id='Counters_character_definitions.dart'>
         <g>
           <circle cx="315" cy="360" r="10" fill="green"/>
-          <text x="315" y="360" fill="white" font-size="10" text-anchor="middle" dominant-baseline="central">4</text>
+          <text x="315" y="360" fill="white" font-size="10" text-anchor="middle" dominant-baseline="central">3</text>
+          <title>character_definitions.dart
+⬇
+1 /lib/artifact.dart
+2 /lib/character_definition.dart
+3 /lib/character_definition.dart</title>
+        </g>
+        <g>
+          <circle cx="55" cy="320" r="10" fill="blue"/>
+          <text x="55" y="320" fill="white" font-size="10" text-anchor="middle" dominant-baseline="central">3</text>
+          <title>1 /lib/textify.dart
+2 /tool/update_font_templates_test.dart
+3 /tool/update_times_templates_test.dart
+⬇
+character_definitions.dart</title>
+        </g>
+      </g>
+      <g id='Counters_artifact_projection.dart'>
+        <g>
+          <circle cx="615" cy="360" r="10" fill="green"/>
+          <text x="615" y="360" fill="white" font-size="10" text-anchor="middle" dominant-baseline="central">4</text>
           <title>artifact_projection.dart
 ⬇
 1 /lib/artifact.dart
@@ -533,8 +582,8 @@ textify.dart</title>
 4 /lib/image_helpers.dart</title>
         </g>
         <g>
-          <circle cx="55" cy="320" r="10" fill="blue"/>
-          <text x="55" y="320" fill="white" font-size="10" text-anchor="middle" dominant-baseline="central">1</text>
+          <circle cx="355" cy="320" r="10" fill="blue"/>
+          <text x="355" y="320" fill="white" font-size="10" text-anchor="middle" dominant-baseline="central">1</text>
           <title>1 /lib/textify.dart
 ⬇
 artifact_projection.dart</title>
@@ -542,8 +591,8 @@ artifact_projection.dart</title>
       </g>
       <g id='Counters_bands.dart'>
         <g>
-          <circle cx="615" cy="360" r="10" fill="green"/>
-          <text x="615" y="360" fill="white" font-size="10" text-anchor="middle" dominant-baseline="central">4</text>
+          <circle cx="915" cy="360" r="10" fill="green"/>
+          <text x="915" y="360" fill="white" font-size="10" text-anchor="middle" dominant-baseline="central">4</text>
           <title>bands.dart
 ⬇
 1 /lib/artifact_grid_transform.dart
@@ -552,30 +601,11 @@ artifact_projection.dart</title>
 4 /lib/image_helpers.dart</title>
         </g>
         <g>
-          <circle cx="355" cy="320" r="10" fill="blue"/>
-          <text x="355" y="320" fill="white" font-size="10" text-anchor="middle" dominant-baseline="central">1</text>
+          <circle cx="655" cy="320" r="10" fill="blue"/>
+          <text x="655" y="320" fill="white" font-size="10" text-anchor="middle" dominant-baseline="central">1</text>
           <title>1 /lib/textify.dart
 ⬇
 bands.dart</title>
-        </g>
-      </g>
-      <g id='Counters_character_definitions.dart'>
-        <g>
-          <circle cx="915" cy="360" r="10" fill="green"/>
-          <text x="915" y="360" fill="white" font-size="10" text-anchor="middle" dominant-baseline="central">3</text>
-          <title>character_definitions.dart
-⬇
-1 /lib/artifact.dart
-2 /lib/character_definition.dart
-3 /lib/character_definition.dart</title>
-        </g>
-        <g>
-          <circle cx="655" cy="320" r="10" fill="blue"/>
-          <text x="655" y="320" fill="white" font-size="10" text-anchor="middle" dominant-baseline="central">2</text>
-          <title>1 /lib/textify.dart
-2 /tool/update_times_templates_test.dart
-⬇
-character_definitions.dart</title>
         </g>
       </g>
       <g id='Counters_artifact_morphology.dart'>
@@ -683,12 +713,13 @@ correction.dart</title>
         </g>
         <g>
           <circle cx="205" cy="480" r="10" fill="blue"/>
-          <text x="205" y="480" fill="white" font-size="10" text-anchor="middle" dominant-baseline="central">5</text>
+          <text x="205" y="480" fill="white" font-size="10" text-anchor="middle" dominant-baseline="central">6</text>
           <title>1 /lib/artifact_projection.dart
 2 /lib/band.dart
 3 /lib/bands.dart
 4 /lib/textify.dart
-5 /tool/update_times_templates_test.dart
+5 /tool/update_font_templates_test.dart
+6 /tool/update_times_templates_test.dart
 ⬇
 artifact_grid_transform.dart</title>
         </g>
@@ -788,7 +819,7 @@ constants.dart</title>
         </g>
         <g>
           <circle cx="655" cy="640" r="10" fill="blue"/>
-          <text x="655" y="640" fill="white" font-size="10" text-anchor="middle" dominant-baseline="central">12</text>
+          <text x="655" y="640" fill="white" font-size="10" text-anchor="middle" dominant-baseline="central">13</text>
           <title>1 /lib/artifact_analysis.dart
 2 /lib/artifact_grid_transform.dart
 3 /lib/artifact_morphology.dart
@@ -800,7 +831,8 @@ constants.dart</title>
 9 /lib/band.dart
 10 /lib/character_definition.dart
 11 /lib/character_definitions.dart
-12 /tool/update_times_templates_test.dart
+12 /tool/update_font_templates_test.dart
+13 /tool/update_times_templates_test.dart
 ⬇
 artifact.dart</title>
         </g>
@@ -815,7 +847,7 @@ artifact.dart</title>
         </g>
         <g>
           <circle cx="655" cy="720" r="10" fill="blue"/>
-          <text x="655" y="720" fill="white" font-size="10" text-anchor="middle" dominant-baseline="central">11</text>
+          <text x="655" y="720" fill="white" font-size="10" text-anchor="middle" dominant-baseline="central">12</text>
           <title>1 /lib/artifact.dart
 2 /lib/artifact_analysis.dart
 3 /lib/artifact_grid_transform.dart
@@ -826,7 +858,8 @@ artifact.dart</title>
 8 /lib/band.dart
 9 /lib/bands.dart
 10 /lib/textify.dart
-11 /tool/update_times_templates_test.dart
+11 /tool/update_font_templates_test.dart
+12 /tool/update_times_templates_test.dart
 ⬇
 image_helpers.dart</title>
         </g>
@@ -901,10 +934,23 @@ char_utils.dart</title>
       </g>
     </g>
     <g id='Counters_tool'>
+      <g id='Counters_update_font_templates_test.dart'>
+        <g>
+          <circle cx="765" cy="130" r="10" fill="green"/>
+          <text x="765" y="130" fill="white" font-size="10" text-anchor="middle" dominant-baseline="central">5</text>
+          <title>update_font_templates_test.dart
+⬇
+1 /lib/artifact.dart
+2 /lib/artifact_grid_transform.dart
+3 /lib/character_definitions.dart
+4 /lib/image_helpers.dart
+5 /lib/textify.dart</title>
+        </g>
+      </g>
       <g id='Counters_update_times_templates_test.dart'>
         <g>
-          <circle cx="915" cy="130" r="10" fill="green"/>
-          <text x="915" y="130" fill="white" font-size="10" text-anchor="middle" dominant-baseline="central">5</text>
+          <circle cx="1065" cy="130" r="10" fill="green"/>
+          <text x="1065" y="130" fill="white" font-size="10" text-anchor="middle" dominant-baseline="central">5</text>
           <title>update_times_templates_test.dart
 ⬇
 1 /lib/artifact.dart
@@ -924,14 +970,14 @@ char_utils.dart</title>
       <g id='Labels_textify.dart'>
         <text class="nodeName" x="785" y="260" font-size="120%">textify.dart</text>
       </g>
+      <g id='Labels_character_definitions.dart'>
+        <text class="nodeName" x="185" y="340" font-size="120%">character_definitions.dart</text>
+      </g>
       <g id='Labels_artifact_projection.dart'>
-        <text class="nodeName" x="185" y="340" font-size="120%">artifact_projection.dart</text>
+        <text class="nodeName" x="485" y="340" font-size="120%">artifact_projection.dart</text>
       </g>
       <g id='Labels_bands.dart'>
-        <text class="nodeName" x="485" y="340" font-size="120%">bands.dart</text>
-      </g>
-      <g id='Labels_character_definitions.dart'>
-        <text class="nodeName" x="785" y="340" font-size="120%">character_definitions.dart</text>
+        <text class="nodeName" x="785" y="340" font-size="120%">bands.dart</text>
       </g>
       <g id='Labels_artifact_morphology.dart'>
         <text class="nodeName" x="1085" y="340" font-size="120%">artifact_morphology.dart</text>
@@ -995,9 +1041,12 @@ char_utils.dart</title>
       </g>
     </g>
     <g id='Labels_tool'>
-      <text class="folderName" x="627.5" y="45">tool</text>
+      <text class="folderName" x="477.5" y="45">tool</text>
+      <g id='Labels_update_font_templates_test.dart'>
+        <text class="nodeName" x="635" y="110" font-size="90%">update_font_templates_test.dart</text>
+      </g>
       <g id='Labels_update_times_templates_test.dart'>
-        <text class="nodeName" x="785" y="110" font-size="90%">update_times_templates_test.dart</text>
+        <text class="nodeName" x="935" y="110" font-size="90%">update_times_templates_test.dart</text>
       </g>
     </g>
   </g>

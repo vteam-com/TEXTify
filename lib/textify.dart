@@ -34,6 +34,7 @@ class Textify {
   static const double _letterOverPunctuationDelta = 0.05;
   static const double _letterDominanceRatio = 0.6;
   static const double _bandContextPromotionDelta = 0.22;
+  static const double _uppercaseDominanceRatio = 0.70;
   static const int _mergeGapWidthDivisor = 2;
   static const double _mergeScoreThreshold = 0.6;
   static const double _mergeScoreDelta = 0.05;
@@ -437,7 +438,12 @@ class Textify {
               artifact,
             );
 
-            if (artifactsFromColumns.isNotEmpty) {
+            if (artifactsFromColumns.isNotEmpty &&
+                _splitImprovesScore(
+                  artifactsFromColumns,
+                  scores.first.score,
+                  supportedCharacters,
+                )) {
               band.replaceOneArtifactWithMore(artifact, artifactsFromColumns);
               needsReprocessing = true;
               break; // Exit the loop to restart with the new artifacts
@@ -465,6 +471,7 @@ class Textify {
       band.sortArtifactsLeftToRight();
       _reMergeConsecutiveVerticalStrokes(band);
       _refinePunctuationInLetterContext(band);
+      _refineUppercaseInUppercaseContext(band);
       for (final Artifact artifact in band.artifacts) {
         line += artifact.matchingCharacter;
       }
@@ -935,6 +942,79 @@ class Textify {
   /// be half of a split two-stroke character like 'H'.
   static bool _isVerticalStrokeChar(String ch) =>
       ch == 'I' || ch == 'l' || ch == '|' || ch == '1' || ch == ']';
+
+  /// Returns true only if splitting an artifact into [parts] produces a mean
+  /// score strictly better than [originalScore].
+  ///
+  /// This prevents the split cascade where a low-scoring character is broken
+  /// into several fragments that each score even lower.
+  bool _splitImprovesScore(
+    List<Artifact> parts,
+    double originalScore,
+    String supportedCharacters,
+  ) {
+    double total = 0;
+    for (final Artifact part in parts) {
+      final List<ScoreMatch> s = getMatchingScoresOfNormalizedMatrix(
+        part,
+        supportedCharacters,
+      );
+      total += s.isEmpty ? 0 : s.first.score;
+    }
+    return (total / parts.length) > originalScore;
+  }
+
+  /// Promotes lowercase-matched artifacts to their uppercase equivalent when
+  /// the band is predominantly uppercase.
+  ///
+  /// Arial and similar fonts have uppercase/lowercase glyphs that look nearly
+  /// identical at small sizes. If ≥ [_uppercaseDominanceRatio] of letter
+  /// matches in a band are uppercase, re-score any lowercase artifacts and
+  /// accept the uppercase alternative when the score gap is within
+  /// [_bandContextPromotionDelta].
+  void _refineUppercaseInUppercaseContext(Band band) {
+    final List<Artifact> artifacts = band.artifacts;
+    if (artifacts.length < _minimumTieBreakCandidates) {
+      return;
+    }
+
+    int upperCount = 0;
+    int letterCount = 0;
+    for (final Artifact a in artifacts) {
+      if (isUppercaseLetter(a.matchingCharacter)) {
+        upperCount++;
+        letterCount++;
+      } else if (isLowercaseLetter(a.matchingCharacter)) {
+        letterCount++;
+      }
+    }
+
+    if (letterCount == 0) {
+      return;
+    }
+    if (upperCount / letterCount < _uppercaseDominanceRatio) {
+      return;
+    }
+
+    for (final Artifact artifact in artifacts) {
+      if (!isLowercaseLetter(artifact.matchingCharacter)) {
+        continue;
+      }
+
+      final double originalScore = artifact.matchingScore;
+      final List<ScoreMatch> scores = getMatchingScoresOfNormalizedMatrix(
+        artifact,
+      );
+      for (final ScoreMatch score in scores) {
+        if (isUppercaseLetter(score.character) &&
+            (originalScore - score.score) <= _bandContextPromotionDelta) {
+          artifact.matchingCharacter = score.character;
+          artifact.matchingScore = score.score;
+          break;
+        }
+      }
+    }
+  }
 
   /// Loads an image from the asset bundle.
   ///

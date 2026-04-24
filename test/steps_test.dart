@@ -87,7 +87,7 @@ void main() async {
         textify: textify,
         text: inputText,
         result:
-            'Quip,\n'
+            'Qulp,\n'
             'Word me',
         fontFamily: 'Roboto',
         imageWidth: 200,

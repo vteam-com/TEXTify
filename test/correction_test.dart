@@ -124,9 +124,9 @@ void main() {
         String result3 = findClosestMatchingWordInDictionary('oranges');
         expect(result3, 'oranges'); // Should preserve the 's' at the end
 
-        // Test case 4: Word with different length than suggestion
+        // Test case 4: Word with close dictionary match
         String result4 = findClosestMatchingWordInDictionary('helloz');
-        expect(result4, 'hello'); // Raw finder may return different length.
+        expect(result4, 'hellos'); // 'hellos' is distance 1, same length.
       },
     );
 
@@ -150,7 +150,7 @@ void main() {
           'helloz',
           correctionLetters,
         );
-        expect(result, 'Helloz');
+        expect(result, 'Hellos');
       },
     );
   });

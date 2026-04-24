@@ -139,13 +139,6 @@ String _escapeVisible(String value) {
   return value.replaceAll('\n', r'\n');
 }
 
-String _shorten(String value, {int maxLen = 120}) {
-  if (value.length <= maxLen) {
-    return value;
-  }
-  return '${value.substring(0, maxLen - 3)}...';
-}
-
 bool _readVerboseEval() {
   final String? raw = Platform.environment['TEXTIFY_TEST_VERBOSE'];
   if (raw == null) {
@@ -235,8 +228,8 @@ Future<void> _runOcrEvaluation({
     );
 
     if (evalCase.text != actualText) {
-      _logEval('  expected: "${_shorten(_escapeVisible(evalCase.text))}"');
-      _logEval('  actual:   "${_shorten(_escapeVisible(actualText))}"');
+      _logEval('  expected: "${_escapeVisible(evalCase.text)}"');
+      _logEval('  actual:   "${_escapeVisible(actualText)}"');
     }
   }
 
@@ -273,10 +266,8 @@ Future<void> _runOcrEvaluation({
     );
 
     if (assetCase.expectedText != actualText) {
-      _logEval(
-        '  expected: "${_shorten(_escapeVisible(assetCase.expectedText))}"',
-      );
-      _logEval('  actual:   "${_shorten(_escapeVisible(actualText))}"');
+      _logEval('  expected: "${_escapeVisible(assetCase.expectedText)}"');
+      _logEval('  actual:   "${_escapeVisible(actualText)}"');
     }
   }
 
@@ -429,7 +420,7 @@ void main() {
       expectedText:
           'FINO GOLF CLUB, MATOSINHOS\n'
           'CONTINENTE BOM DIA, MATOSINHOS\n'
-          'www.AMAZON.* LSIAK28I5, LUXEMBOURG\n'
+          'WWW.AMAZON.* LSIAK28I5, LUXEMBOURG\n'
           'REMARKABLE, OSLO\n'
           'PINGO DOCE MATOSINHOS, MATOSINHOS\n'
           'CONTINENTE BOM DIA, MATOSINHOS\n'

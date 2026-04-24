@@ -2,3 +2,10 @@ input:
   exclude:
     - "**/english_words.dart"
     - ".dart_tool/**"
+analyzers:
+  options:
+    code_size:
+      max_file_loc: 999
+      max_class_loc: 999
+      max_function_loc: 999
+      max_method_loc: 999

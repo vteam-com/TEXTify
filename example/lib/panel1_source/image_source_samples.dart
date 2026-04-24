@@ -60,7 +60,7 @@ class _ImageSourceSamplesState extends State<ImageSourceSamples> {
     ImageData(
       'lines-circles.png',
       // cspell:disable-next-line
-      'HELLO THIS IS A TEST IN UPPER CASE.\nThis is a normal phrase with number like 123,456.89\nDATES\n2020-01-02\n2021/03/04\n2022.05.05\nEnds\nHere',
+      'HELLO THIS IS A TEST IN UPPER CASE.\nThis is a normal phrase with number like 123,456.89\nDATES\n2020-01-02\n2021/03/04\n2022.05.05\nThe\nEnd',
     ),
     ImageData(
       'bank_statement.png',
@@ -81,7 +81,7 @@ class _ImageSourceSamplesState extends State<ImageSourceSamples> {
           // cspell:disable-next-line
           'CASA DAS UTILIDADES, Guimaraes\n'
           // cspell:disable-next-line
-          'EUROLOJAMATOSINHOS, MATOSINHOS\n'
+          'EUROLOJA MATOSINHOS, MATOSINHOS\n'
           // cspell:disable-next-line
           'CORES SABORES BOLHAO, PORTO\n'
           // cspell:disable-next-line

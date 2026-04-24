@@ -659,7 +659,7 @@
   <path d="M 385.0,941.0 L 397.0,934.0 Q 400.0,934.0 400.0,937.0 L 400.0,945.0 Q 400.0,948.0 397.0,948.0 Z" fill="#3b82f6"/>
   <text x="395.32" y="942.0" text-anchor="middle" fill="white" font-size="8.0" font-weight="bold">2</text><title>1. models/int_rect.dart</title></g><text x="269.0" y="946.0" text-anchor="middle" dominant-baseline="middle" class="textNormal">int_offset.dart</text>
 <g class="folderTitleLayer">
-<text x="257.0" y="105.0" class="layerTitle">textify v0.5.3</text>
+<text x="257.0" y="105.0" class="layerTitle">textify v0.5.4</text>
 <text x="277.0" y="157.0" class="layerTitle">  ...</text>
 <text x="277.0" y="823.0" class="layerTitle">  models</text>
 </g>

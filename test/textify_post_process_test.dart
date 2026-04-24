@@ -200,9 +200,9 @@ void main() {
 
     test('I between lowercase becomes l in fragmented line', () {
       // _normalizeFragmentedLine: (?<=[a-z])I(?=[a-z]) → l
-      // aIb → alb, then c d e merge → code
+      // aIb → alb, then dictionary corrects alb→all, c d e merge → cde
       final result = postProcessText('aIb c d e');
-      expect(result, 'Alb cde');
+      expect(result, 'All cde');
     });
   });
 

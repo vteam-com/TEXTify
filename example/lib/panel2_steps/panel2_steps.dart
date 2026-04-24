@@ -20,8 +20,6 @@ class PanelSteps extends StatefulWidget {
     required this.textify,
     required this.imageSource,
     required this.regions,
-    required this.tryToExtractWideArtifacts,
-    required this.onInnerSplitChanged,
     required this.excludeLongLines,
     required this.onExcludeLongLinesChanged,
     required this.kernelSizeDilate,
@@ -36,8 +34,6 @@ class PanelSteps extends StatefulWidget {
   final Textify textify;
   final ui.Image? imageSource;
   final List<IntRect> regions;
-  final bool tryToExtractWideArtifacts;
-  final Function(bool) onInnerSplitChanged;
   final bool excludeLongLines;
   final Function(bool) onExcludeLongLinesChanged;
   final int kernelSizeDilate;
@@ -76,8 +72,6 @@ class _PanelStepsState extends State<PanelSteps> {
   void didUpdateWidget(PanelSteps oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.imageSource != widget.imageSource ||
-        oldWidget.tryToExtractWideArtifacts !=
-            widget.tryToExtractWideArtifacts ||
         oldWidget.kernelSizeDilate != widget.kernelSizeDilate) {
       setState(() {
         _isReady = false;
@@ -109,10 +103,6 @@ class _PanelStepsState extends State<PanelSteps> {
         },
 
         //
-        // InnerSplit
-        //
-        tryToExtractWideArtifacts: widget.tryToExtractWideArtifacts,
-        onTryToExtractWideArtifactsChanged: widget.onInnerSplitChanged,
         excludeLongLines: widget.excludeLongLines,
         onExcludeLongLinesChanged: widget.onExcludeLongLinesChanged,
 

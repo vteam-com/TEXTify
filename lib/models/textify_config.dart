@@ -23,12 +23,6 @@ class TextifyConfig {
   /// to avoid false positives. Default: true
   final bool excludeLongLines;
 
-  /// Whether to attempt splitting touching characters.
-  ///
-  /// When true, the system tries to separate characters that are connected.
-  /// This improves accuracy for some fonts but adds processing time. Default: true
-  final bool attemptCharacterSplitting;
-
   /// Whether to apply dictionary-based text correction.
   ///
   /// When enabled, recognized text is compared against a dictionary
@@ -52,7 +46,6 @@ class TextifyConfig {
   const TextifyConfig({
     this.dilationSize = _defaultDilationSize,
     this.excludeLongLines = true,
-    this.attemptCharacterSplitting = true,
     this.applyDictionaryCorrection = false,
     this.matchingThreshold = _defaultMatchingThreshold,
     this.maxProcessingTimeMs = _defaultMaxProcessingTimeMs,
@@ -70,7 +63,6 @@ class TextifyConfig {
   static const TextifyConfig fast = TextifyConfig(
     dilationSize: 15,
     excludeLongLines: false,
-    attemptCharacterSplitting: false,
     applyDictionaryCorrection: false,
     matchingThreshold: 0.3,
   );
@@ -82,7 +74,6 @@ class TextifyConfig {
   static const TextifyConfig accurate = TextifyConfig(
     dilationSize: 30,
     excludeLongLines: true,
-    attemptCharacterSplitting: true,
     applyDictionaryCorrection: true,
     matchingThreshold: 0.6,
   );
@@ -94,7 +85,6 @@ class TextifyConfig {
   static const TextifyConfig robust = TextifyConfig(
     dilationSize: 35,
     excludeLongLines: true,
-    attemptCharacterSplitting: true,
     applyDictionaryCorrection: true,
     matchingThreshold: 0.5,
   );
@@ -109,7 +99,6 @@ class TextifyConfig {
     return 'TextifyConfig('
         'dilationSize: $dilationSize, '
         'excludeLongLines: $excludeLongLines, '
-        'attemptCharacterSplitting: $attemptCharacterSplitting, '
         'applyDictionaryCorrection: $applyDictionaryCorrection, '
         'matchingThreshold: $matchingThreshold, '
         'maxProcessingTimeMs: $maxProcessingTimeMs)';
@@ -123,7 +112,6 @@ class TextifyConfig {
     return other is TextifyConfig &&
         other.dilationSize == dilationSize &&
         other.excludeLongLines == excludeLongLines &&
-        other.attemptCharacterSplitting == attemptCharacterSplitting &&
         other.applyDictionaryCorrection == applyDictionaryCorrection &&
         other.matchingThreshold == matchingThreshold &&
         other.maxProcessingTimeMs == maxProcessingTimeMs;
@@ -134,7 +122,6 @@ class TextifyConfig {
     return Object.hash(
       dilationSize,
       excludeLongLines,
-      attemptCharacterSplitting,
       applyDictionaryCorrection,
       matchingThreshold,
       maxProcessingTimeMs,
@@ -145,7 +132,6 @@ class TextifyConfig {
   TextifyConfig copyWith({
     int? dilationSize,
     bool? excludeLongLines,
-    bool? attemptCharacterSplitting,
     bool? applyDictionaryCorrection,
     double? matchingThreshold,
     int? maxProcessingTimeMs,
@@ -153,8 +139,6 @@ class TextifyConfig {
     return TextifyConfig(
       dilationSize: dilationSize ?? this.dilationSize,
       excludeLongLines: excludeLongLines ?? this.excludeLongLines,
-      attemptCharacterSplitting:
-          attemptCharacterSplitting ?? this.attemptCharacterSplitting,
       applyDictionaryCorrection:
           applyDictionaryCorrection ?? this.applyDictionaryCorrection,
       matchingThreshold: matchingThreshold ?? this.matchingThreshold,

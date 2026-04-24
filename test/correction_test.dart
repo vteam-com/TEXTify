@@ -63,13 +63,13 @@ void main() {
     test('applyCorrection with dictionary enabled with not input error', () {
       const String input = 'Hello World';
       final String result = applyCorrection(input, true);
-      expect(result, 'Hello world');
+      expect(result, 'Hello World');
     });
 
     test('applyCorrection with dictionary enabled with input error text', () {
       const String input = 'HellB W0rld';
       final String result = applyCorrection(input, true);
-      expect(result, 'Hello world');
+      expect(result, 'Hello World');
     });
 
     test(
@@ -85,7 +85,7 @@ void main() {
     test('applyCorrection handles multi-line text', () {
       const String input = 'Hell0 W0rld\nG00d M0rning';
       final String result = applyCorrection(input, true);
-      expect(result, 'Hello world\nGood morning');
+      expect(result, 'Hello World\nGood Morning');
     });
 
     test('findClosestWord finds similar words', () {
@@ -107,6 +107,15 @@ void main() {
       expect(normalizeCasingOfParagraph('hello world'), 'Hello world');
       expect(normalizeCasingOfParagraph('HELLO WORLD'), 'HELLO WORLD');
       expect(normalizeCasingOfParagraph('hello. world'), 'Hello. World');
+      // Title case / mixed case with acronyms should be preserved
+      expect(
+        normalizeCasingOfParagraph('OpenAI Released GPT In 2020'),
+        'OpenAI Released GPT In 2020',
+      );
+      expect(
+        normalizeCasingOfParagraph('Version 4 Arrived In March'),
+        'Version 4 Arrived In March',
+      );
     });
 
     test(
@@ -131,12 +140,12 @@ void main() {
     );
 
     test(
-      'applyDictionaryCorrectionOnSingleSentence rejects different-length fallback',
+      'applyDictionaryCorrectionOnSingleSentence rejects non-OCR-confusion fallback',
       () {
         const Map<String, List<String>> correctionLetters = {
           '0': ['O', 'o', 'B', '8'],
           '5': ['S', 's'],
-          'l': ['L', '1', 'i', '!'],
+          'l': ['I', 'L', '1', 'i', '!'],
           'i': ['l', 'I', '1', '!'],
           'I': ['l', 'i', '1', '!'],
           'S': ['5'],
@@ -146,11 +155,37 @@ void main() {
           '@': ['A', 'a'],
         };
 
+        // z→s is NOT an OCR confusion, so the fallback is rejected.
         final String result = applyDictionaryCorrectionOnSingleSentence(
           'helloz',
           correctionLetters,
         );
-        expect(result, 'Hellos');
+        expect(result, 'Helloz');
+      },
+    );
+
+    test(
+      'applyDictionaryCorrectionOnSingleSentence accepts OCR-confusion fallback',
+      () {
+        const Map<String, List<String>> correctionLetters = {
+          '0': ['O', 'o', 'B', '8'],
+          '5': ['S', 's'],
+          'l': ['I', 'L', '1', 'i', '!'],
+          'i': ['l', 'I', '1', '!'],
+          'I': ['l', 'i', '1', '!'],
+          'S': ['5'],
+          'o': ['D', '0'],
+          'O': ['D', '0'],
+          '!': ['T', 'I', 'i', 'l', '1'],
+          '@': ['A', 'a'],
+        };
+
+        // 1→l IS an OCR confusion (l's list includes '1'), so fallback accepted.
+        final String result = applyDictionaryCorrectionOnSingleSentence(
+          'he1lo',
+          correctionLetters,
+        );
+        expect(result, 'Hello');
       },
     );
   });

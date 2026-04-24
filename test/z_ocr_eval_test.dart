@@ -29,13 +29,11 @@ class AssetEvalCase {
     required this.name,
     required this.assetPath,
     required this.expectedText,
-    this.splitting = false,
   });
 
   final String name;
   final String assetPath;
   final String expectedText;
-  final bool splitting;
 }
 
 Future<void> _loadFontIfAvailable(String family, String assetPath) async {
@@ -242,7 +240,6 @@ Future<void> _runOcrEvaluation({
     final Textify assetTextify = Textify(
       config: TextifyConfig(
         applyDictionaryCorrection: applyDictionaryCorrection,
-        attemptCharacterSplitting: assetCase.splitting,
       ),
     );
     await assetTextify.init(pathToAssetsDefinition: 'assets/matrices.json');
@@ -402,7 +399,6 @@ void main() {
     const AssetEvalCase(
       name: 'lines-circles',
       assetPath: 'assets/test/lines-circles.png',
-      splitting: true,
       expectedText:
           'HELLO THIS IS A TEST IN UPPER CASE.\n'
           'This is a normal phrase with number like 123,456.89\n'
@@ -416,7 +412,6 @@ void main() {
     const AssetEvalCase(
       name: 'bank_statement',
       assetPath: 'assets/test/bank_statement_test.png',
-      splitting: true,
       expectedText:
           'FINO GOLF CLUB, MATOSINHOS\n'
           'CONTINENTE BOM DIA, MATOSINHOS\n'
@@ -433,7 +428,6 @@ void main() {
     const AssetEvalCase(
       name: 'REMARKABLE',
       assetPath: 'assets/test/REMARKABLE_test.png',
-      splitting: true,
       expectedText: 'REMARKABLE',
     ),
     // --- 10 generated test images ---

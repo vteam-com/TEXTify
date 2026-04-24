@@ -84,10 +84,6 @@ class Textify {
   int get duration =>
       processEnd.millisecondsSinceEpoch - processBegin.millisecondsSinceEpoch;
 
-  /// Whether to attempt splitting touching characters.
-  /// When true, the system tries to separate characters that are connected.
-  bool get innerSplit => config.attemptCharacterSplitting;
-
   /// Whether to apply dictionary-based text correction.
   ///
   /// When enabled, recognized text is compared against a dictionary
@@ -225,9 +221,6 @@ class Textify {
 
     for (final Band band in bands.list) {
       band.padVerticallyArtifactToMatchTheBand();
-      if (innerSplit) {
-        band.identifySuspiciousLargeArtifacts();
-      }
       band.identifySpacesInBand();
       band.packArtifactLeftToRight();
     }

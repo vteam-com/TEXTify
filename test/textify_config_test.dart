@@ -7,7 +7,6 @@ void main() {
       final config = TextifyConfig();
       expect(config.dilationSize, equals(22));
       expect(config.excludeLongLines, isTrue);
-      expect(config.attemptCharacterSplitting, isTrue);
       expect(config.applyDictionaryCorrection, isFalse);
       expect(config.matchingThreshold, equals(0.4));
       expect(config.maxProcessingTimeMs, equals(30000));
@@ -17,7 +16,6 @@ void main() {
       final config = TextifyConfig.fast;
       expect(config.dilationSize, equals(15));
       expect(config.excludeLongLines, isFalse);
-      expect(config.attemptCharacterSplitting, isFalse);
       expect(config.applyDictionaryCorrection, isFalse);
       expect(config.matchingThreshold, equals(0.3));
     });
@@ -26,7 +24,6 @@ void main() {
       final config = TextifyConfig.accurate;
       expect(config.dilationSize, equals(30));
       expect(config.excludeLongLines, isTrue);
-      expect(config.attemptCharacterSplitting, isTrue);
       expect(config.applyDictionaryCorrection, isTrue);
       expect(config.matchingThreshold, equals(0.6));
     });
@@ -35,7 +32,6 @@ void main() {
       final config = TextifyConfig.robust;
       expect(config.dilationSize, equals(35));
       expect(config.excludeLongLines, isTrue);
-      expect(config.attemptCharacterSplitting, isTrue);
       expect(config.applyDictionaryCorrection, isTrue);
       expect(config.matchingThreshold, equals(0.5));
     });
@@ -44,7 +40,6 @@ void main() {
       final config = TextifyConfig(
         dilationSize: 25,
         excludeLongLines: false,
-        attemptCharacterSplitting: false,
         applyDictionaryCorrection: true,
         matchingThreshold: 0.8,
         maxProcessingTimeMs: 60000,
@@ -52,7 +47,6 @@ void main() {
 
       expect(config.dilationSize, equals(25));
       expect(config.excludeLongLines, isFalse);
-      expect(config.attemptCharacterSplitting, isFalse);
       expect(config.applyDictionaryCorrection, isTrue);
       expect(config.matchingThreshold, equals(0.8));
       expect(config.maxProcessingTimeMs, equals(60000));
@@ -134,10 +128,6 @@ void main() {
       expect(copied.applyDictionaryCorrection, isTrue);
 
       // Check unchanged fields
-      expect(
-        copied.attemptCharacterSplitting,
-        equals(original.attemptCharacterSplitting),
-      );
       expect(copied.matchingThreshold, equals(original.matchingThreshold));
       expect(copied.maxProcessingTimeMs, equals(original.maxProcessingTimeMs));
     });

@@ -1,0 +1,33 @@
+Test Name                   | Chars | Split OFF | Split ON |  Delta | Winner
+────────────────────────────|──────|──────────|─────────|───────|───────
+upper-alpha                 |   43 |   100.0% |  100.0% |   0.0% | SAME
+upper-alpha-helvetica       |   43 |    95.3% |   95.3% |   0.0% | SAME
+upper-alpha-arial           |   43 |    93.0% |   93.0% |   0.0% | SAME
+upper-alpha-times           |   43 |    55.8% |   55.8% |   0.0% | SAME
+lower-alpha                 |   43 |    93.0% |   93.0% |   0.0% | SAME
+digits                      |   10 |    90.0% |   90.0% |   0.0% | SAME
+mixed-1                     |   14 |    85.7% |   85.7% |   0.0% | SAME
+punctuation                 |   24 |    58.3% |   58.3% |   0.0% | SAME
+multi-line                  |   36 |    94.4% |   94.4% |   0.0% | SAME
+────────────────────────────|──────|──────────|─────────|───────|───────
+input_test_image            |   39 |   100.0% |  100.0% |   0.0% | SAME
+the-quick-brown-fox         |   98 |    99.0% |   99.0% |   0.0% | SAME
+lines-circles               |  134 |    97.0% |   91.0% |  -6.0% | OFF
+  OFF: "HELLO THIS IS A TEST IN UPPER CASE.\nThis is a normal phrase with number like 123,456.89\nDATES\n2020-01-02\n2021/03/04\n2022. Os. 05\nThe\nEnd"
+  ON:  "HELLO THIS IS A TEST IN UPPER CASE.\nThis is a normal phrase with number like 123,456.89\nDATES\n2020-01-02\n2021/03/04\n2022. Os. 05\nRlzlle\nLelnd"
+bank_statement              |  314 |    97.8% |   99.7% | +  1.9% | ON
+  OFF: "FINO GOLF CLUB, MATOSINHOS\nCONTINENTE BOM DIA, MATOSINHOS\nWWW.AMAZON.* LSIAK28I5, LUXEEOURG\nREMARELE, OSLO\nPINGO DOCE MATOSINHO, MATOSINHOS\nCONTINENTE BOM DIA, MATOSINHOS\nPAD PORT MATO, MATOSINHOS\nCASA DAS UTILIDADES, Guimaraes\nEUROLOJAMATOSINHOS, MATOSINHOS\nCORES SABORES BOLHAO, PORTO\nTuca Cha E Cafe, PORTO"
+  ON:  "FINO GOLF CLUB, MATOSINHOS\nCONTINENTE BOM DIA, MATOSINHOS\nWWW.AMAZON.* LSIAK28I5, LUXEMBOURG\nREMARKABLE, OSLO\nPINGO DOCE MATOSINHO, MATOSINHOS\nCONTINENTE BOM DIA, MATOSINHOS\nPAD PORT MATO, MATOSINHOS\nCASA DAS UTILIDADES, Guimaraes\nEUROLOJA MATOSINHOS, MATOSINHOS\nCORES SABORES BOLHAO, PORTO\nTuca Cha E Cafe, PORTO"
+REMARKABLE                  |   10 |   100.0% |  100.0% |   0.0% | SAME
+address-block               |   53 |    98.1% |   98.1% |   0.0% | SAME
+receipt-items               |   76 |    86.8% |   86.8% |   0.0% | SAME
+mixed-case-sentence         |   61 |    96.7% |   96.7% |   0.0% | SAME
+single-line-large           |   20 |   100.0% |  100.0% |   0.0% | SAME
+numbers-grid                |   44 |    81.8% |   81.8% |   0.0% | SAME
+small-text-dense            |   88 |    80.7% |   80.7% |   0.0% | SAME
+uppercase-short-words       |   40 |   100.0% |  100.0% |   0.0% | SAME
+title-case-names            |   40 |    87.5% |   87.5% |   0.0% | SAME
+codes-and-ids               |   56 |    82.1% |   82.1% |   0.0% | SAME
+paragraph-helvetica         |   90 |    85.6% |   85.6% |   0.0% | SAME
+────────────────────────────|──────|──────────|─────────|───────|───────
+OVERALL                     | 1462 |    91.8% |   91.7% |  -0.1% | OFF

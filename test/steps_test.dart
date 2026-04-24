@@ -147,7 +147,6 @@ Future<void> testFromImage(
   final String expectedText, {
   final printResuls = false,
   final int? dilateFactor,
-  final bool innerSplit = false,
 }) async {
   //
   // Black and White
@@ -202,9 +201,6 @@ Future<void> testFromImage(
 
   for (final Band band in bands.list) {
     band.padVerticallyArtifactToMatchTheBand();
-    if (innerSplit) {
-      band.identifySuspiciousLargeArtifacts();
-    }
     band.identifySpacesInBand();
     band.packArtifactLeftToRight();
   }

@@ -24,12 +24,7 @@ class Band {
   static const int _minArtifactsForStats = 2;
   static const int _minArtifactsForSpaceDetection = 2;
   static const int _pairArtifactsCount = 2;
-  static const int _smallSetMaxArtifacts = 3;
 
-  static const double _similarWidthLowerRatio = 0.7;
-  static const double _similarWidthUpperRatio = 1.3;
-  static const double _defaultWideThresholdMultiplier = 2.0;
-  static const double _smallSetWideThresholdMultiplier = 1.5;
   static const double _minWideSplitRatio = 2.0;
   static const double _attachmentMaxAreaRatio = 0.25;
   static const double _attachmentMaxDistanceRatio = 0.25;
@@ -271,17 +266,6 @@ class Band {
     );
   }
 
-  /// Using the average artifact width, fine the ones that have an outlier width
-  /// and tag them needsInspection=true
-  void identifySuspiciousLargeArtifacts() {
-    List<Artifact> listToInspect = getWideChunks();
-
-    for (final Artifact artifactToSplit in listToInspect) {
-      final List<Artifact> artifactsFromColumns = splitChunk(artifactToSplit);
-      replaceOneArtifactWithMore(artifactToSplit, artifactsFromColumns);
-    }
-  }
-
   /// Splits an artifact into multiple artifacts based on detected valleys.
   ///
   /// This method analyzes the given artifact to find natural splitting points
@@ -309,53 +293,6 @@ class Band {
     );
 
     return artifactsFromColumns;
-  }
-
-  /// Identifies artifacts that are significantly wider than average.
-  ///
-  /// This method finds artifacts whose width exceeds twice the average width
-  /// of all artifacts in the band, which often indicates merged characters.
-  ///
-  /// Special cases:
-  /// - If there are only 1-2 artifacts of similar width, they are not considered wide
-  /// - Width comparison uses a dynamic threshold based on the number of artifacts
-  ///
-  /// Returns a list of artifacts that are candidates for splitting.
-  List<Artifact> getWideChunks() {
-    final List<Artifact> listToInspect = [];
-
-    // If we have 0 or 1 artifacts, there's nothing to inspect
-    if (artifacts.length < _minArtifactsForStats) {
-      return listToInspect;
-    }
-
-    // Special case: If we have exactly 2 artifacts with similar widths,
-    // don't consider either of them as wide chunks
-    if (artifacts.length == _pairArtifactsCount) {
-      final double widthRatio = artifacts[0].cols / artifacts[1].cols;
-      // If the width ratio is between 0.7 and 1.3, they're similar enough
-      if (widthRatio >= _similarWidthLowerRatio &&
-          widthRatio <= _similarWidthUpperRatio) {
-        return listToInspect; // Return empty list
-      }
-    }
-
-    // Calculate threshold based on number of artifacts
-    // With fewer artifacts, we need a higher threshold to avoid false positives
-    double thresholdMultiplier = _defaultWideThresholdMultiplier;
-    if (artifacts.length <= _smallSetMaxArtifacts) {
-      thresholdMultiplier = _smallSetWideThresholdMultiplier;
-    }
-
-    final double thresholdWidth = averageWidth * thresholdMultiplier;
-
-    for (final Artifact artifact in artifacts) {
-      artifact.needsInspection = artifact.cols > thresholdWidth;
-      if (artifact.needsInspection) {
-        listToInspect.add(artifact);
-      }
-    }
-    return listToInspect;
   }
 
   /// Merges connected artifacts based on specified thresholds.

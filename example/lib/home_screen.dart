@@ -146,13 +146,6 @@ class _HomeScreenState extends State<HomeScreen> {
                     textify: _textify,
                     imageSource: _imageSource,
                     regions: _textify.regionsFromDilated,
-                    tryToExtractWideArtifacts:
-                        _textify.config.attemptCharacterSplitting,
-                    onInnerSplitChanged: (bool value) {
-                      _applyConfigAndRefresh(
-                        _config.copyWith(attemptCharacterSplitting: value),
-                      );
-                    },
                     excludeLongLines: _textify.config.excludeLongLines,
                     onExcludeLongLinesChanged: (bool value) {
                       _applyConfigAndRefresh(

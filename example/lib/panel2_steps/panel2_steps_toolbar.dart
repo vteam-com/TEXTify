@@ -13,10 +13,6 @@ class Panel2Toolbar extends StatefulWidget {
     required this.showRegions,
     required this.onShowRegionsChanged,
     //
-    // attemptToExtractWideArtifacts
-    //
-    required this.tryToExtractWideArtifacts,
-    required this.onTryToExtractWideArtifactsChanged,
     required this.excludeLongLines,
     required this.onExcludeLongLinesChanged,
     //
@@ -43,9 +39,7 @@ class Panel2Toolbar extends StatefulWidget {
   final Function(ViewAs) onViewChanged;
   final TransformationController transformationController;
   final bool showRegions;
-  final bool tryToExtractWideArtifacts;
   final bool excludeLongLines;
-  final Function(bool) onTryToExtractWideArtifactsChanged;
   final Function(bool) onExcludeLongLinesChanged;
   final bool showHistograms;
   final int kernelSizeDilate;
@@ -149,16 +143,6 @@ class _Panel2ToolbarState extends State<Panel2Toolbar>
                   Checkbox(
                     value: widget.showRegions,
                     onChanged: (value) => widget.onShowRegionsChanged(value!),
-                  ),
-                ],
-              ),
-              Row(
-                children: [
-                  const Text('InnerSplit'),
-                  Checkbox(
-                    value: widget.tryToExtractWideArtifacts,
-                    onChanged: (value) =>
-                        widget.onTryToExtractWideArtifactsChanged(value!),
                   ),
                 ],
               ),

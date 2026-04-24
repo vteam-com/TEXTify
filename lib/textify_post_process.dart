@@ -19,9 +19,9 @@ const int _fragmentPairMinimumTokenCount = 2;
 const int _fragmentPairShortWordLength = 3;
 const int _fragmentPairLeftLengthWhenRightSingle = 6;
 const int _nearMissMinTokenLength = 3;
+const int _maxShortLetterSegmentLength = 2;
 const int _minMixedCaseTokenLength = 3;
 const int _minAcronymTokenLength = 2;
-const int _minWordLengthForNonConfusionSwap = 3;
 const double _punctuationHeavyRatioThreshold = 0.4;
 const int _nameLikeLineMinTokens = 2;
 const int _nameLikeLineMaxTokens = 4;
@@ -77,6 +77,12 @@ const int _minWordLengthForCaseCoherence = 3;
 /// Uppercase 'I' and lowercase 'l' are nearly identical vertical strokes
 /// that OCR frequently confuses. When the surrounding letters in a word
 /// establish a dominant case, the ambiguous glyph is matched to that case.
+///
+/// Positional exceptions:
+///  - An 'I' at the START of a word is never changed: it could be a
+///    capitalized word like "In" or "Is".
+///  - An 'I' preceded by another uppercase letter is never changed: it
+///    is likely part of an acronym suffix like "OpenAI" or "GPT-4I".
 String _resolveILAmbiguity(String line) {
   return line.replaceAllMapped(RegExp(r'[A-Za-z]+'), (match) {
     final String word = match.group(0)!;
@@ -111,7 +117,25 @@ String _resolveILAmbiguity(String line) {
     }
 
     if (lower > upper && hasI) {
-      return word.replaceAll('I', 'l');
+      // Only convert I→l when the I is clearly in a lowercase context:
+      // skip I at position 0 (could be a capitalized word like "In")
+      // and skip I preceded by an uppercase letter (acronym like "OpenAI").
+      final StringBuffer sb = StringBuffer();
+      for (int i = 0; i < word.length; i++) {
+        final int code = word.codeUnitAt(i);
+        if (code == _uppercaseICodeUnit) {
+          final bool atStart = i == 0;
+          final bool afterUpper = i > 0 && _isUpper(word.codeUnitAt(i - 1));
+          if (atStart || afterUpper) {
+            sb.writeCharCode(code); // keep as I
+          } else {
+            sb.write('l'); // convert to l
+          }
+        } else {
+          sb.writeCharCode(code);
+        }
+      }
+      return sb.toString();
     }
 
     return word;
@@ -203,49 +227,113 @@ String _normalizeLineCase(String line) {
 
 /// Corrects letter-like confusions inside digit-dominant token segments.
 String _normalizeDigitSegments(String line) {
-  final StringBuffer out = StringBuffer();
-  final StringBuffer buffer = StringBuffer();
+  // Split line into alternating alnum-segments and separators.
+  final List<String> tokens = [];
+  final List<bool> tokenIsAlnum = [];
+  final StringBuffer buf = StringBuffer();
+  bool? currentAlnum;
 
-  void flushBuffer() {
-    if (buffer.isEmpty) {
-      return;
+  for (int i = 0; i < line.length; i++) {
+    final int code = line.codeUnitAt(i);
+    final bool alnum = _isLetter(code) || _isDigit(code);
+    if (currentAlnum != null && alnum != currentAlnum) {
+      tokens.add(buf.toString());
+      tokenIsAlnum.add(currentAlnum);
+      buf.clear();
     }
-    String segment = buffer.toString();
-    buffer.clear();
+    buf.writeCharCode(code);
+    currentAlnum = alnum;
+  }
+  if (buf.isNotEmpty && currentAlnum != null) {
+    tokens.add(buf.toString());
+    tokenIsAlnum.add(currentAlnum);
+  }
 
-    int digits = 0;
-    int letters = 0;
+  bool isDigitDominant(String s) {
+    int d = 0, l = 0;
+    for (int i = 0; i < s.length; i++) {
+      final int c = s.codeUnitAt(i);
+      if (_isDigit(c)) {
+        d++;
+      } else if (_isLetter(c)) {
+        l++;
+      }
+    }
+    return d > 0 && d >= l;
+  }
+
+  bool isAllLetters(String s) {
+    for (int i = 0; i < s.length; i++) {
+      if (!_isLetter(s.codeUnitAt(i))) return false;
+    }
+    return s.isNotEmpty;
+  }
+
+  final StringBuffer out = StringBuffer();
+  for (int ti = 0; ti < tokens.length; ti++) {
+    if (!tokenIsAlnum[ti]) {
+      out.write(tokens[ti]);
+      continue;
+    }
+
+    String segment = tokens[ti];
+    int digits = 0, letters = 0;
     for (int i = 0; i < segment.length; i++) {
-      final int code = segment.codeUnitAt(i);
-      if (_isDigit(code)) {
+      final int c = segment.codeUnitAt(i);
+      if (_isDigit(c)) {
         digits++;
-      } else if (_isLetter(code)) {
+      } else if (_isLetter(c)) {
         letters++;
       }
     }
 
     if (digits > 0 && digits >= letters) {
+      // Digit-dominant: convert letters adjacent to at least one digit.
       final StringBuffer mapped = StringBuffer();
       for (int i = 0; i < segment.length; i++) {
-        final String ch = segment[i];
-        mapped.write(_digitConfusionMap[ch] ?? ch);
+        final int code = segment.codeUnitAt(i);
+        if (_isLetter(code)) {
+          final bool prevDig = i > 0 && _isDigit(segment.codeUnitAt(i - 1));
+          final bool nextDig =
+              i + 1 < segment.length && _isDigit(segment.codeUnitAt(i + 1));
+          if (prevDig || nextDig) {
+            mapped.write(_digitConfusionMap[segment[i]] ?? segment[i]);
+          } else {
+            mapped.write(segment[i]);
+          }
+        } else {
+          mapped.write(segment[i]);
+        }
       }
       segment = mapped.toString();
+    } else if (isAllLetters(segment) &&
+        segment.length <= _maxShortLetterSegmentLength) {
+      // Short all-letter segment between digit-dominant neighbors
+      // e.g. "2020-Ol-02" → "Ol" between "2020" and "02" → "01".
+      bool prevDigit = false, nextDigit = false;
+      for (int p = ti - 1; p >= 0; p--) {
+        if (tokenIsAlnum[p]) {
+          prevDigit = isDigitDominant(tokens[p]);
+          break;
+        }
+      }
+      for (int n = ti + 1; n < tokens.length; n++) {
+        if (tokenIsAlnum[n]) {
+          nextDigit = isDigitDominant(tokens[n]);
+          break;
+        }
+      }
+      if (prevDigit && nextDigit) {
+        final StringBuffer mapped = StringBuffer();
+        for (int i = 0; i < segment.length; i++) {
+          mapped.write(_digitConfusionMap[segment[i]] ?? segment[i]);
+        }
+        segment = mapped.toString();
+      }
     }
 
     out.write(segment);
   }
-
-  for (int i = 0; i < line.length; i++) {
-    final int code = line.codeUnitAt(i);
-    if (_isLetter(code) || _isDigit(code)) {
-      buffer.writeCharCode(code);
-    } else {
-      flushBuffer();
-      out.writeCharCode(code);
-    }
-  }
-  flushBuffer();
 
   return out.toString();
 }
@@ -466,34 +554,6 @@ bool _isAcronym(String token) {
 }
 
 /// Returns true if the two characters are common OCR confusions (e.g., 'l' and 'I').
-bool _isCommonOcrConfusion(String a, String b) {
-  final String charA = a.toUpperCase();
-  final String charB = b.toUpperCase();
-  if (charA == charB) return true;
-
-  const Map<String, Set<String>> confusionGroups = {
-    'I': {'L', '1', '!', '|', 'T'},
-    'L': {'I', '1', '!', '|'},
-    '1': {'I', 'L', '!', '|'},
-    'O': {'0', 'Q', 'D'},
-    '0': {'O', 'Q', 'D'},
-    'S': {'5', '8'},
-    '5': {'S', '8'},
-    '8': {'S', '5', 'B'},
-    'B': {'8', 'D', '0'},
-    'Z': {'2'},
-    '2': {'Z'},
-    'T': {'1', 'I', '7'},
-    'G': {'6', '9'},
-    '6': {'G'},
-    '9': {'G'},
-  };
-
-  return confusionGroups[charA]?.contains(charB) ??
-      confusionGroups[charB]?.contains(charA) ??
-      false;
-}
-
 /// Analyzes a line to determine if it is likely fragmented OCR output.
 ///
 /// A line is considered fragmented if it contains a high proportion of
@@ -551,6 +611,13 @@ String _mergeLikelyWordFragments(String line) {
         (right.length == 1 &&
             left.length <= _fragmentPairLeftLengthWhenRightSingle);
     if (!likelyFragmentPair) {
+      i++;
+      continue;
+    }
+
+    // Never consume a valid dictionary word (≥2 chars) into a fragment merge.
+    // E.g. "GPT" + "In" should stay separate because "In" is a real word.
+    if (rightValid && right.length >= _minAcronymTokenLength) {
       i++;
       continue;
     }
@@ -733,13 +800,10 @@ String _correctNearMissDictionaryWords(String line) {
       final String from = token[diffIndex];
       final String to = suggestion[diffIndex];
 
-      // If the swap is a known OCR confusion (l/I, O/0, etc.), we allow it.
-      bool isCommonConfusion = _isCommonOcrConfusion(from, to);
-
-      // If it is NOT a common confusion, we only allow it for long words
-      // where we are very certain of the rest of the word.
-      if (!isCommonConfusion &&
-          token.length < _minWordLengthForNonConfusionSwap) {
+      // Only allow corrections where the changed character is a known
+      // OCR confusion (l/I, O/0, etc.). This prevents morphological
+      // form changes like "Released" → "Releases" (d→s).
+      if (!isOcrConfusionPair(from, to)) {
         return token;
       }
     }
@@ -871,13 +935,49 @@ String _normalizePunctuationSpacing(String text) {
   return result;
 }
 
-/// Normalizes common multi-character letter confusions.
+/// Normalizes common multi-character letter confusions within non-dictionary words.
+///
+/// OCR frequently confuses glyph sequences that look similar at low resolution:
+/// 'rn' → 'm', 'cl' → 'd', 'vv' → 'w', 'III' → 'm'.
+/// Only applies substitutions when the original token is NOT a valid dictionary
+/// word and the replacement IS, preventing damage to correct text.
 String _normalizeLetterConfusions(String text) {
-  return text
-      .replaceAll('rn', 'm')
-      .replaceAll('cl', 'd')
-      .replaceAll('vv', 'w')
-      .replaceAll('III', 'm');
+  const List<MapEntry<String, String>> confusions = [
+    MapEntry('rn', 'm'),
+    MapEntry('cl', 'd'),
+    MapEntry('vv', 'w'),
+    MapEntry('III', 'm'),
+  ];
+
+  return text.replaceAllMapped(RegExp(r'[A-Za-z]+'), (Match match) {
+    final String token = match.group(0)!;
+    final String lower = token.toLowerCase();
+
+    // If the word is already valid, don't touch it.
+    if (englishWords.contains(lower)) {
+      return token;
+    }
+
+    // Try each confusion substitution and accept the first that yields
+    // a valid dictionary word.
+    for (final MapEntry<String, String> entry in confusions) {
+      if (lower.contains(entry.key)) {
+        final String candidate = lower.replaceAll(entry.key, entry.value);
+        if (englishWords.contains(candidate)) {
+          // Preserve original casing structure.
+          if (token == token.toUpperCase()) {
+            return candidate.toUpperCase();
+          }
+          if (_isTitleCaseWord(token)) {
+            return _toTitleCaseWord(candidate);
+          }
+          return candidate;
+        }
+      }
+    }
+
+    return token;
+  });
 }
 
 /// Normalizes lines that are overwhelmingly punctuation.

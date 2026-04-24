@@ -2,17 +2,17 @@
 00:00 +0: (setUpAll)
 00:00 +0: OCR evaluation (dictionary off)
 --- Generated images (dict:off) ---
-upper-alpha | font:Roboto 24px | expected:43 actual:43 | char-acc:100.00% | exact:yes| 118ms
-upper-alpha-helvetica | font:Helvetica 24px | expected:43 actual:44 | char-acc:95.35% | exact:no| 139ms
+upper-alpha | font:Roboto 24px | expected:43 actual:43 | char-acc:100.00% | exact:yes| 130ms
+upper-alpha-helvetica | font:Helvetica 24px | expected:43 actual:44 | char-acc:95.35% | exact:no| 149ms
   expected: "THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG"
   actual:   "THE QUICK BROWN FOX JUMPS OVER THE LJXZY DOG"
-upper-alpha-arial | font:Arial 24px | expected:43 actual:45 | char-acc:93.02% | exact:no| 75ms
+upper-alpha-arial | font:Arial 24px | expected:43 actual:45 | char-acc:93.02% | exact:no| 84ms
   expected: "THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG"
   actual:   "THE QUICK BROWN FOX JUMPS OVER THE [. AZY DOG"
-upper-alpha-times | font:Times New Roman 24px | expected:43 actual:47 | char-acc:55.81% | exact:no| 379ms
+upper-alpha-times | font:Times New Roman 24px | expected:43 actual:48 | char-acc:55.81% | exact:no| 409ms
   expected: "THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG"
-  actual:   "THE QMCK BROWN EOX dljmlls ov]zR cIzTJE LAZYDOG"
-lower-alpha | font:Roboto 24px | expected:43 actual:42 | char-acc:93.02% | exact:no| 55ms
+  actual:   "THE QMCK BROWN EOX clljMIls ov]zR cIzTJE LAZYDOG"
+lower-alpha | font:Roboto 24px | expected:43 actual:42 | char-acc:93.02% | exact:no| 54ms
   expected: "the quick brown fox jumps over the lazy dog"
   actual:   "The qulck brown foxjumps over the lazy dog"
 digits | font:Courier 24px | expected:10 actual:10 | char-acc:90.00% | exact:no| 21ms
@@ -21,126 +21,124 @@ digits | font:Courier 24px | expected:10 actual:10 | char-acc:90.00% | exact:no|
 mixed-1 | font:Courier 24px | expected:14 actual:13 | char-acc:85.71% | exact:no| 27ms
   expected: "INV-2025/12/31"
   actual:   "INV2o25/12/31"
-punctuation | font:Courier 24px | expected:24 actual:27 | char-acc:58.33% | exact:no| 48ms
+punctuation | font:Courier 24px | expected:24 actual:27 | char-acc:58.33% | exact:no| 47ms
   expected: "(){}[]<>/\,;:.!@#$&*-+=?"
   actual:   "( ){}[ ]<>/\'; I. le#*&*+=?"
-multi-line | font:Roboto 22px | expected:36 actual:36 | char-acc:94.44% | exact:no| 93ms
+multi-line | font:Roboto 22px | expected:36 actual:36 | char-acc:94.44% | exact:no| 92ms
   expected: "Order: 12345\nTotal: 67.89\nStatus: OK"
   actual:   "Order: 12345\nTotal: 67.89\nStatusr oK"
 --- Asset images (dict:off) ---
-input_test_image | asset | expected:39 actual:39 | char-acc:100.00% | exact:yes | 113ms
-the-quick-brown-fox | asset | expected:98 actual:98 | char-acc:98.98% | exact:no | 175ms
+input_test_image | asset | expected:39 actual:39 | char-acc:100.00% | exact:yes | 112ms
+the-quick-brown-fox | asset | expected:98 actual:98 | char-acc:98.98% | exact:no | 176ms
   expected: "THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG\nThe quick brown fox jumps over the lazy dog\n2025-12-31"
   actual:   "THE QUTCK BROWN FOX JUMPS OVER THE LAZY DOG\nThe quick brown fox jumps over the lazy dog\n2025-12-31"
-lines-circles | asset | expected:134 actual:141 | char-acc:91.04% | exact:no | 370ms
+lines-circles | asset | expected:134 actual:135 | char-acc:99.25% | exact:no | 286ms
   expected: "HELLO THIS IS A TEST IN UPPER CASE.\nThis is a normal phrase with number like 123,456.89\nDATES\n2020-01-02\n2021/03/04\n2022.05.05\nThe\nEnd"
-  actual:   "HELLO THIS IS A TEST IN UPPER CASE.\nThis is a normal phrase with number like 123,456.89\nDATES\n2020-01-02\n2021/03/04\n2022. Os. 05\nRlzlle\nLelnd"
-bank_statement | asset | expected:314 actual:313 | char-acc:99.68% | exact:no | 741ms
+  actual:   "HELLO THIS IS A TEST IN UPPER CASE.\nThis is a normal phrase with number like 123,456.89\nDATES\n2020-01-02\n2021/03/04\n2022.05. 05\nThe\nEnd"
+bank_statement | asset | expected:314 actual:309 | char-acc:97.77% | exact:no | 918ms
   expected: "FINO GOLF CLUB, MATOSINHOS\nCONTINENTE BOM DIA, MATOSINHOS\nWWW.AMAZON.* LSIAK28I5, LUXEMBOURG\nREMARKABLE, OSLO\nPINGO DOCE MATOSINHOS, MATOSINHOS\nCONTINENTE BOM DIA, MATOSINHOS\nPAD PORT MATO, MATOSINHOS\nCASA DAS UTILIDADES, Guimaraes\nEUROLOJA MATOSINHOS, MATOSINHOS\nCORES SABORES BOLHAO, PORTO\nTuca Cha E Cafe, PORTO"
-  actual:   "FINO GOLF CLUB, MATOSINHOS\nCONTINENTE BOM DIA, MATOSINHOS\nWWW.AMAZON.* LSIAK28I5, LUXEMBOURG\nREMARKABLE, OSLO\nPINGO DOCE MATOSINHO, MATOSINHOS\nCONTINENTE BOM DIA, MATOSINHOS\nPAD PORT MATO, MATOSINHOS\nCASA DAS UTILIDADES, Guimaraes\nEUROLOJA MATOSINHOS, MATOSINHOS\nCORES SABORES BOLHAO, PORTO\nTuca Cha E Cafe, PORTO"
-REMARKABLE | asset | expected:10 actual:10 | char-acc:100.00% | exact:yes | 125ms
-address-block | asset | expected:53 actual:54 | char-acc:98.11% | exact:no | 58ms
+  actual:   "FINO GOLF CLUB, MATOSINHOS\nCONTINENTE BOM DIA, MATOSINHOS\nWWW.AMAZON.* LSIAK28I5, LUXEEOURG\nREMARELE, OSLO\nPINGO DOCE MATOSINHO, MATOSINHOS\nCONTINENTE BOM DIA, MATOSINHOS\nPAD PORT MATO, MATOSINHOS\nCASA DAS UTILIDADES, Guimaraes\nEUROLOJAMATOSINHOS, MATOSINHOS\nCORES SABORES BOLHAO, PORTO\nTuca Cha E Cafe, PORTO"
+REMARKABLE | asset | expected:10 actual:10 | char-acc:100.00% | exact:yes | 165ms
+address-block | asset | expected:53 actual:54 | char-acc:98.11% | exact:no | 56ms
   expected: "350 MAIN STREET\nSAN FRANCISCO, CA 94105\nUNITED STATES"
   actual:   "350 MAIN STREET\nSAN FRANCISCO, CA 941 05\nUNITED STATES"
-receipt-items | asset | expected:76 actual:75 | char-acc:86.84% | exact:no | 95ms
+receipt-items | asset | expected:76 actual:75 | char-acc:85.53% | exact:no | 93ms
   expected: "ITEM QTY PRICE\nWidget A 3 12.99\nWidget B 1 7.50\nGadget C 2 24.00\nTOTAL 57.48"
-  actual:   "ITEM QTY PRICE\nwidget A 3 12-99\nwidget Bl 7-50\nGadget C 2 24-oo\nTOTAL 57,48"
+  actual:   "ITEM QTY PRICE\nwidget A 3.12-99\nwidget Bl 7-50\nGadget C 2 24-oo\nTOTAL 57,48"
 mixed-case-sentence | asset | expected:61 actual:61 | char-acc:96.72% | exact:no | 67ms
   expected: "OpenAI Released GPT In 2020.\nVersion 4 Arrived In March 2023."
   actual:   "OpenAI Released GPT In 2020.\nVerslon 4 Arrlved In March 2023."
-single-line-large | asset | expected:20 actual:20 | char-acc:100.00% | exact:yes | 40ms
-numbers-grid | asset | expected:44 actual:40 | char-acc:81.82% | exact:no | 143ms
+single-line-large | asset | expected:20 actual:20 | char-acc:100.00% | exact:yes | 38ms
+numbers-grid | asset | expected:44 actual:40 | char-acc:81.82% | exact:no | 145ms
   expected: "1001 2002 3003\n4004 5005 6006\n7007 8008 9009"
   actual:   "IOOI 2002 3003\n400450056006\n700780089009"
-small-text-dense | asset | expected:88 actual:88 | char-acc:80.68% | exact:no | 386ms
+small-text-dense | asset | expected:88 actual:88 | char-acc:80.68% | exact:no | 381ms
   expected: "Name: John Smith\nDate: 2025-06-15\nReference: TX-98432\nAmount: 1,250.75\nStatus: CONFIRMED"
   actual:   "Name: John Smlth\nOate: zoz5-06-15\nReference: Tx-98432\nAmount:], z5o.75\nStatus: coNrlRMFo"
-uppercase-short-words | asset | expected:40 actual:40 | char-acc:100.00% | exact:yes | 32ms
-title-case-names | asset | expected:40 actual:42 | char-acc:87.50% | exact:no | 184ms
+uppercase-short-words | asset | expected:40 actual:40 | char-acc:100.00% | exact:yes | 29ms
+title-case-names | asset | expected:40 actual:42 | char-acc:87.50% | exact:no | 170ms
   expected: "Alice Johnson\nBob Williams\nCharlie Brown"
   actual:   "Alice Jol]JlSon\nBob Williams\nCharlie Brown"
-codes-and-ids | asset | expected:56 actual:56 | char-acc:82.14% | exact:no | 96ms
+codes-and-ids | asset | expected:56 actual:56 | char-acc:80.36% | exact:no | 94ms
   expected: "ORD-20250615-0042\nSKU: AB12CD34EF56\nLOT: 2025/Q2/BATCH07"
-  actual:   "ORD+20250615+0042\nSKUI ABI2cD34zP56\nLOTI 2025/Q2/BATcHo7"
-paragraph-helvetica | asset | expected:90 actual:90 | char-acc:85.56% | exact:no | 289ms
+  actual:   "ORD+20250615+o042\nSKUI ABI2cD34zP56\nLOTI 2025/Q2/BATcHo7"
+paragraph-helvetica | asset | expected:90 actual:90 | char-acc:85.56% | exact:no | 283ms
   expected: "Payment received on 03/15/2025.\nYour balance is now 0.00 USD.\nThank you for your purchase."
   actual:   "Paymont rocolvod on 03/15/2025.\nYour balanco IS now O.OO USD.\nThank you tor your purchaso."
 --- (dict:off) ---
 Generated: accuracy=85.95%
-Assets:    accuracy=93.12%
-Overall:   accuracy=91.66%
-Total time: 4160ms
-Shell: OCR eval (dict:off): generated= 86.0% assets= 93.1% overall= 91.7% | images= 24 bands=  67 artifacts= 1484 chars= 1462 |  4160ms
+Assets:    accuracy=93.38%
+Overall:   accuracy=91.86%
+Total time: 4300ms
+Shell: OCR eval (dict:off): generated= 86.0% assets= 93.4% overall= 91.9% | images= 24 bands=  67 artifacts= 1475 chars= 1462 |  4300ms
 00:04 +1: OCR evaluation (dictionary on)
 --- Generated images (dict:on ) ---
-upper-alpha | font:Roboto 24px | expected:43 actual:43 | char-acc:100.00% | exact:yes| 70ms
-upper-alpha-helvetica | font:Helvetica 24px | expected:43 actual:44 | char-acc:95.35% | exact:no| 137ms
+upper-alpha | font:Roboto 24px | expected:43 actual:43 | char-acc:100.00% | exact:yes| 67ms
+upper-alpha-helvetica | font:Helvetica 24px | expected:43 actual:44 | char-acc:95.35% | exact:no| 144ms
   expected: "THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG"
   actual:   "THE QUICK BROWN FOX JUMPS OVER THE LJXZY DOG"
-upper-alpha-arial | font:Arial 24px | expected:43 actual:45 | char-acc:93.02% | exact:no| 73ms
+upper-alpha-arial | font:Arial 24px | expected:43 actual:45 | char-acc:93.02% | exact:no| 81ms
   expected: "THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG"
   actual:   "THE QUICK BROWN FOX JUMPS OVER THE [. AZY DOG"
-upper-alpha-times | font:Times New Roman 24px | expected:43 actual:47 | char-acc:55.81% | exact:no| 379ms
+upper-alpha-times | font:Times New Roman 24px | expected:43 actual:48 | char-acc:55.81% | exact:no| 410ms
   expected: "THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG"
-  actual:   "THE QMCK BROWN EOX dljmlls ov]zR cIzTJE LAZYDOG"
+  actual:   "THE QMCK BROWN EOX clljMIls ov]zR cIzTJE LAZYDOG"
 lower-alpha | font:Roboto 24px | expected:43 actual:42 | char-acc:95.35% | exact:no| 56ms
   expected: "the quick brown fox jumps over the lazy dog"
   actual:   "The quick brown foxjumps over the lazy dog"
 digits | font:Courier 24px | expected:10 actual:10 | char-acc:90.00% | exact:no| 21ms
   expected: "0123456789"
   actual:   "0123456759"
-mixed-1 | font:Courier 24px | expected:14 actual:13 | char-acc:64.29% | exact:no| 29ms
+mixed-1 | font:Courier 24px | expected:14 actual:13 | char-acc:71.43% | exact:no| 28ms
   expected: "INV-2025/12/31"
-  actual:   "Lnv2o25/12/31"
-punctuation | font:Courier 24px | expected:24 actual:27 | char-acc:58.33% | exact:no| 48ms
+  actual:   "Inv2o25/12/31"
+punctuation | font:Courier 24px | expected:24 actual:27 | char-acc:58.33% | exact:no| 47ms
   expected: "(){}[]<>/\,;:.!@#$&*-+=?"
   actual:   "( ){}[ ]<>/\'; I. Le#*&*+=?"
-multi-line | font:Roboto 22px | expected:36 actual:36 | char-acc:91.67% | exact:no| 95ms
+multi-line | font:Roboto 22px | expected:36 actual:36 | char-acc:91.67% | exact:no| 93ms
   expected: "Order: 12345\nTotal: 67.89\nStatus: OK"
   actual:   "Order: 12345\nTotal: 67.89\nStatusr ok"
 --- Asset images (dict:on ) ---
-input_test_image | asset | expected:39 actual:39 | char-acc:100.00% | exact:yes | 111ms
-the-quick-brown-fox | asset | expected:98 actual:98 | char-acc:100.00% | exact:yes | 179ms
-lines-circles | asset | expected:134 actual:141 | char-acc:91.04% | exact:no | 354ms
+input_test_image | asset | expected:39 actual:39 | char-acc:100.00% | exact:yes | 107ms
+the-quick-brown-fox | asset | expected:98 actual:98 | char-acc:100.00% | exact:yes | 174ms
+lines-circles | asset | expected:134 actual:135 | char-acc:99.25% | exact:no | 282ms
   expected: "HELLO THIS IS A TEST IN UPPER CASE.\nThis is a normal phrase with number like 123,456.89\nDATES\n2020-01-02\n2021/03/04\n2022.05.05\nThe\nEnd"
-  actual:   "HELLO THIS IS A TEST IN UPPER CASE.\nThis is a normal phrase with number like 123,456.89\nDATES\n2020-01-02\n2021/03/04\n2022. Os. 05\nRizlie\nLelnd"
-bank_statement | asset | expected:314 actual:312 | char-acc:94.90% | exact:no | 766ms
+  actual:   "HELLO THIS IS A TEST IN UPPER CASE.\nThis is a normal phrase with number like 123,456.89\nDATES\n2020-01-02\n2021/03/04\n2022.05. 05\nThe\nEnd"
+bank_statement | asset | expected:314 actual:308 | char-acc:97.13% | exact:no | 941ms
   expected: "FINO GOLF CLUB, MATOSINHOS\nCONTINENTE BOM DIA, MATOSINHOS\nWWW.AMAZON.* LSIAK28I5, LUXEMBOURG\nREMARKABLE, OSLO\nPINGO DOCE MATOSINHOS, MATOSINHOS\nCONTINENTE BOM DIA, MATOSINHOS\nPAD PORT MATO, MATOSINHOS\nCASA DAS UTILIDADES, Guimaraes\nEUROLOJA MATOSINHOS, MATOSINHOS\nCORES SABORES BOLHAO, PORTO\nTuca Cha E Cafe, PORTO"
-  actual:   "FIND GOLF CLUB, MATOSINHOS\nCONTINENTE BOM DIA, MATOSINHOS\nWWW.AMAZON.* LSIAK28I5, LUXEMBOURG\nREMARKABLE, OSLO\nPINGO DONE MATOSINHO, MATOSINHOS\nCONTINENTE BOM DIA, MATOSINHOS\nPAD PORT MATE, MATOSINHOS\nCAse DAS UTILIDADES, Guimaraes\nEUROLOJA MATOSINHOS, MATOSINHOS\nCORES SABORES BOLHAO, PORTS\nTuca chaE cake, ports"
-REMARKABLE | asset | expected:10 actual:10 | char-acc:100.00% | exact:yes | 124ms
-address-block | asset | expected:53 actual:53 | char-acc:94.34% | exact:no | 59ms
+  actual:   "FIND GOLF CLUB, MATOSINHOS\nCONTINENTE BOM DIA, MATOSINHOS\nWWW.AMAZON.* LSIAK28I5, LUXEEOURG\nREMARELE, OSLO\nPINGO DOCE MATOSINHO, MATOSINHOS\nCONTINENTE BOM DIA, MATOSINHOS\nPAD PORT MATO, MATOSINHOS\nCASA DAS UTILIDADES, Guimaraes\nEUROLOJAMATOSINHOS, MATOSINHOS\nCORES SABORES BOLHAO, PORTO\nTuca ChaE Cafe, PORTO"
+REMARKABLE | asset | expected:10 actual:10 | char-acc:100.00% | exact:yes | 165ms
+address-block | asset | expected:53 actual:53 | char-acc:96.23% | exact:no | 58ms
   expected: "350 MAIN STREET\nSAN FRANCISCO, CA 94105\nUNITED STATES"
-  actual:   "350 MAIN STREET\nSAN FRANCISCO, CA941 05\nUNITES STATES"
-receipt-items | asset | expected:76 actual:73 | char-acc:86.84% | exact:no | 96ms
+  actual:   "350 MAIN STREET\nSAN FRANCISCO, CA941 05\nUNITED STATES"
+receipt-items | asset | expected:76 actual:74 | char-acc:86.84% | exact:no | 94ms
   expected: "ITEM QTY PRICE\nWidget A 3 12.99\nWidget B 1 7.50\nGadget C 2 24.00\nTOTAL 57.48"
-  actual:   "ITEM QTY PRICE\nWidget A3 12-99\nWidget Bl 7-50\nGadgetC 2 24-oo\nTOTAL 57,48"
-mixed-case-sentence | asset | expected:61 actual:61 | char-acc:80.33% | exact:no | 72ms
+  actual:   "ITEM QTY PRICE\nWidget A 3.12-99\nWidget Bl 7-50\nGadgetC 2 24-oo\nTOTAL 57,48"
+mixed-case-sentence | asset | expected:61 actual:61 | char-acc:96.72% | exact:no | 69ms
   expected: "OpenAI Released GPT In 2020.\nVersion 4 Arrived In March 2023."
-  actual:   "Openai releases gpt in 2020.\nVersion 4 arrlved in march 2023."
-single-line-large | asset | expected:20 actual:20 | char-acc:100.00% | exact:yes | 41ms
-numbers-grid | asset | expected:44 actual:40 | char-acc:81.82% | exact:no | 148ms
+  actual:   "OpenAI Released GPT in 2020.\nVersion 4 Arrived in March 2023."
+single-line-large | asset | expected:20 actual:20 | char-acc:100.00% | exact:yes | 40ms
+numbers-grid | asset | expected:44 actual:40 | char-acc:81.82% | exact:no | 146ms
   expected: "1001 2002 3003\n4004 5005 6006\n7007 8008 9009"
   actual:   "IOOI 2002 3003\n400450056006\n700780089009"
-small-text-dense | asset | expected:88 actual:88 | char-acc:73.86% | exact:no | 388ms
+small-text-dense | asset | expected:88 actual:88 | char-acc:75.00% | exact:no | 383ms
   expected: "Name: John Smith\nDate: 2025-06-15\nReference: TX-98432\nAmount: 1,250.75\nStatus: CONFIRMED"
-  actual:   "Name: join smlth\nDate: zoz5-06-15\nReference: tx-98432\nAmount:], z5o.75\nStatus: conrlrmfo"
-uppercase-short-words | asset | expected:40 actual:40 | char-acc:97.50% | exact:no | 31ms
-  expected: "GO BIG OR GO HOME\nBE THE BEST YOU CAN BE"
-  actual:   "GO BIG OR GO HOME\nBE THE BEAT YOU CAN BE"
-title-case-names | asset | expected:40 actual:42 | char-acc:82.50% | exact:no | 181ms
+  actual:   "Name: john smlth\nDate: zoz5-06-15\nReference: tx-98432\nAmount:], z5o.75\nStatus: conrlrmfo"
+uppercase-short-words | asset | expected:40 actual:40 | char-acc:100.00% | exact:yes | 29ms
+title-case-names | asset | expected:40 actual:42 | char-acc:87.50% | exact:no | 178ms
   expected: "Alice Johnson\nBob Williams\nCharlie Brown"
-  actual:   "Alive job]jlson\nBob Williams\nCharlie brown"
-codes-and-ids | asset | expected:56 actual:56 | char-acc:67.86% | exact:no | 101ms
+  actual:   "Alice job]jlson\nBob Williams\nCharlie Brown"
+codes-and-ids | asset | expected:56 actual:56 | char-acc:76.79% | exact:no | 98ms
   expected: "ORD-20250615-0042\nSKU: AB12CD34EF56\nLOT: 2025/Q2/BATCH07"
-  actual:   "Ord+20250615+0042\nSoul abl2cd34zp56\nLoTs 2025/Q2/BATcHo7"
-paragraph-helvetica | asset | expected:90 actual:90 | char-acc:91.11% | exact:no | 304ms
+  actual:   "Ord+20250615+o042\nSKUI ABI2cD34zP56\nLOTI 2025/Q2/BATcHo7"
+paragraph-helvetica | asset | expected:90 actual:90 | char-acc:93.33% | exact:no | 284ms
   expected: "Payment received on 03/15/2025.\nYour balance is now 0.00 USD.\nThank you for your purchase."
-  actual:   "Payment rocolvod on 03/15/2025.\nYour balance is now O.OO USD.\nThank you tor your purchase."
+  actual:   "Payment received on 03/15/2025.\nYour balance IS now O.OO USD.\nThank you tor your purchase."
 --- (dict:on ) ---
-Generated: accuracy=84.95%
-Assets:    accuracy=89.85%
-Overall:   accuracy=88.85%
-Total time: 4092ms
-Shell: OCR eval (dict:on ): generated= 84.9% assets= 89.9% overall= 88.9% | images= 24 bands=  67 artifacts= 1484 chars= 1462 |  4092ms
+Generated: accuracy=85.28%
+Assets:    accuracy=93.29%
+Overall:   accuracy=91.66%
+Total time: 4212ms
+Shell: OCR eval (dict:on ): generated= 85.3% assets= 93.3% overall= 91.7% | images= 24 bands=  67 artifacts= 1475 chars= 1462 |  4212ms
 00:08 +2: (tearDownAll)
 00:08 +2: All tests passed!

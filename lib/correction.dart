@@ -8,9 +8,89 @@ import 'dart:math';
 import 'package:textify/char_utils.dart';
 import 'package:textify/models/english_words.dart';
 
+const int _minSubstitutionPairsRequired = 2;
+
+/// Minimum length for tokens to be considered for dictionary-based correction.
 const int _minDictionaryTokenLength = 2;
 const int _maxDictionaryFallbackDistance = 1;
 const int _minFallbackCorrectionLength = 4;
+
+/// Returns true if [a] and [b] are characters commonly confused by OCR
+/// based on visual similarity of glyph shapes.
+bool isOcrConfusionPair(String a, String b) {
+  final String upper1 = a.toUpperCase();
+  final String upper2 = b.toUpperCase();
+  if (upper1 == upper2) return true;
+
+  // Symmetric lookup: visual-similarity groups for OCR template matching.
+  const Map<String, Set<String>> confusionGroups = {
+    'I': {'L', '1', '!', '|', 'T'},
+    'L': {'I', '1', '!', '|', 'B'},
+    '1': {'I', 'L', '!', '|'},
+    'O': {'0', 'Q', 'D', 'B'},
+    '0': {'O', 'Q', 'D', 'B'},
+    'S': {'5', '8'},
+    '5': {'S', '8'},
+    '8': {'S', '5', 'B'},
+    'B': {'8', 'D', '0', 'O', 'L'},
+    'Z': {'2'},
+    '2': {'Z'},
+    'T': {'1', 'I', '7'},
+    'G': {'6', '9'},
+    '6': {'G'},
+    '9': {'G'},
+    'N': {'M', 'H'},
+    'M': {'N', 'H'},
+    'H': {'N', 'M'},
+    'E': {'O'},
+    'F': {'P'},
+    'P': {'F'},
+  };
+
+  return confusionGroups[upper1]?.contains(upper2) ??
+      confusionGroups[upper2]?.contains(upper1) ??
+      false;
+}
+
+/// Replaces [from] with [to] in [word], adjusting the case of [to] to match
+/// the nearest alphabetic neighbor at each replacement site.
+///
+/// This prevents case contamination: "OpenAl".replace('l','i') returns
+/// "OpenAI" (uppercase, matching neighbor 'A') instead of "OpenAi".
+String _caseAwareReplace(String word, String from, String to) {
+  final StringBuffer buf = StringBuffer();
+  for (int i = 0; i < word.length; i++) {
+    if (word[i] == from) {
+      // Look at the nearest alphabetic neighbor to decide case.
+      bool neighborIsUpper = false;
+      // Check left neighbor first, then right.
+      for (int d = i - 1; d >= 0; d--) {
+        if (isUppercaseLetter(word[d])) {
+          neighborIsUpper = true;
+          break;
+        }
+        if (isLowercaseLetter(word[d])) {
+          break;
+        }
+      }
+      if (!neighborIsUpper) {
+        for (int d = i + 1; d < word.length; d++) {
+          if (isUppercaseLetter(word[d])) {
+            neighborIsUpper = true;
+            break;
+          }
+          if (isLowercaseLetter(word[d])) {
+            break;
+          }
+        }
+      }
+      buf.write(neighborIsUpper ? to.toUpperCase() : to.toLowerCase());
+    } else {
+      buf.write(word[i]);
+    }
+  }
+  return buf.toString();
+}
 
 /// Utility class to analyze character statistics in text.
 ///
@@ -120,12 +200,13 @@ String applyCorrection(
   const Map<String, List<String>> correctionLetters = {
     '0': ['O', 'o', 'B', '8'],
     '5': ['S', 's'],
-    'l': ['L', '1', 'i', '!'],
+    'l': ['i', 'I', 'L', '1', '!'],
     'i': ['l', 'I', '1', '!'],
     'I': ['l', 'i', '1', '!'],
     'S': ['5'],
-    'o': ['D', '0'],
+    'o': ['D', '0', 'e'],
     'O': ['D', '0'],
+    'e': ['o'],
     '!': ['T', 'I', 'i', 'l', '1'],
     '@': ['A', 'a'],
   };
@@ -183,25 +264,66 @@ String applyDictionaryCorrectionOnSingleSentence(
         //
         if (!englishWords.contains(word.toLowerCase())) {
           //
-          // Try substituting commonly confused characters
+          // Try substituting commonly confused characters.
+          // First try single substitution types, then try pairs
+          // for words with multiple confusion types (e.g. o→e + l→i).
           //
           String modifiedWord = word;
           bool foundMatch = false;
 
+          // Collect all valid single-substitution variants.
+          final List<MapEntry<String, String>> singleSubs = [];
           for (final MapEntry<String, List<String>> entry
               in correctionLetters.entries) {
-            if (word.contains(entry.key)) {
+            if (modifiedWord.contains(entry.key)) {
               for (final String substitute in entry.value) {
-                final String testWord = word.replaceAll(entry.key, substitute);
+                final String testWord = _caseAwareReplace(
+                  modifiedWord,
+                  entry.key,
+                  substitute,
+                );
 
-                if (englishWords.contains(testWord.toLowerCase())) {
-                  modifiedWord = testWord;
-                  foundMatch = true;
-                  break;
+                if (testWord != modifiedWord) {
+                  if (englishWords.contains(testWord.toLowerCase())) {
+                    modifiedWord = testWord;
+                    foundMatch = true;
+                    break;
+                  }
+                  singleSubs.add(MapEntry(entry.key, substitute));
                 }
               }
               if (foundMatch) {
                 break;
+              }
+            }
+          }
+
+          // Pass 2: try chaining pairs of substitutions.
+          // For multi-substitution corrections, use lowercase matching
+          // and apply the original word's dominant casing to the result,
+          // since neighbor-based casing from noisy OCR is unreliable
+          // when multiple characters are wrong.
+          if (!foundMatch &&
+              singleSubs.length >= _minSubstitutionPairsRequired) {
+            for (int a = 0; a < singleSubs.length && !foundMatch; a++) {
+              final String after1 = _caseAwareReplace(
+                word,
+                singleSubs[a].key,
+                singleSubs[a].value,
+              );
+              for (int b = a + 1; b < singleSubs.length; b++) {
+                if (!after1.contains(singleSubs[b].key)) continue;
+                final String after2 = _caseAwareReplace(
+                  after1,
+                  singleSubs[b].key,
+                  singleSubs[b].value,
+                );
+                if (englishWords.contains(after2.toLowerCase())) {
+                  // Use lowercase form — let casing normalization handle it.
+                  modifiedWord = after2.toLowerCase();
+                  foundMatch = true;
+                  break;
+                }
               }
             }
           }
@@ -218,7 +340,22 @@ String applyDictionaryCorrectionOnSingleSentence(
             );
             if (suggestion.length == word.length &&
                 distance <= _maxDictionaryFallbackDistance) {
-              modifiedWord = suggestion;
+              // Only accept when every changed character is a plausible
+              // OCR confusion (e.g., l↔I, 0↔O). This prevents
+              // morphological form changes like "Released" → "Releases"
+              // where d→s is not an OCR confusion.
+              bool acceptFallback = true;
+              for (int ci = 0; ci < word.length; ci++) {
+                if (word[ci].toLowerCase() != suggestion[ci].toLowerCase()) {
+                  if (!isOcrConfusionPair(word[ci], suggestion[ci])) {
+                    acceptFallback = false;
+                    break;
+                  }
+                }
+              }
+              if (acceptFallback) {
+                modifiedWord = suggestion;
+              }
             }
           }
 
@@ -282,16 +419,22 @@ String sentenceFixZeroAnO(final String inputSentence) {
     // Remove any newline characters that might be present
     String word = words[i].replaceAll('\n', '');
     if (word.isNotEmpty) {
-      CharacterStats stats = CharacterStats();
-      stats.inspect(word);
-
-      if (stats.mostlyDigits()) {
-        words[i] = digitCorrection(word);
-      } else {
-        // For words that are primarily alphabetic, convert any '0' characters to 'O'/'o'
-        word = replaceBadDigitsKeepCasing(word);
-        words[i] = word;
-      }
+      // Split on non-alphanumeric boundaries so that mixed tokens like
+      // "ORD+20250615" are analyzed segment by segment.  This prevents
+      // a mostly-digit suffix from forcing letter→digit conversion on
+      // an alphabetic prefix.
+      words[i] = word.splitMapJoin(
+        RegExp(r'[A-Za-z0-9]+'),
+        onMatch: (Match m) {
+          final String segment = m.group(0)!;
+          final CharacterStats stats = CharacterStats()..inspect(segment);
+          if (stats.mostlyDigits()) {
+            return digitCorrection(segment);
+          }
+          return replaceBadDigitsKeepCasing(segment);
+        },
+        onNonMatch: (String sep) => sep,
+      );
     }
   }
 
@@ -445,6 +588,42 @@ String normalizeCasingOfSentence(final String sentence) {
 
   // If the sentence is mostly uppercase, preserve it (e.g., "HELLO WORLD")
   if (upper > lower && upper > 1) {
+    return sentence;
+  }
+
+  // If multiple words start with an uppercase letter and each capitalized word
+  // has clean casing (first letter upper, remaining letters lower or non-letter),
+  // the sentence likely uses title case, proper nouns, or acronyms.
+  // Preserve the original casing instead of blanket-lowercasing.
+  // Words with noisy internal uppercase like "CaSe" disqualify the sentence.
+  const int noisyCasingTransitionThreshold = 2;
+  final List<String> words = sentence.trim().split(RegExp(r'\s+'));
+  int uppercaseStartCount = 0;
+  bool hasNoisyCasing = false;
+  for (final String word in words) {
+    if (word.isNotEmpty && isLetter(word[0]) && isUppercaseLetter(word[0])) {
+      uppercaseStartCount++;
+      // Detect noisy internal casing by counting case transitions in the tail.
+      // "CaSe" tail: L,U,L → 2 transitions → noisy OCR artifact.
+      // "OpenAI" tail: L,L,L,U,U → 1 transition → valid camelCase/brand.
+      // "Released" tail: all lower → 0 transitions → clean title case.
+      int transitions = 0;
+      bool? lastWasUpper;
+      for (int ci = 1; ci < word.length; ci++) {
+        if (isUppercaseLetter(word[ci])) {
+          if (lastWasUpper == false) transitions++;
+          lastWasUpper = true;
+        } else if (isLowercaseLetter(word[ci])) {
+          if (lastWasUpper == true) transitions++;
+          lastWasUpper = false;
+        }
+      }
+      if (transitions >= noisyCasingTransitionThreshold) {
+        hasNoisyCasing = true;
+      }
+    }
+  }
+  if (uppercaseStartCount > 1 && !hasNoisyCasing) {
     return sentence;
   }
 

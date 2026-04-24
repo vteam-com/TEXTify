@@ -228,18 +228,15 @@ class Bands {
   /// - Remove empty bands
   /// - Adjust artifact locations
   /// - Sort and merge artifacts and bands
-  /// - Optionally identify suspicious artifacts
   /// - Pack artifacts within bands
   ///
   /// Returns a processed [Bands] collection ready for further analysis.
   ///
   /// [matrixSourceImage] The source image matrix to extract artifacts from.
   /// [regions] List of rectangular regions to process.
-  /// [innerSplit] Flag to enable additional artifact splitting analysis.
   static Bands getBandsOfArtifacts(
     Artifact matrixSourceImage,
     List<IntRect> regions,
-    bool innerSplit,
   ) {
     Bands bandsFound = Bands();
 
@@ -280,9 +277,6 @@ class Bands {
 
     for (final Band band in bandsFound.list) {
       band.padVerticallyArtifactToMatchTheBand();
-      if (innerSplit) {
-        band.identifySuspiciousLargeArtifacts();
-      }
       band.identifySpacesInBand();
       band.packArtifactLeftToRight();
     }

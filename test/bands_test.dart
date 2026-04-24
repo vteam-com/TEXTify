@@ -198,43 +198,6 @@ void main() {
       expect(result[1].gridToStrings(), ['.##', '.##', '.##', '###']);
     });
 
-    test('getWideChunks handles two artifacts with similar widths', () {
-      final Band band = Band();
-
-      // Create two artifacts with similar widths
-      final Artifact artifact1 = Artifact(10, 5);
-      artifact1.setBothLocation(const IntOffset(0, 0));
-
-      final Artifact artifact2 = Artifact(10, 5);
-      artifact2.setBothLocation(const IntOffset(20, 0));
-
-      band.addArtifact(artifact1);
-      band.addArtifact(artifact2);
-
-      // Test the special case for 2 artifacts with similar widths
-      final List<Artifact> wideChunks = band.getWideChunks();
-
-      // Should return empty list since width ratio is between 0.7 and 1.3
-      expect(wideChunks.isEmpty, true);
-
-      // Now test with dissimilar widths
-      band.artifacts.clear();
-      final Artifact artifact3 = Artifact(10, 5);
-      artifact3.setBothLocation(const IntOffset(0, 0));
-
-      final Artifact artifact4 = Artifact(50, 5); // Much wider
-      artifact4.setBothLocation(const IntOffset(15, 0));
-
-      band.addArtifact(artifact3);
-      band.addArtifact(artifact4);
-
-      final List<Artifact> wideChunks2 = band.getWideChunks();
-
-      // Should identify the wider artifact
-      expect(wideChunks2.length, 1);
-      expect(wideChunks2[0], artifact4);
-    });
-
     test('returns empty list when artifact cannot be split', () {
       final Band band = Band();
 
@@ -899,83 +862,6 @@ void main() {
     });
   });
 
-  group('identifySuspiciousLargeArtifacts', () {
-    test('splits wide artifacts', () {
-      final Band band = Band();
-
-      // Several normal-width artifacts
-      for (int i = 0; i < 4; i++) {
-        final a = Artifact.fromAsciiDefinition([
-          '####',
-          '####',
-          '####',
-          '####',
-        ]);
-        a.setBothLocation(IntOffset(i * 8, 0));
-        band.addArtifact(a);
-      }
-
-      // One very wide artifact with split points
-      final wide = Artifact.fromAsciiDefinition([
-        '####...####',
-        '####...####',
-        '####...####',
-        '####...####',
-      ]);
-      wide.setBothLocation(const IntOffset(40, 0));
-      band.addArtifact(wide);
-
-      band.identifySuspiciousLargeArtifacts();
-      // Should attempt to split the wide artifact
-      expect(band.artifacts.length, greaterThanOrEqualTo(5));
-    });
-  });
-
-  group('getWideChunks', () {
-    test('returns empty for 0 or 1 artifacts', () {
-      final Band band = Band();
-      expect(band.getWideChunks(), isEmpty);
-
-      final a1 = Artifact(5, 5);
-      a1.setBothLocation(const IntOffset(0, 0));
-      band.addArtifact(a1);
-      expect(band.getWideChunks(), isEmpty);
-    });
-
-    test('uses higher threshold for small sets of 3', () {
-      final Band band = Band();
-      final a1 = Artifact(10, 5);
-      a1.setBothLocation(const IntOffset(0, 0));
-      final a2 = Artifact(10, 5);
-      a2.setBothLocation(const IntOffset(15, 0));
-      final a3 = Artifact(20, 5); // 2x width
-      a3.setBothLocation(const IntOffset(30, 0));
-      band.addArtifact(a1);
-      band.addArtifact(a2);
-      band.addArtifact(a3);
-
-      final wide = band.getWideChunks();
-      // With 3 artifacts, threshold is 1.5x average
-      expect(wide.length, greaterThanOrEqualTo(0));
-    });
-
-    test('identifies wide chunks in larger sets', () {
-      final Band band = Band();
-      for (int i = 0; i < 5; i++) {
-        final a = Artifact(10, 5);
-        a.setBothLocation(IntOffset(i * 15, 0));
-        band.addArtifact(a);
-      }
-      // Add one very wide artifact
-      final wide = Artifact(50, 5);
-      wide.setBothLocation(const IntOffset(80, 0));
-      band.addArtifact(wide);
-
-      final chunks = band.getWideChunks();
-      expect(chunks, contains(wide));
-    });
-  });
-
   group('Band.splitArtifactIntoBand', () {
     test('creates band from region matrix with sub-artifacts', () {
       // Create a region with two separate blobs
@@ -1524,32 +1410,14 @@ void main() {
         IntRect.fromLTWH(0, 14, 40, 16),
       ];
 
-      final bands = Bands.getBandsOfArtifacts(source, regions, false);
+      final bands = Bands.getBandsOfArtifacts(source, regions);
       expect(bands.length, greaterThanOrEqualTo(1));
       expect(bands.list.isNotEmpty, true);
     });
 
-    test('with innerSplit enabled', () {
-      final source = Artifact(50, 20);
-      for (int y = 2; y < 16; y++) {
-        for (int x = 2; x < 15; x++) {
-          source.cellSet(x, y, true);
-        }
-        // A second block
-        for (int x = 25; x < 38; x++) {
-          source.cellSet(x, y, true);
-        }
-      }
-
-      final regions = [IntRect.fromLTWH(0, 0, 50, 20)];
-
-      final bands = Bands.getBandsOfArtifacts(source, regions, true);
-      expect(bands.length, greaterThanOrEqualTo(1));
-    });
-
     test('empty regions returns empty bands', () {
       final source = Artifact(10, 10);
-      final bands = Bands.getBandsOfArtifacts(source, [], false);
+      final bands = Bands.getBandsOfArtifacts(source, []);
       expect(bands.length, 0);
     });
   });

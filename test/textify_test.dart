@@ -145,15 +145,12 @@ void main() async {
     );
 
     final Textify testInstance = Textify(
-      config: const TextifyConfig(
-        applyDictionaryCorrection: false,
-        attemptCharacterSplitting: false,
-      ),
+      config: const TextifyConfig(applyDictionaryCorrection: false),
     );
     await testInstance.init(pathToAssetsDefinition: 'assets/matrices.json');
 
     //
-    // First test withtout the [Inner-splitting]
+    // Test splitting mechanics on connected letters
     //
     {
       testInstance.extractBandsAndArtifacts(imageAsArtifact);
@@ -165,54 +162,29 @@ void main() async {
       //
       expect(band.artifacts.length, 5);
 
-      List<Artifact> suspectedChunks = band.getWideChunks();
-      expect(suspectedChunks.length, 1);
+      // Find the wide artifact and test splitChunk on it
+      final wideArtifact = band.artifacts.reduce(
+        (a, b) => a.cols > b.cols ? a : b,
+      );
 
       //
-      // Now attempt to split the two chunks MAR & KAB
+      // Now attempt to split the chunk MARKAB
       //
-
-      // Chunk MARKAB
       {
-        final chunk1 = suspectedChunks[0];
-        final List<int> valleys = splitting.artifactValleysOffsets(chunk1);
+        final List<int> valleys = splitting.artifactValleysOffsets(
+          wideArtifact,
+        );
         expect(valleys.length, 5, reason: '$valleys\n');
 
-        final List<Artifact> subArtifactsOfChunk1 = band.splitChunk(chunk1);
+        final List<Artifact> subArtifacts = band.splitChunk(wideArtifact);
         expect(
-          subArtifactsOfChunk1.length,
+          subArtifacts.length,
           6,
-          reason: '${subArtifactsOfChunk1.first.toText()}\n',
+          reason: '${subArtifacts.first.toText()}\n',
         );
       }
 
-      band.identifySuspiciousLargeArtifacts();
-
-      // for (final artifact in band.artifacts) {
-      //   print('${artifact.toText()}\n');
-      // }
-      expect(band.artifacts.length, 10);
-
-      void testExpectation(final Artifact artifact, final int expectedWidth) {
-        expect(
-          artifact.cols,
-          inInclusiveRange(expectedWidth - 1, expectedWidth + 1),
-          reason: '${artifact.toText()}\n',
-        );
-      }
-
-      // We know that 'R E' are not connected
-      testExpectation(band.artifacts[00], 106); // R
-      testExpectation(band.artifacts[01], 099); // E
-      testExpectation(band.artifacts[02], 156); // M
-      testExpectation(band.artifacts[03], 122); // A
-      testExpectation(band.artifacts[04], 108); // R
-      testExpectation(band.artifacts[05], 124); // K
-      testExpectation(band.artifacts[06], 120); // A
-      testExpectation(band.artifacts[07], 109); // B
-      testExpectation(band.artifacts[08], 092); // L
-      testExpectation(band.artifacts[09], 098); // E
-
+      // Use getTextInBands which handles splitting in-loop
       final String text = await testInstance.getTextInBands(
         listOfBands: [band],
       );

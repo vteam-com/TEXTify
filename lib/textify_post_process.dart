@@ -30,6 +30,7 @@ String postProcessText(String text, {bool applyDictionary = true}) {
     value = normalizeFragmentedLine(value, applyDictionary: applyDictionary);
     if (applyDictionary) {
       value = correctNearMissDictionaryWords(value);
+      value = splitConcatenatedDictionaryWords(value);
     }
     processed.add(value);
   }

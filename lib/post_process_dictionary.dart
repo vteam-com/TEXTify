@@ -75,3 +75,52 @@ String correctNearMissDictionaryWords(String line) {
     return suggestion;
   });
 }
+
+const int _splitMinHalfLength = 3;
+const int _splitMinTotalParts = 2;
+
+/// Splits concatenated words that are not in the dictionary.
+///
+/// When space detection misses a word boundary (e.g. "foxjumps"), the
+/// resulting token won't be a valid dictionary word. This pass tries every
+/// split point and accepts the split when exactly one partition produces
+/// two valid dictionary words, avoiding ambiguous results.
+String splitConcatenatedDictionaryWords(String line) {
+  return line.replaceAllMapped(RegExp(r'[A-Za-z]+'), (Match match) {
+    final String token = match.group(0)!;
+    if (token.length < _splitMinHalfLength * _splitMinTotalParts) {
+      return token;
+    }
+
+    final String lower = token.toLowerCase();
+    if (englishWords.contains(lower)) {
+      return token;
+    }
+
+    String? bestLeft;
+    String? bestRight;
+    int splitCount = 0;
+
+    for (
+      int i = _splitMinHalfLength;
+      i <= lower.length - _splitMinHalfLength;
+      i++
+    ) {
+      final String left = lower.substring(0, i);
+      final String right = lower.substring(i);
+      if (englishWords.contains(left) && englishWords.contains(right)) {
+        bestLeft = token.substring(0, i);
+        bestRight = token.substring(i);
+        splitCount++;
+        if (splitCount > 1) {
+          return token; // ambiguous — don't split
+        }
+      }
+    }
+
+    if (splitCount == 1) {
+      return '$bestLeft $bestRight';
+    }
+    return token;
+  });
+}

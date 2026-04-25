@@ -649,7 +649,8 @@ class Band {
     }
   }
 
-  /// Inserts space artifacts between characters whose gap exceeds [spaceThreshold].
+  /// Inserts space artifacts between characters whose gap exceeds
+  /// [spaceThreshold].
   void _insertSpacesAboveThreshold(int spaceThreshold) {
     for (int i = 1; i < artifacts.length; i++) {
       final Artifact leftArtifact = artifacts[i - 1];
@@ -662,15 +663,13 @@ class Band {
       if (gap >= spaceThreshold) {
         final int spaceWidth = (gap - (_spaceBorderWidth * 2)).toInt();
         if (spaceWidth >= _minSpaceWidth) {
+          final int spaceX = leftArtifact.rectFound.right + _spaceBorderWidth;
           insertArtifactForSpace(
             artifacts: artifacts,
             insertAtIndex: i,
             cols: spaceWidth,
             rows: rectangleOriginal.height.toInt(),
-            locationFoundAt: IntOffset(
-              leftArtifact.rectFound.right + _spaceBorderWidth,
-              leftArtifact.rectFound.top,
-            ),
+            locationFoundAt: IntOffset(spaceX, leftArtifact.rectFound.top),
           );
           i++;
         }

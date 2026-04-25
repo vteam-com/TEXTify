@@ -193,7 +193,8 @@ class Textify {
     final List<IntRect> textLineRects = findTextLineRects(cleanedSourceImage);
     regionsFromDilated = textLineRects;
 
-    // Step 2: For each text line, use connected components to find characters
+    // Step 2: For each text line, extract character artifacts via
+    // connected components.
     for (final IntRect lineRect in textLineRects) {
       final Artifact lineArtifact = cleanedSourceImage.extractSubGrid(
         rect: lineRect,

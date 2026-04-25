@@ -186,7 +186,14 @@ String normalizeNumericGaps(String line) {
   final String withMappedNonAlnum = buffer.toString();
 
   if (!hasNonDigitToken) {
-    return withMappedNonAlnum.replaceAll(RegExp(r'\s+'), '');
+    // Only collapse whitespace when every digit group is a single digit,
+    // which suggests a fragmented number (e.g. "1 2 3 4" → "1234").
+    // Multi-digit groups separated by spaces are distinct numbers
+    // (e.g. "4004 5005 6006") and should keep their spaces.
+    if (_allSingleDigitGroups(withMappedNonAlnum)) {
+      return withMappedNonAlnum.replaceAll(RegExp(r'\s+'), '');
+    }
+    return withMappedNonAlnum;
   }
 
   return withMappedNonAlnum.replaceAllMapped(
@@ -222,10 +229,12 @@ String normalizeDateSeparators(String line) {
     (_) => '.',
   );
 
-  // Collapse split numeric runs like "1 2 3" only when there are 2+ joins.
+  // Collapse split numeric runs like "1 2 3" only when there are 2+ joins
+  // and all digit groups are single digits (fragmented number, not a column
+  // of distinct numbers).
   final RegExp splitDigits = RegExp(r'(?<=\d)\s+(?=\d)');
   final int joins = splitDigits.allMatches(value).length;
-  if (joins >= _digitJoinMinCount) {
+  if (joins >= _digitJoinMinCount && _allSingleDigitGroups(value)) {
     value = value.replaceAll(splitDigits, '');
   }
   return value;
@@ -264,3 +273,18 @@ const Set<String> highConfidenceDigitLookalikes = {
   'S', 's', // → 5
   'Z', 'z', // → 2
 };
+
+/// Returns true when every digit group in [text] is a single digit.
+///
+/// A line like "1 2 3 4" (all single-digit groups) is likely a fragmented
+/// number and should be collapsed to "1234". A line like "4004 5005 6006"
+/// has multi-digit groups that are distinct numbers and should keep spaces.
+bool _allSingleDigitGroups(String text) {
+  final Iterable<Match> groups = RegExp(r'\d+').allMatches(text);
+  for (final Match group in groups) {
+    if (group.end - group.start > 1) {
+      return false;
+    }
+  }
+  return true;
+}

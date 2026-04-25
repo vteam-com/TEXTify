@@ -220,9 +220,9 @@ Future<void> _runOcrEvaluation({
     _logEval(
       '${evalCase.name} | font:${evalCase.fontFamily} ${evalCase.fontSize.toInt()}px '
       '| expected:${evalCase.text.length} actual:${actualText.length} '
-      '| char-acc:${((1.0 - (_levenshteinDistance(evalCase.text, actualText) / evalCase.text.length)) * 100).toStringAsFixed(2)}% '
+      '| char-acc:${((1.0 - (_levenshteinDistance(evalCase.text, actualText) / evalCase.text.length)) * 100).toStringAsFixed(1)}% '
       '| exact:$exactLabel'
-      '| ${sw.elapsedMilliseconds}ms',
+      '| ${(sw.elapsedMilliseconds / 1000).toStringAsFixed(1)}s',
     );
 
     if (evalCase.text != actualText) {
@@ -257,9 +257,9 @@ Future<void> _runOcrEvaluation({
     _logEval(
       '${assetCase.name} | asset'
       ' | expected:${assetCase.expectedText.length} actual:${actualText.length}'
-      ' | char-acc:${((1.0 - (_levenshteinDistance(assetCase.expectedText, actualText) / assetCase.expectedText.length)) * 100).toStringAsFixed(2)}%'
+      ' | char-acc:${((1.0 - (_levenshteinDistance(assetCase.expectedText, actualText) / assetCase.expectedText.length)) * 100).toStringAsFixed(1)}%'
       ' | exact:$exactLabel'
-      ' | ${sw.elapsedMilliseconds}ms',
+      ' | ${(sw.elapsedMilliseconds / 1000).toStringAsFixed(1)}s',
     );
 
     if (assetCase.expectedText != actualText) {
@@ -276,13 +276,15 @@ Future<void> _runOcrEvaluation({
 
   _logEval('--- ($modeLabel) ---');
   _logEval(
-    'Generated: accuracy=${(generatedScore.accuracy * 100).toStringAsFixed(2)}%',
+    'Generated: accuracy=${(generatedScore.accuracy * 100).toStringAsFixed(1)}%',
   );
   _logEval(
-    'Assets:    accuracy=${(assetScore.accuracy * 100).toStringAsFixed(2)}%',
+    'Assets:    accuracy=${(assetScore.accuracy * 100).toStringAsFixed(1)}%',
   );
-  _logEval('Overall:   accuracy=${(total.accuracy * 100).toStringAsFixed(2)}%');
-  _logEval('Total time: ${totalStopwatch.elapsedMilliseconds}ms');
+  _logEval('Overall:   accuracy=${(total.accuracy * 100).toStringAsFixed(1)}%');
+  _logEval(
+    'Total time: ${(totalStopwatch.elapsedMilliseconds / 1000).toStringAsFixed(1)}s',
+  );
 
   final String generatedPct = (generatedScore.accuracy * 100)
       .toStringAsFixed(1)
@@ -297,8 +299,8 @@ Future<void> _runOcrEvaluation({
   final String bandsCount = total.bands.toString().padLeft(4);
   final String artifactsCount = total.artifacts.toString().padLeft(5);
   final String charsCount = total.expectedChars.toString().padLeft(5);
-  final String elapsedMs = totalStopwatch.elapsedMilliseconds
-      .toString()
+  final String elapsedSec = (totalStopwatch.elapsedMilliseconds / 1000)
+      .toStringAsFixed(1)
       .padLeft(5);
 
   // Always print summary so it's visible in normal test runs.
@@ -311,7 +313,7 @@ Future<void> _runOcrEvaluation({
     ' bands=$bandsCount'
     ' artifacts=$artifactsCount'
     ' chars=$charsCount'
-    ' | ${elapsedMs}ms',
+    ' | ${elapsedSec}s',
   );
 }
 

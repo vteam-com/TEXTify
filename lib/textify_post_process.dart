@@ -50,8 +50,8 @@ String postProcessText(String text, {bool applyDictionary = true}) {
     value = _normalizeLineCase(value);
     value = _normalizeNameLikeLineTitleCase(value);
     value = _normalizeNumericGaps(value);
-    value = _normalizeDateSeparators(value);
     value = _normalizeDigitSegments(value);
+    value = _normalizeDateSeparators(value);
     value = _normalizeFragmentedLine(value, applyDictionary: applyDictionary);
     if (applyDictionary) {
       value = _correctNearMissDictionaryWords(value);
@@ -308,7 +308,7 @@ String _normalizeDigitSegments(String line) {
       segment = mapped.toString();
     } else if (isAllLetters(segment) &&
         segment.length <= _maxShortLetterSegmentLength) {
-      // Short all-letter segment between digit-dominant neighbors
+      // Short all-letter segment near digit-dominant neighbors
       // e.g. "2020-Ol-02" → "Ol" between "2020" and "02" → "01".
       bool prevDigit = false, nextDigit = false;
       for (int p = ti - 1; p >= 0; p--) {
@@ -323,7 +323,22 @@ String _normalizeDigitSegments(String line) {
           break;
         }
       }
+      // Both neighbors digit-dominant → always convert.
+      // Single neighbor digit-dominant → only convert when every
+      // character is a high-confidence digit lookalike (O, l, I, S, Z).
+      bool convert = false;
       if (prevDigit && nextDigit) {
+        convert = true;
+      } else if (prevDigit || nextDigit) {
+        convert = true;
+        for (int i = 0; i < segment.length; i++) {
+          if (!_highConfidenceDigitLookalikes.contains(segment[i])) {
+            convert = false;
+            break;
+          }
+        }
+      }
+      if (convert) {
         final StringBuffer mapped = StringBuffer();
         for (int i = 0; i < segment.length; i++) {
           mapped.write(_digitConfusionMap[segment[i]] ?? segment[i]);
@@ -1071,6 +1086,15 @@ const Map<String, String> _digitNonAlnumMap = {
 };
 
 const Set<String> _noiseLetters = {'i', 'l', 'I', 'L', 't', 'T'};
+
+/// Letters that are high-confidence digit lookalikes — safe to convert to
+/// digits even with only one digit-dominant neighbor.
+const Set<String> _highConfidenceDigitLookalikes = {
+  'O', 'o', // → 0
+  'I', 'l', 'L', // → 1
+  'S', 's', // → 5
+  'Z', 'z', // → 2
+};
 
 const Set<String> _noisePunctuation = {
   '*',

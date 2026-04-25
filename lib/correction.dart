@@ -15,6 +15,10 @@ const int _minDictionaryTokenLength = 2;
 const int _maxDictionaryFallbackDistance = 1;
 const int _minFallbackCorrectionLength = 4;
 
+/// Divisor for title-case majority threshold: uppercaseStartCount must exceed
+/// alphaWordCount divided by this value to be considered genuine title case.
+const int _titleCaseMajorityDivisor = 2;
+
 /// Returns true if [a] and [b] are characters commonly confused by OCR
 /// based on visual similarity of glyph shapes.
 bool isOcrConfusionPair(String a, String b) {
@@ -599,9 +603,24 @@ String normalizeCasingOfSentence(final String sentence) {
   const int noisyCasingTransitionThreshold = 2;
   final List<String> words = sentence.trim().split(RegExp(r'\s+'));
   int uppercaseStartCount = 0;
+  int alphaWordCount = 0;
   bool hasNoisyCasing = false;
   for (final String word in words) {
-    if (word.isNotEmpty && isLetter(word[0]) && isUppercaseLetter(word[0])) {
+    if (word.isEmpty || !isLetter(word[0])) continue;
+    alphaWordCount++;
+    if (isUppercaseLetter(word[0])) {
+      // Skip words containing digits — these are likely codes or dates
+      // with OCR-confused leading letters (e.g., "O3/15/2025"), not
+      // genuine title-case words.
+      bool hasDigit = false;
+      for (int ci = 0; ci < word.length; ci++) {
+        if (isDigit(word[ci])) {
+          hasDigit = true;
+          break;
+        }
+      }
+      if (hasDigit) continue;
+
       uppercaseStartCount++;
       // Detect noisy internal casing by counting case transitions in the tail.
       // "CaSe" tail: L,U,L → 2 transitions → noisy OCR artifact.
@@ -623,6 +642,27 @@ String normalizeCasingOfSentence(final String sentence) {
       }
     }
   }
+  // Only treat as title-case when the majority of alphabetic words start
+  // uppercase.  A stray OCR capitalization (e.g., "With" for "with") should
+  // not trigger short-word capitalization across the whole sentence.
+  final bool isTitleCase =
+      uppercaseStartCount > 1 &&
+      !hasNoisyCasing &&
+      alphaWordCount > 0 &&
+      uppercaseStartCount > alphaWordCount ~/ _titleCaseMajorityDivisor;
+  if (isTitleCase) {
+    // In title-case sentences, capitalize very short (1-2 char) lowercase
+    // words to match the dominant pattern.  These often arise from OCR
+    // confusion between 'l' and 'I' producing "in" instead of "In".
+    return sentence.replaceAllMapped(RegExp(r'\b([a-z]{1,2})\b'), (Match m) {
+      final String w = m.group(1)!;
+      return w[0].toUpperCase() + w.substring(1);
+    });
+  }
+
+  // Preserve sentences with multiple uppercase-starting words even when
+  // the strict title-case threshold is not met (e.g., one stray OCR
+  // capitalization among many lowercase words).
   if (uppercaseStartCount > 1 && !hasNoisyCasing) {
     return sentence;
   }

@@ -3,13 +3,13 @@
 00:00 +0: OCR evaluation (dictionary off)
 --- Generated images (dict:off) ---
 upper-alpha | font:Roboto 24px | expected:43 actual:43 | char-acc:100.0% | exact:yes| 0.1s
-upper-alpha-helvetica | font:Helvetica 24px | expected:43 actual:44 | char-acc:95.3% | exact:no| 0.2s
+upper-alpha-helvetica | font:Helvetica 24px | expected:43 actual:43 | char-acc:95.3% | exact:no| 0.2s
   expected: "THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG"
-  actual:   "THE QUICK BROWN FOX JUMPS OVER THE LJXZY DOG"
+  actual:   "THE QUICK BROWN FOX JUMPS OVER THE UXZY DOG"
 upper-alpha-arial | font:Arial 24px | expected:43 actual:43 | char-acc:100.0% | exact:yes| 0.1s
-upper-alpha-times | font:Times New Roman 24px | expected:43 actual:48 | char-acc:55.8% | exact:no| 0.4s
+upper-alpha-times | font:Times New Roman 24px | expected:43 actual:42 | char-acc:83.7% | exact:no| 0.4s
   expected: "THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG"
-  actual:   "THE QMCK BROWN EOX clljMIls ov]zR cIzTJE LAZYDOG"
+  actual:   "THE QMCK BROWN EOX JLMIIS OVER THE LAZYDOG"
 lower-alpha | font:Roboto 24px | expected:43 actual:42 | char-acc:93.0% | exact:no| 0.1s
   expected: "the quick brown fox jumps over the lazy dog"
   actual:   "The qulck brown foxjumps over the lazy dog"
@@ -31,7 +31,7 @@ the-quick-brown-fox | asset | expected:98 actual:98 | char-acc:99.0% | exact:no 
   expected: "THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG\nThe quick brown fox jumps over the lazy dog\n2025-12-31"
   actual:   "THE QUTCK BROWN FOX JUMPS OVER THE LAZY DOG\nThe quick brown fox jumps over the lazy dog\n2025-12-31"
 lines-circles | asset | expected:134 actual:134 | char-acc:100.0% | exact:yes | 0.3s
-bank_statement | asset | expected:314 actual:309 | char-acc:97.8% | exact:no | 1.0s
+bank_statement | asset | expected:314 actual:309 | char-acc:97.8% | exact:no | 1.1s
   expected: "FINO GOLF CLUB, MATOSINHOS\nCONTINENTE BOM DIA, MATOSINHOS\nWWW.AMAZON.* LSIAK28I5, LUXEMBOURG\nREMARKABLE, OSLO\nPINGO DOCE MATOSINHOS, MATOSINHOS\nCONTINENTE BOM DIA, MATOSINHOS\nPAD PORT MATO, MATOSINHOS\nCASA DAS UTILIDADES, Guimaraes\nEUROLOJA MATOSINHOS, MATOSINHOS\nCORES SABORES BOLHAO, PORTO\nTuca Cha E Cafe, PORTO"
   actual:   "FINO GOLF CLUB, MATOSINHOS\nCONTINENTE BOM DIA, MATOSINHOS\nWWW.AMAZON.* LSIAK28I5, LUXEEOURG\nREMARELE, OSLO\nPINGO DOCE MATOSINHO, MATOSINHOS\nCONTINENTE BOM DIA, MATOSINHOS\nPAD PORT MATO, MATOSINHOS\nCASA DAS UTILIDADES, Guimaraes\nEUROLOJAMATOSINHOS, MATOSINHOS\nCORES SABORES BOLHAO, PORTO\nTuca Cha E Cafe, PORTO"
 REMARKABLE | asset | expected:10 actual:10 | char-acc:100.0% | exact:yes | 0.2s
@@ -52,9 +52,9 @@ small-text-dense | asset | expected:88 actual:88 | char-acc:80.7% | exact:no | 0
   expected: "Name: John Smith\nDate: 2025-06-15\nReference: TX-98432\nAmount: 1,250.75\nStatus: CONFIRMED"
   actual:   "Name: John Smlth\nOate: zoz5-06-15\nReference: Tx-98432\nAmount:], z5o.75\nStatus: coNrlRMFo"
 uppercase-short-words | asset | expected:40 actual:40 | char-acc:100.0% | exact:yes | 0.0s
-title-case-names | asset | expected:40 actual:42 | char-acc:87.5% | exact:no | 0.2s
+title-case-names | asset | expected:40 actual:40 | char-acc:92.5% | exact:no | 0.2s
   expected: "Alice Johnson\nBob Williams\nCharlie Brown"
-  actual:   "Alice Jol]JlSon\nBob Williams\nCharlie Brown"
+  actual:   "Alice JolmSon\nBob Williams\nCharlie Brown"
 codes-and-ids | asset | expected:56 actual:56 | char-acc:80.4% | exact:no | 0.1s
   expected: "ORD-20250615-0042\nSKU: AB12CD34EF56\nLOT: 2025/Q2/BATCH07"
   actual:   "ORD+20250615+o042\nSKUI ABI2cD34zP56\nLOTI 2025/Q2/BATcHo7"
@@ -62,21 +62,21 @@ paragraph-helvetica | asset | expected:90 actual:90 | char-acc:85.6% | exact:no 
   expected: "Payment received on 03/15/2025.\nYour balance is now 0.00 USD.\nThank you for your purchase."
   actual:   "Paymont rocolvod on 03/15/2025.\nYour balanco IS now O.OO USD.\nThank you tor your purchaso."
 --- (dict:off) ---
-Generated: accuracy=87.0%
-Assets:    accuracy=93.8%
-Overall:   accuracy=92.4%
-Total time: 4.4s
-Shell: OCR eval (dict:off): generated= 87.0% assets= 93.8% overall= 92.4% | images= 24 bands=  67 artifacts= 1475 chars= 1462 |   4.4s
+Generated: accuracy=91.0%
+Assets:    accuracy=94.0%
+Overall:   accuracy=93.4%
+Total time: 4.7s
+Shell: OCR eval (dict:off): generated= 91.0% assets= 94.0% overall= 93.4% | images= 24 bands=  67 artifacts= 1466 chars= 1462 |   4.7s
 00:04 +1: OCR evaluation (dictionary on)
 --- Generated images (dict:on ) ---
 upper-alpha | font:Roboto 24px | expected:43 actual:43 | char-acc:100.0% | exact:yes| 0.1s
-upper-alpha-helvetica | font:Helvetica 24px | expected:43 actual:44 | char-acc:95.3% | exact:no| 0.1s
+upper-alpha-helvetica | font:Helvetica 24px | expected:43 actual:43 | char-acc:95.3% | exact:no| 0.2s
   expected: "THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG"
-  actual:   "THE QUICK BROWN FOX JUMPS OVER THE LJXZY DOG"
+  actual:   "THE QUICK BROWN FOX JUMPS OVER THE UXZY DOG"
 upper-alpha-arial | font:Arial 24px | expected:43 actual:43 | char-acc:100.0% | exact:yes| 0.1s
-upper-alpha-times | font:Times New Roman 24px | expected:43 actual:48 | char-acc:55.8% | exact:no| 0.4s
+upper-alpha-times | font:Times New Roman 24px | expected:43 actual:42 | char-acc:83.7% | exact:no| 0.4s
   expected: "THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG"
-  actual:   "THE QMCK BROWN EOX clljMIls ov]zR cIzTJE LAZYDOG"
+  actual:   "THE QMCK BROWN EOX JLMIIS OVER THE LAZYDOG"
 lower-alpha | font:Roboto 24px | expected:43 actual:42 | char-acc:95.3% | exact:no| 0.1s
   expected: "the quick brown fox jumps over the lazy dog"
   actual:   "The quick brown foxjumps over the lazy dog"
@@ -108,16 +108,16 @@ receipt-items | asset | expected:76 actual:74 | char-acc:90.8% | exact:no | 0.1s
   actual:   "ITEM QTY PRICE\nWidget A 3.12-99\nWidget B1 7-50\nGadgetC 2 24-00\nTOTAL 57,48"
 mixed-case-sentence | asset | expected:61 actual:61 | char-acc:100.0% | exact:yes | 0.1s
 single-line-large | asset | expected:20 actual:20 | char-acc:100.0% | exact:yes | 0.0s
-numbers-grid | asset | expected:44 actual:40 | char-acc:81.8% | exact:no | 0.2s
+numbers-grid | asset | expected:44 actual:40 | char-acc:81.8% | exact:no | 0.1s
   expected: "1001 2002 3003\n4004 5005 6006\n7007 8008 9009"
   actual:   "IOOI 2002 3003\n400450056006\n700780089009"
 small-text-dense | asset | expected:88 actual:88 | char-acc:75.0% | exact:no | 0.4s
   expected: "Name: John Smith\nDate: 2025-06-15\nReference: TX-98432\nAmount: 1,250.75\nStatus: CONFIRMED"
   actual:   "Name: john smlth\nDate: zoz5-06-15\nReference: tx-98432\nAmount:], z5o.75\nStatus: conrlrmfo"
 uppercase-short-words | asset | expected:40 actual:40 | char-acc:100.0% | exact:yes | 0.0s
-title-case-names | asset | expected:40 actual:42 | char-acc:87.5% | exact:no | 0.2s
+title-case-names | asset | expected:40 actual:40 | char-acc:95.0% | exact:no | 0.2s
   expected: "Alice Johnson\nBob Williams\nCharlie Brown"
-  actual:   "Alice job]jlson\nBob Williams\nCharlie Brown"
+  actual:   "Alice Jolmson\nBob Williams\nCharlie Brown"
 codes-and-ids | asset | expected:56 actual:56 | char-acc:76.8% | exact:no | 0.1s
   expected: "ORD-20250615-0042\nSKU: AB12CD34EF56\nLOT: 2025/Q2/BATCH07"
   actual:   "Ord+20250615+o042\nSKUI ABI2cD34zP56\nLOTI 2025/Q2/BATcHo7"
@@ -125,10 +125,10 @@ paragraph-helvetica | asset | expected:90 actual:90 | char-acc:93.3% | exact:no 
   expected: "Payment received on 03/15/2025.\nYour balance is now 0.00 USD.\nThank you for your purchase."
   actual:   "Payment received on 03/15/2025.\nYour balance IS now O.OO USD.\nThank you tor your purchase."
 --- (dict:on ) ---
-Generated: accuracy=86.3%
-Assets:    accuracy=93.8%
-Overall:   accuracy=92.3%
-Total time: 4.7s
-Shell: OCR eval (dict:on ): generated= 86.3% assets= 93.8% overall= 92.3% | images= 24 bands=  67 artifacts= 1475 chars= 1462 |   4.7s
+Generated: accuracy=90.3%
+Assets:    accuracy=94.1%
+Overall:   accuracy=93.3%
+Total time: 4.6s
+Shell: OCR eval (dict:on ): generated= 90.3% assets= 94.1% overall= 93.3% | images= 24 bands=  67 artifacts= 1466 chars= 1462 |   4.6s
 00:09 +2: (tearDownAll)
 00:09 +2: All tests passed!

@@ -463,6 +463,7 @@ class Textify {
       // Build the final line from processed artifacts
       band.sortArtifactsLeftToRight();
       _reMergeConsecutiveVerticalStrokes(band);
+      _reMergeSplitFragments(band);
       _refinePunctuationInLetterContext(band);
       _refineUppercaseInUppercaseContext(band);
       for (final Artifact artifact in band.artifacts) {
@@ -935,6 +936,60 @@ class Textify {
   /// be half of a split two-stroke character like 'H'.
   static bool _isVerticalStrokeChar(String ch) =>
       ch == 'I' || ch == 'l' || ch == '|' || ch == '1' || ch == ']';
+
+  /// Re-merges adjacent artifacts that originated from a split when the merged
+  /// result scores better than the worse of the two individual pieces.
+  ///
+  /// After splitting, a single character may be broken into two fragments
+  /// that each match a wrong template. This pass tries merging consecutive
+  /// split-origin artifacts and accepts the merge when the combined score
+  /// exceeds the individual scores.
+  void _reMergeSplitFragments(Band band) {
+    final int avgWidth = band.averageWidth;
+    if (avgWidth <= 0) {
+      return;
+    }
+
+    for (int i = 0; i < band.artifacts.length - 1; i++) {
+      final Artifact current = band.artifacts[i];
+      final Artifact next = band.artifacts[i + 1];
+
+      // Only consider pairs where both came from a split
+      if (!current.wasPartOfSplit || !next.wasPartOfSplit) {
+        continue;
+      }
+
+      // Fragments must be adjacent or nearly so
+      final int gap = next.rectFound.left - current.rectFound.right;
+      if (gap < 0 || gap > avgWidth ~/ _mergeGapWidthDivisor) {
+        continue;
+      }
+
+      final Artifact merged = Artifact.fromMatrix(current);
+      merged.mergeArtifact(next);
+
+      final List<ScoreMatch> mergedScores = getMatchingScoresOfNormalizedMatrix(
+        merged,
+      );
+      if (mergedScores.isEmpty) {
+        continue;
+      }
+
+      final double mergedScore = mergedScores.first.score;
+      final double worseIndividual = current.matchingScore < next.matchingScore
+          ? current.matchingScore
+          : next.matchingScore;
+
+      // Accept merge if it scores better than the worse individual piece
+      if (mergedScore > worseIndividual) {
+        merged.matchingCharacter = mergedScores.first.character;
+        merged.matchingScore = mergedScore;
+        band.artifacts[i] = merged;
+        band.artifacts.removeAt(i + 1);
+        i--; // Re-check from same position
+      }
+    }
+  }
 
   /// Returns true only if splitting an artifact into [parts] produces a mean
   /// score strictly better than [originalScore].

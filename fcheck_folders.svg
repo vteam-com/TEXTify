@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg width="721.0" height="1376.0" viewBox="0 0 721.0 1376.0" xmlns="http://www.w3.org/2000/svg" font-family="Arial, Helvetica, sans-serif">
+<svg width="727.0" height="1376.0" viewBox="0 0 727.0 1376.0" xmlns="http://www.w3.org/2000/svg" font-family="Arial, Helvetica, sans-serif">
 <defs>
   <filter id="whiteShadow" x="-20%" y="-20%" width="140%" height="140%">
     <feGaussianBlur in="SourceAlpha" stdDeviation="3"/>
@@ -263,18 +263,18 @@
 <rect x="155.0" y="362.0" width="244.0" height="28.0" rx="5.0" ry="5.0" class="fileNode"><title>File: character_definitions.dart</title></rect>
 <rect x="155.0" y="394.0" width="244.0" height="28.0" rx="5.0" ry="5.0" class="fileNode"><title>File: post_process_fragment.dart</title></rect>
 <rect x="155.0" y="426.0" width="244.0" height="28.0" rx="5.0" ry="5.0" class="fileNode"><title>File: artifact_splitting.dart</title></rect>
-<rect x="155.0" y="458.0" width="244.0" height="28.0" rx="5.0" ry="5.0" class="fileNode"><title>File: post_process_dictionary.dart</title></rect>
-<rect x="155.0" y="490.0" width="244.0" height="28.0" rx="5.0" ry="5.0" class="fileNode"><title>File: artifact_analysis.dart</title></rect>
-<rect x="155.0" y="522.0" width="244.0" height="28.0" rx="5.0" ry="5.0" class="fileNode"><title>File: character_definition.dart</title></rect>
-<rect x="155.0" y="554.0" width="244.0" height="28.0" rx="5.0" ry="5.0" class="fileNode"><title>File: artifact_serialize.dart</title></rect>
-<rect x="155.0" y="586.0" width="244.0" height="28.0" rx="5.0" ry="5.0" class="fileNode"><title>File: artifact_region.dart</title></rect>
-<rect x="155.0" y="618.0" width="244.0" height="28.0" rx="5.0" ry="5.0" class="fileNode"><title>File: artifact_grid_transform.dart</title></rect>
-<rect x="155.0" y="650.0" width="244.0" height="28.0" rx="5.0" ry="5.0" class="fileNode"><title>File: post_process_bracket.dart</title></rect>
-<rect x="155.0" y="682.0" width="244.0" height="28.0" rx="5.0" ry="5.0" class="fileNode"><title>File: post_process_case.dart</title></rect>
-<rect x="155.0" y="714.0" width="244.0" height="28.0" rx="5.0" ry="5.0" class="fileNode"><title>File: post_process_line.dart</title></rect>
-<rect x="155.0" y="746.0" width="244.0" height="28.0" rx="5.0" ry="5.0" class="fileNode"><title>File: post_process_numeric.dart</title></rect>
-<rect x="155.0" y="778.0" width="244.0" height="28.0" rx="5.0" ry="5.0" class="fileNode"><title>File: post_process_text.dart</title></rect>
-<rect x="155.0" y="810.0" width="244.0" height="28.0" rx="5.0" ry="5.0" class="fileNode"><title>File: correction.dart</title></rect>
+<rect x="155.0" y="458.0" width="244.0" height="28.0" rx="5.0" ry="5.0" class="fileNode"><title>File: post_process_case.dart</title></rect>
+<rect x="155.0" y="490.0" width="244.0" height="28.0" rx="5.0" ry="5.0" class="fileNode"><title>File: post_process_dictionary.dart</title></rect>
+<rect x="155.0" y="522.0" width="244.0" height="28.0" rx="5.0" ry="5.0" class="fileNode"><title>File: artifact_analysis.dart</title></rect>
+<rect x="155.0" y="554.0" width="244.0" height="28.0" rx="5.0" ry="5.0" class="fileNode"><title>File: character_definition.dart</title></rect>
+<rect x="155.0" y="586.0" width="244.0" height="28.0" rx="5.0" ry="5.0" class="fileNode"><title>File: artifact_serialize.dart</title></rect>
+<rect x="155.0" y="618.0" width="244.0" height="28.0" rx="5.0" ry="5.0" class="fileNode"><title>File: artifact_region.dart</title></rect>
+<rect x="155.0" y="650.0" width="244.0" height="28.0" rx="5.0" ry="5.0" class="fileNode"><title>File: artifact_grid_transform.dart</title></rect>
+<rect x="155.0" y="682.0" width="244.0" height="28.0" rx="5.0" ry="5.0" class="fileNode"><title>File: correction.dart</title></rect>
+<rect x="155.0" y="714.0" width="244.0" height="28.0" rx="5.0" ry="5.0" class="fileNode"><title>File: post_process_bracket.dart</title></rect>
+<rect x="155.0" y="746.0" width="244.0" height="28.0" rx="5.0" ry="5.0" class="fileNode"><title>File: post_process_line.dart</title></rect>
+<rect x="155.0" y="778.0" width="244.0" height="28.0" rx="5.0" ry="5.0" class="fileNode"><title>File: post_process_numeric.dart</title></rect>
+<rect x="155.0" y="810.0" width="244.0" height="28.0" rx="5.0" ry="5.0" class="fileNode"><title>File: post_process_text.dart</title></rect>
 <rect x="155.0" y="842.0" width="244.0" height="28.0" rx="5.0" ry="5.0" class="fileNode"><title>File: artifact.dart</title></rect>
 <rect x="155.0" y="874.0" width="244.0" height="28.0" rx="5.0" ry="5.0" class="fileNode"><title>File: image_helpers.dart</title></rect>
 <rect x="155.0" y="906.0" width="244.0" height="28.0" rx="5.0" ry="5.0" class="fileNode"><title>File: char_utils.dart</title></rect>
@@ -285,19 +285,19 @@
 <rect x="155.0" y="1156.0" width="244.0" height="28.0" rx="5.0" ry="5.0" class="fileNode"><title>File: models/textify_config.dart</title></rect>
 <rect x="155.0" y="1188.0" width="244.0" height="28.0" rx="5.0" ry="5.0" class="fileNode"><title>File: models/int_offset.dart</title></rect>
 <g>
-  <path d="M 395.0 638.0 H 411.0 Q 417.0 638.0 417.0 644.0 V 845.0 Q 417.0 851.0 411.0 851.0 H 391.0" class="edgeVertical"/>
-  <title>artifact_grid_transform.dart ▶ artifact.dart</title>
-</g>
-<g>
   <path d="M 395.0 894.0 H 411.0 Q 417.0 894.0 417.0 900.0 V 1095.0 Q 417.0 1101.0 411.0 1101.0 H 391.0" class="edgeVertical"/>
   <title>image_helpers.dart ▶ models/int_rect.dart</title>
+</g>
+<g>
+  <path d="M 395.0 670.0 H 411.0 Q 417.0 670.0 417.0 676.0 V 845.0 Q 417.0 851.0 411.0 851.0 H 391.0" class="edgeVertical"/>
+  <title>artifact_grid_transform.dart ▶ artifact.dart</title>
 </g>
 <g>
   <path d="M 395.0 318.0 H 411.0 Q 417.0 318.0 417.0 324.0 V 429.0 Q 417.0 435.0 411.0 435.0 H 391.0" class="edgeVertical"/>
   <title>band.dart ▶ artifact_splitting.dart</title>
 </g>
 <g>
-  <path d="M 395.0 446.0 H 411.0 Q 417.0 446.0 417.0 452.0 V 493.0 Q 417.0 499.0 411.0 499.0 H 391.0" class="edgeVertical"/>
+  <path d="M 395.0 446.0 H 411.0 Q 417.0 446.0 417.0 452.0 V 525.0 Q 417.0 531.0 411.0 531.0 H 391.0" class="edgeVertical"/>
   <title>artifact_splitting.dart ▶ artifact_analysis.dart</title>
 </g>
 <g>
@@ -305,7 +305,7 @@
   <title>artifact.dart ▶ image_helpers.dart</title>
 </g>
 <g>
-  <path d="M 395.0 542.0 H 411.0 Q 417.0 542.0 417.0 548.0 V 557.0 Q 417.0 563.0 411.0 563.0 H 391.0" class="edgeVertical"/>
+  <path d="M 395.0 574.0 H 411.0 Q 417.0 574.0 417.0 580.0 V 589.0 Q 417.0 595.0 411.0 595.0 H 391.0" class="edgeVertical"/>
   <title>character_definition.dart ▶ artifact_serialize.dart</title>
 </g>
 <g>
@@ -313,8 +313,8 @@
   <title>textify.dart ▶ textify_post_process.dart</title>
 </g>
 <g>
-  <path d="M 395.0 830.0 H 414.0 Q 420.0 830.0 420.0 836.0 V 909.0 Q 420.0 915.0 414.0 915.0 H 391.0" class="edgeVertical"/>
-  <title>correction.dart ▶ char_utils.dart</title>
+  <path d="M 395.0 830.0 H 414.0 Q 420.0 830.0 420.0 836.0 V 973.0 Q 420.0 979.0 414.0 979.0 H 391.0" class="edgeVertical"/>
+  <title>post_process_text.dart ▶ post_process_helpers.dart</title>
 </g>
 <g>
   <path d="M 395.0 1112.0 H 414.0 Q 420.0 1112.0 420.0 1118.0 V 1191.0 Q 420.0 1197.0 414.0 1197.0 H 391.0" class="edgeVertical"/>
@@ -337,35 +337,35 @@
   <title>bands.dart ▶ band.dart</title>
 </g>
 <g>
+  <path d="M 395.0 382.0 H 417.0 Q 423.0 382.0 423.0 388.0 V 557.0 Q 423.0 563.0 417.0 563.0 H 391.0" class="edgeVertical"/>
+  <title>character_definitions.dart ▶ character_definition.dart</title>
+</g>
+<g>
+  <path d="M 395.0 382.0 H 417.0 Q 423.0 382.0 423.0 388.0 V 557.0 Q 423.0 563.0 417.0 563.0 H 391.0" class="edgeVertical"/>
+  <title>character_definitions.dart ▶ character_definition.dart</title>
+</g>
+<g>
   <path d="M 395.0 798.0 H 417.0 Q 423.0 798.0 423.0 804.0 V 973.0 Q 423.0 979.0 417.0 979.0 H 391.0" class="edgeVertical"/>
-  <title>post_process_text.dart ▶ post_process_helpers.dart</title>
-</g>
-<g>
-  <path d="M 395.0 382.0 H 417.0 Q 423.0 382.0 423.0 388.0 V 525.0 Q 423.0 531.0 417.0 531.0 H 391.0" class="edgeVertical"/>
-  <title>character_definitions.dart ▶ character_definition.dart</title>
-</g>
-<g>
-  <path d="M 395.0 382.0 H 417.0 Q 423.0 382.0 423.0 388.0 V 525.0 Q 423.0 531.0 417.0 531.0 H 391.0" class="edgeVertical"/>
-  <title>character_definitions.dart ▶ character_definition.dart</title>
+  <title>post_process_numeric.dart ▶ post_process_helpers.dart</title>
 </g>
 <g>
   <path d="M 395.0 190.0 H 417.0 Q 423.0 190.0 423.0 196.0 V 269.0 Q 423.0 275.0 417.0 275.0 H 391.0" class="edgeVertical"/>
   <title>textify.dart ▶ bands.dart</title>
 </g>
 <g>
-  <path d="M 395.0 350.0 H 420.0 Q 426.0 350.0 426.0 356.0 V 589.0 Q 426.0 595.0 420.0 595.0 H 391.0" class="edgeVertical"/>
-  <title>artifact_morphology.dart ▶ artifact_region.dart</title>
+  <path d="M 395.0 702.0 H 420.0 Q 426.0 702.0 426.0 708.0 V 909.0 Q 426.0 915.0 420.0 915.0 H 391.0" class="edgeVertical"/>
+  <title>correction.dart ▶ char_utils.dart</title>
 </g>
 <g>
-  <path d="M 395.0 766.0 H 420.0 Q 426.0 766.0 426.0 772.0 V 973.0 Q 426.0 979.0 420.0 979.0 H 391.0" class="edgeVertical"/>
-  <title>post_process_numeric.dart ▶ post_process_helpers.dart</title>
+  <path d="M 395.0 510.0 H 420.0 Q 426.0 510.0 426.0 516.0 V 685.0 Q 426.0 691.0 420.0 691.0 H 391.0" class="edgeVertical"/>
+  <title>post_process_dictionary.dart ▶ correction.dart</title>
 </g>
 <g>
   <path d="M 395.0 190.0 H 420.0 Q 426.0 190.0 426.0 196.0 V 333.0 Q 426.0 339.0 420.0 339.0 H 391.0" class="edgeVertical"/>
   <title>textify.dart ▶ artifact_morphology.dart</title>
 </g>
 <g>
-  <path d="M 395.0 638.0 H 423.0 Q 429.0 638.0 429.0 644.0 V 877.0 Q 429.0 883.0 423.0 883.0 H 391.0" class="edgeVertical"/>
+  <path d="M 395.0 670.0 H 423.0 Q 429.0 670.0 429.0 676.0 V 877.0 Q 429.0 883.0 423.0 883.0 H 391.0" class="edgeVertical"/>
   <title>artifact_grid_transform.dart ▶ image_helpers.dart</title>
 </g>
 <g>
@@ -373,7 +373,7 @@
   <title>artifact_projection.dart ▶ artifact_splitting.dart</title>
 </g>
 <g>
-  <path d="M 395.0 606.0 H 426.0 Q 432.0 606.0 432.0 612.0 V 845.0 Q 432.0 851.0 426.0 851.0 H 391.0" class="edgeVertical"/>
+  <path d="M 395.0 638.0 H 426.0 Q 432.0 638.0 432.0 644.0 V 845.0 Q 432.0 851.0 426.0 851.0 H 391.0" class="edgeVertical"/>
   <title>artifact_region.dart ▶ artifact.dart</title>
 </g>
 <g>
@@ -381,7 +381,11 @@
   <title>textify.dart ▶ character_definitions.dart</title>
 </g>
 <g>
-  <path d="M 395.0 734.0 H 429.0 Q 435.0 734.0 435.0 740.0 V 973.0 Q 435.0 979.0 429.0 979.0 H 391.0" class="edgeVertical"/>
+  <path d="M 395.0 478.0 H 429.0 Q 435.0 478.0 435.0 484.0 V 685.0 Q 435.0 691.0 429.0 691.0 H 391.0" class="edgeVertical"/>
+  <title>post_process_case.dart ▶ correction.dart</title>
+</g>
+<g>
+  <path d="M 395.0 766.0 H 429.0 Q 435.0 766.0 435.0 772.0 V 973.0 Q 435.0 979.0 429.0 979.0 H 391.0" class="edgeVertical"/>
   <title>post_process_line.dart ▶ post_process_helpers.dart</title>
 </g>
 <g>
@@ -389,112 +393,116 @@
   <title>textify_post_process.dart ▶ post_process_fragment.dart</title>
 </g>
 <g>
-  <path d="M 395.0 606.0 H 432.0 Q 438.0 606.0 438.0 612.0 V 877.0 Q 438.0 883.0 432.0 883.0 H 391.0" class="edgeVertical"/>
+  <path d="M 395.0 638.0 H 432.0 Q 438.0 638.0 438.0 644.0 V 877.0 Q 438.0 883.0 432.0 883.0 H 391.0" class="edgeVertical"/>
   <title>artifact_region.dart ▶ image_helpers.dart</title>
 </g>
 <g>
   <path d="M 395.0 222.0 H 432.0 Q 438.0 222.0 438.0 228.0 V 461.0 Q 438.0 467.0 432.0 467.0 H 391.0" class="edgeVertical"/>
-  <title>textify_post_process.dart ▶ post_process_dictionary.dart</title>
-</g>
-<g>
-  <path d="M 395.0 190.0 H 435.0 Q 441.0 190.0 441.0 196.0 V 493.0 Q 441.0 499.0 435.0 499.0 H 391.0" class="edgeVertical"/>
-  <title>textify.dart ▶ artifact_analysis.dart</title>
-</g>
-<g>
-  <path d="M 395.0 574.0 H 435.0 Q 441.0 574.0 441.0 580.0 V 845.0 Q 441.0 851.0 435.0 851.0 H 391.0" class="edgeVertical"/>
-  <title>artifact_serialize.dart ▶ artifact.dart</title>
-</g>
-<g>
-  <path d="M 395.0 318.0 H 438.0 Q 444.0 318.0 444.0 324.0 V 589.0 Q 444.0 595.0 438.0 595.0 H 391.0" class="edgeVertical"/>
-  <title>band.dart ▶ artifact_region.dart</title>
-</g>
-<g>
-  <path d="M 395.0 702.0 H 438.0 Q 444.0 702.0 444.0 708.0 V 973.0 Q 444.0 979.0 438.0 979.0 H 391.0" class="edgeVertical"/>
-  <title>post_process_case.dart ▶ post_process_helpers.dart</title>
-</g>
-<g>
-  <path d="M 395.0 318.0 H 441.0 Q 447.0 318.0 447.0 324.0 V 621.0 Q 447.0 627.0 441.0 627.0 H 391.0" class="edgeVertical"/>
-  <title>band.dart ▶ artifact_grid_transform.dart</title>
-</g>
-<g>
-  <path d="M 395.0 670.0 H 441.0 Q 447.0 670.0 447.0 676.0 V 973.0 Q 447.0 979.0 441.0 979.0 H 391.0" class="edgeVertical"/>
-  <title>post_process_bracket.dart ▶ post_process_helpers.dart</title>
-</g>
-<g>
-  <path d="M 395.0 542.0 H 444.0 Q 450.0 542.0 450.0 548.0 V 845.0 Q 450.0 851.0 444.0 851.0 H 391.0" class="edgeVertical"/>
-  <title>character_definition.dart ▶ artifact.dart</title>
-</g>
-<g>
-  <path d="M 395.0 510.0 H 447.0 Q 453.0 510.0 453.0 516.0 V 845.0 Q 453.0 851.0 447.0 851.0 H 391.0" class="edgeVertical"/>
-  <title>artifact_analysis.dart ▶ artifact.dart</title>
-</g>
-<g>
-  <path d="M 395.0 574.0 H 450.0 Q 456.0 574.0 456.0 580.0 V 909.0 Q 456.0 915.0 450.0 915.0 H 391.0" class="edgeVertical"/>
-  <title>artifact_serialize.dart ▶ char_utils.dart</title>
-</g>
-<g>
-  <path d="M 395.0 286.0 H 453.0 Q 459.0 286.0 459.0 292.0 V 621.0 Q 459.0 627.0 453.0 627.0 H 391.0" class="edgeVertical"/>
-  <title>bands.dart ▶ artifact_grid_transform.dart</title>
-</g>
-<g>
-  <path d="M 395.0 478.0 H 456.0 Q 462.0 478.0 462.0 484.0 V 813.0 Q 462.0 819.0 456.0 819.0 H 391.0" class="edgeVertical"/>
-  <title>post_process_dictionary.dart ▶ correction.dart</title>
-</g>
-<g>
-  <path d="M 395.0 510.0 H 459.0 Q 465.0 510.0 465.0 516.0 V 877.0 Q 465.0 883.0 459.0 883.0 H 391.0" class="edgeVertical"/>
-  <title>artifact_analysis.dart ▶ image_helpers.dart</title>
-</g>
-<g>
-  <path d="M 395.0 254.0 H 462.0 Q 468.0 254.0 468.0 260.0 V 621.0 Q 468.0 627.0 462.0 627.0 H 391.0" class="edgeVertical"/>
-  <title>artifact_projection.dart ▶ artifact_grid_transform.dart</title>
-</g>
-<g>
-  <path d="M 395.0 574.0 H 465.0 Q 471.0 574.0 471.0 580.0 V 941.0 Q 471.0 947.0 465.0 947.0 H 391.0" class="edgeVertical"/>
-  <title>artifact_serialize.dart ▶ constants.dart</title>
-</g>
-<g>
-  <path d="M 395.0 446.0 H 468.0 Q 474.0 446.0 474.0 452.0 V 845.0 Q 474.0 851.0 468.0 851.0 H 391.0" class="edgeVertical"/>
-  <title>artifact_splitting.dart ▶ artifact.dart</title>
-</g>
-<g>
-  <path d="M 395.0 414.0 H 471.0 Q 477.0 414.0 477.0 420.0 V 813.0 Q 477.0 819.0 471.0 819.0 H 391.0" class="edgeVertical"/>
-  <title>post_process_fragment.dart ▶ correction.dart</title>
-</g>
-<g>
-  <path d="M 395.0 190.0 H 474.0 Q 480.0 190.0 480.0 196.0 V 589.0 Q 480.0 595.0 474.0 595.0 H 391.0" class="edgeVertical"/>
-  <title>textify.dart ▶ artifact_region.dart</title>
-</g>
-<g>
-  <path d="M 395.0 446.0 H 477.0 Q 483.0 446.0 483.0 452.0 V 877.0 Q 483.0 883.0 477.0 883.0 H 391.0" class="edgeVertical"/>
-  <title>artifact_splitting.dart ▶ image_helpers.dart</title>
-</g>
-<g>
-  <path d="M 395.0 190.0 H 480.0 Q 486.0 190.0 486.0 196.0 V 621.0 Q 486.0 627.0 480.0 627.0 H 391.0" class="edgeVertical"/>
-  <title>textify.dart ▶ artifact_grid_transform.dart</title>
-</g>
-<g>
-  <path d="M 395.0 222.0 H 483.0 Q 489.0 222.0 489.0 228.0 V 653.0 Q 489.0 659.0 483.0 659.0 H 391.0" class="edgeVertical"/>
-  <title>textify_post_process.dart ▶ post_process_bracket.dart</title>
-</g>
-<g>
-  <path d="M 395.0 382.0 H 486.0 Q 492.0 382.0 492.0 388.0 V 845.0 Q 492.0 851.0 486.0 851.0 H 391.0" class="edgeVertical"/>
-  <title>character_definitions.dart ▶ artifact.dart</title>
-</g>
-<g>
-  <path d="M 395.0 222.0 H 489.0 Q 495.0 222.0 495.0 228.0 V 685.0 Q 495.0 691.0 489.0 691.0 H 391.0" class="edgeVertical"/>
   <title>textify_post_process.dart ▶ post_process_case.dart</title>
 </g>
 <g>
-  <path d="M 395.0 350.0 H 492.0 Q 498.0 350.0 498.0 356.0 V 845.0 Q 498.0 851.0 492.0 851.0 H 391.0" class="edgeVertical"/>
-  <title>artifact_morphology.dart ▶ artifact.dart</title>
+  <path d="M 395.0 222.0 H 435.0 Q 441.0 222.0 441.0 228.0 V 493.0 Q 441.0 499.0 435.0 499.0 H 391.0" class="edgeVertical"/>
+  <title>textify_post_process.dart ▶ post_process_dictionary.dart</title>
 </g>
 <g>
-  <path d="M 395.0 478.0 H 495.0 Q 501.0 478.0 501.0 484.0 V 973.0 Q 501.0 979.0 495.0 979.0 H 391.0" class="edgeVertical"/>
+  <path d="M 395.0 606.0 H 435.0 Q 441.0 606.0 441.0 612.0 V 845.0 Q 441.0 851.0 435.0 851.0 H 391.0" class="edgeVertical"/>
+  <title>artifact_serialize.dart ▶ artifact.dart</title>
+</g>
+<g>
+  <path d="M 395.0 350.0 H 438.0 Q 444.0 350.0 444.0 356.0 V 621.0 Q 444.0 627.0 438.0 627.0 H 391.0" class="edgeVertical"/>
+  <title>artifact_morphology.dart ▶ artifact_region.dart</title>
+</g>
+<g>
+  <path d="M 395.0 734.0 H 438.0 Q 444.0 734.0 444.0 740.0 V 973.0 Q 444.0 979.0 438.0 979.0 H 391.0" class="edgeVertical"/>
+  <title>post_process_bracket.dart ▶ post_process_helpers.dart</title>
+</g>
+<g>
+  <path d="M 395.0 190.0 H 441.0 Q 447.0 190.0 447.0 196.0 V 525.0 Q 447.0 531.0 441.0 531.0 H 391.0" class="edgeVertical"/>
+  <title>textify.dart ▶ artifact_analysis.dart</title>
+</g>
+<g>
+  <path d="M 395.0 574.0 H 441.0 Q 447.0 574.0 447.0 580.0 V 845.0 Q 447.0 851.0 441.0 851.0 H 391.0" class="edgeVertical"/>
+  <title>character_definition.dart ▶ artifact.dart</title>
+</g>
+<g>
+  <path d="M 395.0 702.0 H 444.0 Q 450.0 702.0 450.0 708.0 V 973.0 Q 450.0 979.0 444.0 979.0 H 391.0" class="edgeVertical"/>
+  <title>correction.dart ▶ post_process_helpers.dart</title>
+</g>
+<g>
+  <path d="M 395.0 414.0 H 444.0 Q 450.0 414.0 450.0 420.0 V 685.0 Q 450.0 691.0 444.0 691.0 H 391.0" class="edgeVertical"/>
+  <title>post_process_fragment.dart ▶ correction.dart</title>
+</g>
+<g>
+  <path d="M 395.0 542.0 H 447.0 Q 453.0 542.0 453.0 548.0 V 845.0 Q 453.0 851.0 447.0 851.0 H 391.0" class="edgeVertical"/>
+  <title>artifact_analysis.dart ▶ artifact.dart</title>
+</g>
+<g>
+  <path d="M 395.0 606.0 H 450.0 Q 456.0 606.0 456.0 612.0 V 909.0 Q 456.0 915.0 450.0 915.0 H 391.0" class="edgeVertical"/>
+  <title>artifact_serialize.dart ▶ char_utils.dart</title>
+</g>
+<g>
+  <path d="M 395.0 318.0 H 453.0 Q 459.0 318.0 459.0 324.0 V 621.0 Q 459.0 627.0 453.0 627.0 H 391.0" class="edgeVertical"/>
+  <title>band.dart ▶ artifact_region.dart</title>
+</g>
+<g>
+  <path d="M 395.0 542.0 H 456.0 Q 462.0 542.0 462.0 548.0 V 877.0 Q 462.0 883.0 456.0 883.0 H 391.0" class="edgeVertical"/>
+  <title>artifact_analysis.dart ▶ image_helpers.dart</title>
+</g>
+<g>
+  <path d="M 395.0 606.0 H 459.0 Q 465.0 606.0 465.0 612.0 V 941.0 Q 465.0 947.0 459.0 947.0 H 391.0" class="edgeVertical"/>
+  <title>artifact_serialize.dart ▶ constants.dart</title>
+</g>
+<g>
+  <path d="M 395.0 318.0 H 462.0 Q 468.0 318.0 468.0 324.0 V 653.0 Q 468.0 659.0 462.0 659.0 H 391.0" class="edgeVertical"/>
+  <title>band.dart ▶ artifact_grid_transform.dart</title>
+</g>
+<g>
+  <path d="M 395.0 286.0 H 465.0 Q 471.0 286.0 471.0 292.0 V 653.0 Q 471.0 659.0 465.0 659.0 H 391.0" class="edgeVertical"/>
+  <title>bands.dart ▶ artifact_grid_transform.dart</title>
+</g>
+<g>
+  <path d="M 395.0 254.0 H 468.0 Q 474.0 254.0 474.0 260.0 V 653.0 Q 474.0 659.0 468.0 659.0 H 391.0" class="edgeVertical"/>
+  <title>artifact_projection.dart ▶ artifact_grid_transform.dart</title>
+</g>
+<g>
+  <path d="M 395.0 446.0 H 471.0 Q 477.0 446.0 477.0 452.0 V 845.0 Q 477.0 851.0 471.0 851.0 H 391.0" class="edgeVertical"/>
+  <title>artifact_splitting.dart ▶ artifact.dart</title>
+</g>
+<g>
+  <path d="M 395.0 446.0 H 474.0 Q 480.0 446.0 480.0 452.0 V 877.0 Q 480.0 883.0 474.0 883.0 H 391.0" class="edgeVertical"/>
+  <title>artifact_splitting.dart ▶ image_helpers.dart</title>
+</g>
+<g>
+  <path d="M 395.0 190.0 H 477.0 Q 483.0 190.0 483.0 196.0 V 621.0 Q 483.0 627.0 477.0 627.0 H 391.0" class="edgeVertical"/>
+  <title>textify.dart ▶ artifact_region.dart</title>
+</g>
+<g>
+  <path d="M 395.0 382.0 H 480.0 Q 486.0 382.0 486.0 388.0 V 845.0 Q 486.0 851.0 480.0 851.0 H 391.0" class="edgeVertical"/>
+  <title>character_definitions.dart ▶ artifact.dart</title>
+</g>
+<g>
+  <path d="M 395.0 510.0 H 483.0 Q 489.0 510.0 489.0 516.0 V 973.0 Q 489.0 979.0 483.0 979.0 H 391.0" class="edgeVertical"/>
   <title>post_process_dictionary.dart ▶ post_process_helpers.dart</title>
 </g>
 <g>
+  <path d="M 395.0 190.0 H 486.0 Q 492.0 190.0 492.0 196.0 V 653.0 Q 492.0 659.0 486.0 659.0 H 391.0" class="edgeVertical"/>
+  <title>textify.dart ▶ artifact_grid_transform.dart</title>
+</g>
+<g>
+  <path d="M 395.0 350.0 H 489.0 Q 495.0 350.0 495.0 356.0 V 845.0 Q 495.0 851.0 489.0 851.0 H 391.0" class="edgeVertical"/>
+  <title>artifact_morphology.dart ▶ artifact.dart</title>
+</g>
+<g>
+  <path d="M 395.0 478.0 H 492.0 Q 498.0 478.0 498.0 484.0 V 973.0 Q 498.0 979.0 492.0 979.0 H 391.0" class="edgeVertical"/>
+  <title>post_process_case.dart ▶ post_process_helpers.dart</title>
+</g>
+<g>
+  <path d="M 395.0 190.0 H 495.0 Q 501.0 190.0 501.0 196.0 V 685.0 Q 501.0 691.0 495.0 691.0 H 391.0" class="edgeVertical"/>
+  <title>textify.dart ▶ correction.dart</title>
+</g>
+<g>
   <path d="M 395.0 222.0 H 498.0 Q 504.0 222.0 504.0 228.0 V 717.0 Q 504.0 723.0 498.0 723.0 H 391.0" class="edgeVertical"/>
-  <title>textify_post_process.dart ▶ post_process_line.dart</title>
+  <title>textify_post_process.dart ▶ post_process_bracket.dart</title>
 </g>
 <g>
   <path d="M 395.0 350.0 H 501.0 Q 507.0 350.0 507.0 356.0 V 877.0 Q 507.0 883.0 501.0 883.0 H 391.0" class="edgeVertical"/>
@@ -514,7 +522,7 @@
 </g>
 <g>
   <path d="M 395.0 222.0 H 513.0 Q 519.0 222.0 519.0 228.0 V 749.0 Q 519.0 755.0 513.0 755.0 H 391.0" class="edgeVertical"/>
-  <title>textify_post_process.dart ▶ post_process_numeric.dart</title>
+  <title>textify_post_process.dart ▶ post_process_line.dart</title>
 </g>
 <g>
   <path d="M 395.0 318.0 H 516.0 Q 522.0 318.0 522.0 324.0 V 877.0 Q 522.0 883.0 516.0 883.0 H 391.0" class="edgeVertical"/>
@@ -526,7 +534,7 @@
 </g>
 <g>
   <path d="M 395.0 222.0 H 522.0 Q 528.0 222.0 528.0 228.0 V 781.0 Q 528.0 787.0 522.0 787.0 H 391.0" class="edgeVertical"/>
-  <title>textify_post_process.dart ▶ post_process_text.dart</title>
+  <title>textify_post_process.dart ▶ post_process_numeric.dart</title>
 </g>
 <g>
   <path d="M 395.0 254.0 H 525.0 Q 531.0 254.0 531.0 260.0 V 845.0 Q 531.0 851.0 525.0 851.0 H 391.0" class="edgeVertical"/>
@@ -537,12 +545,12 @@
   <title>bands.dart ▶ image_helpers.dart</title>
 </g>
 <g>
-  <path d="M 395.0 254.0 H 531.0 Q 537.0 254.0 537.0 260.0 V 877.0 Q 537.0 883.0 531.0 883.0 H 391.0" class="edgeVertical"/>
-  <title>artifact_projection.dart ▶ image_helpers.dart</title>
+  <path d="M 395.0 222.0 H 531.0 Q 537.0 222.0 537.0 228.0 V 813.0 Q 537.0 819.0 531.0 819.0 H 391.0" class="edgeVertical"/>
+  <title>textify_post_process.dart ▶ post_process_text.dart</title>
 </g>
 <g>
-  <path d="M 395.0 190.0 H 534.0 Q 540.0 190.0 540.0 196.0 V 813.0 Q 540.0 819.0 534.0 819.0 H 391.0" class="edgeVertical"/>
-  <title>textify.dart ▶ correction.dart</title>
+  <path d="M 395.0 254.0 H 534.0 Q 540.0 254.0 540.0 260.0 V 877.0 Q 540.0 883.0 534.0 883.0 H 391.0" class="edgeVertical"/>
+  <title>artifact_projection.dart ▶ image_helpers.dart</title>
 </g>
 <g>
   <path d="M 395.0 190.0 H 537.0 Q 543.0 190.0 543.0 196.0 V 877.0 Q 543.0 883.0 537.0 883.0 H 391.0" class="edgeVertical"/>
@@ -648,76 +656,79 @@
   <text x="395.32" y="468.0" text-anchor="middle" fill="white" font-size="8.0" font-weight="bold">1</text><title>1. textify_post_process.dart</title></g><g class="badge outgoingBadge">
   <path d="M 401.0,478.0 L 389.0,471.0 Q 386.0,471.0 386.0,474.0 L 386.0,482.0 Q 386.0,485.0 389.0,485.0 Z" fill="#10b981"/>
   <text x="390.68" y="479.0" text-anchor="middle" fill="white" font-size="8.0" font-weight="bold">2</text><title>1. correction.dart
-2. post_process_helpers.dart</title></g><text x="269.0" y="472.0" text-anchor="middle" dominant-baseline="middle" class="textSmall">post_process_dictionary.dart</text>
+2. post_process_helpers.dart</title></g><text x="269.0" y="472.0" text-anchor="middle" dominant-baseline="middle" class="textNormal">post_process_case.dart</text>
 <g class="badge incomingBadge">
   <path d="M 385.0,499.0 L 397.0,492.0 Q 400.0,492.0 400.0,495.0 L 400.0,503.0 Q 400.0,506.0 397.0,506.0 Z" fill="#3b82f6"/>
-  <text x="395.32" y="500.0" text-anchor="middle" fill="white" font-size="8.0" font-weight="bold">2</text><title>1. artifact_splitting.dart
-2. textify.dart</title></g><g class="badge outgoingBadge">
+  <text x="395.32" y="500.0" text-anchor="middle" fill="white" font-size="8.0" font-weight="bold">1</text><title>1. textify_post_process.dart</title></g><g class="badge outgoingBadge">
   <path d="M 401.0,510.0 L 389.0,503.0 Q 386.0,503.0 386.0,506.0 L 386.0,514.0 Q 386.0,517.0 389.0,517.0 Z" fill="#10b981"/>
-  <text x="390.68" y="511.0" text-anchor="middle" fill="white" font-size="8.0" font-weight="bold">2</text><title>1. artifact.dart
-2. image_helpers.dart</title></g><text x="269.0" y="504.0" text-anchor="middle" dominant-baseline="middle" class="textNormal">artifact_analysis.dart</text>
+  <text x="390.68" y="511.0" text-anchor="middle" fill="white" font-size="8.0" font-weight="bold">2</text><title>1. correction.dart
+2. post_process_helpers.dart</title></g><text x="269.0" y="504.0" text-anchor="middle" dominant-baseline="middle" class="textSmall">post_process_dictionary.dart</text>
 <g class="badge incomingBadge">
   <path d="M 385.0,531.0 L 397.0,524.0 Q 400.0,524.0 400.0,527.0 L 400.0,535.0 Q 400.0,538.0 397.0,538.0 Z" fill="#3b82f6"/>
-  <text x="395.32" y="532.0" text-anchor="middle" fill="white" font-size="8.0" font-weight="bold">2</text><title>1. character_definitions.dart</title></g><g class="badge outgoingBadge">
+  <text x="395.32" y="532.0" text-anchor="middle" fill="white" font-size="8.0" font-weight="bold">2</text><title>1. artifact_splitting.dart
+2. textify.dart</title></g><g class="badge outgoingBadge">
   <path d="M 401.0,542.0 L 389.0,535.0 Q 386.0,535.0 386.0,538.0 L 386.0,546.0 Q 386.0,549.0 389.0,549.0 Z" fill="#10b981"/>
   <text x="390.68" y="543.0" text-anchor="middle" fill="white" font-size="8.0" font-weight="bold">2</text><title>1. artifact.dart
-2. artifact_serialize.dart</title></g><text x="269.0" y="536.0" text-anchor="middle" dominant-baseline="middle" class="textNormal">character_definition.dart</text>
+2. image_helpers.dart</title></g><text x="269.0" y="536.0" text-anchor="middle" dominant-baseline="middle" class="textNormal">artifact_analysis.dart</text>
 <g class="badge incomingBadge">
   <path d="M 385.0,563.0 L 397.0,556.0 Q 400.0,556.0 400.0,559.0 L 400.0,567.0 Q 400.0,570.0 397.0,570.0 Z" fill="#3b82f6"/>
-  <text x="395.32" y="564.0" text-anchor="middle" fill="white" font-size="8.0" font-weight="bold">1</text><title>1. character_definition.dart</title></g><g class="badge outgoingBadge">
+  <text x="395.32" y="564.0" text-anchor="middle" fill="white" font-size="8.0" font-weight="bold">2</text><title>1. character_definitions.dart</title></g><g class="badge outgoingBadge">
   <path d="M 401.0,574.0 L 389.0,567.0 Q 386.0,567.0 386.0,570.0 L 386.0,578.0 Q 386.0,581.0 389.0,581.0 Z" fill="#10b981"/>
-  <text x="390.68" y="575.0" text-anchor="middle" fill="white" font-size="8.0" font-weight="bold">3</text><title>1. artifact.dart
-2. char_utils.dart
-3. constants.dart</title></g><text x="269.0" y="568.0" text-anchor="middle" dominant-baseline="middle" class="textNormal">artifact_serialize.dart</text>
+  <text x="390.68" y="575.0" text-anchor="middle" fill="white" font-size="8.0" font-weight="bold">2</text><title>1. artifact.dart
+2. artifact_serialize.dart</title></g><text x="269.0" y="568.0" text-anchor="middle" dominant-baseline="middle" class="textNormal">character_definition.dart</text>
 <g class="badge incomingBadge">
   <path d="M 385.0,595.0 L 397.0,588.0 Q 400.0,588.0 400.0,591.0 L 400.0,599.0 Q 400.0,602.0 397.0,602.0 Z" fill="#3b82f6"/>
-  <text x="395.32" y="596.0" text-anchor="middle" fill="white" font-size="8.0" font-weight="bold">3</text><title>1. artifact_morphology.dart
-2. band.dart
-3. textify.dart</title></g><g class="badge outgoingBadge">
+  <text x="395.32" y="596.0" text-anchor="middle" fill="white" font-size="8.0" font-weight="bold">1</text><title>1. character_definition.dart</title></g><g class="badge outgoingBadge">
   <path d="M 401.0,606.0 L 389.0,599.0 Q 386.0,599.0 386.0,602.0 L 386.0,610.0 Q 386.0,613.0 389.0,613.0 Z" fill="#10b981"/>
-  <text x="390.68" y="607.0" text-anchor="middle" fill="white" font-size="8.0" font-weight="bold">2</text><title>1. artifact.dart
-2. image_helpers.dart</title></g><text x="269.0" y="600.0" text-anchor="middle" dominant-baseline="middle" class="textNormal">artifact_region.dart</text>
+  <text x="390.68" y="607.0" text-anchor="middle" fill="white" font-size="8.0" font-weight="bold">3</text><title>1. artifact.dart
+2. char_utils.dart
+3. constants.dart</title></g><text x="269.0" y="600.0" text-anchor="middle" dominant-baseline="middle" class="textNormal">artifact_serialize.dart</text>
 <g class="badge incomingBadge">
   <path d="M 385.0,627.0 L 397.0,620.0 Q 400.0,620.0 400.0,623.0 L 400.0,631.0 Q 400.0,634.0 397.0,634.0 Z" fill="#3b82f6"/>
-  <text x="395.32" y="628.0" text-anchor="middle" fill="white" font-size="8.0" font-weight="bold">4</text><title>1. artifact_projection.dart
+  <text x="395.32" y="628.0" text-anchor="middle" fill="white" font-size="8.0" font-weight="bold">3</text><title>1. artifact_morphology.dart
+2. band.dart
+3. textify.dart</title></g><g class="badge outgoingBadge">
+  <path d="M 401.0,638.0 L 389.0,631.0 Q 386.0,631.0 386.0,634.0 L 386.0,642.0 Q 386.0,645.0 389.0,645.0 Z" fill="#10b981"/>
+  <text x="390.68" y="639.0" text-anchor="middle" fill="white" font-size="8.0" font-weight="bold">2</text><title>1. artifact.dart
+2. image_helpers.dart</title></g><text x="269.0" y="632.0" text-anchor="middle" dominant-baseline="middle" class="textNormal">artifact_region.dart</text>
+<g class="badge incomingBadge">
+  <path d="M 385.0,659.0 L 397.0,652.0 Q 400.0,652.0 400.0,655.0 L 400.0,663.0 Q 400.0,666.0 397.0,666.0 Z" fill="#3b82f6"/>
+  <text x="395.32" y="660.0" text-anchor="middle" fill="white" font-size="8.0" font-weight="bold">4</text><title>1. artifact_projection.dart
 2. band.dart
 3. bands.dart
 4. textify.dart</title></g><g class="badge outgoingBadge">
-  <path d="M 401.0,638.0 L 389.0,631.0 Q 386.0,631.0 386.0,634.0 L 386.0,642.0 Q 386.0,645.0 389.0,645.0 Z" fill="#10b981"/>
-  <text x="390.68" y="639.0" text-anchor="middle" fill="white" font-size="8.0" font-weight="bold">2</text><title>1. artifact.dart
-2. image_helpers.dart</title></g><text x="269.0" y="632.0" text-anchor="middle" dominant-baseline="middle" class="textSmall">artifact_grid_transform.dart</text>
-<g class="badge incomingBadge">
-  <path d="M 385.0,659.0 L 397.0,652.0 Q 400.0,652.0 400.0,655.0 L 400.0,663.0 Q 400.0,666.0 397.0,666.0 Z" fill="#3b82f6"/>
-  <text x="395.32" y="660.0" text-anchor="middle" fill="white" font-size="8.0" font-weight="bold">1</text><title>1. textify_post_process.dart</title></g><g class="badge outgoingBadge">
   <path d="M 401.0,670.0 L 389.0,663.0 Q 386.0,663.0 386.0,666.0 L 386.0,674.0 Q 386.0,677.0 389.0,677.0 Z" fill="#10b981"/>
-  <text x="390.68" y="671.0" text-anchor="middle" fill="white" font-size="8.0" font-weight="bold">1</text><title>1. post_process_helpers.dart</title></g><text x="269.0" y="664.0" text-anchor="middle" dominant-baseline="middle" class="textNormal">post_process_bracket.dart</text>
+  <text x="390.68" y="671.0" text-anchor="middle" fill="white" font-size="8.0" font-weight="bold">2</text><title>1. artifact.dart
+2. image_helpers.dart</title></g><text x="269.0" y="664.0" text-anchor="middle" dominant-baseline="middle" class="textSmall">artifact_grid_transform.dart</text>
 <g class="badge incomingBadge">
   <path d="M 385.0,691.0 L 397.0,684.0 Q 400.0,684.0 400.0,687.0 L 400.0,695.0 Q 400.0,698.0 397.0,698.0 Z" fill="#3b82f6"/>
-  <text x="395.32" y="692.0" text-anchor="middle" fill="white" font-size="8.0" font-weight="bold">1</text><title>1. textify_post_process.dart</title></g><g class="badge outgoingBadge">
+  <text x="395.32" y="692.0" text-anchor="middle" fill="white" font-size="8.0" font-weight="bold">4</text><title>1. post_process_case.dart
+2. post_process_dictionary.dart
+3. post_process_fragment.dart
+4. textify.dart</title></g><g class="badge outgoingBadge">
   <path d="M 401.0,702.0 L 389.0,695.0 Q 386.0,695.0 386.0,698.0 L 386.0,706.0 Q 386.0,709.0 389.0,709.0 Z" fill="#10b981"/>
-  <text x="390.68" y="703.0" text-anchor="middle" fill="white" font-size="8.0" font-weight="bold">1</text><title>1. post_process_helpers.dart</title></g><text x="269.0" y="696.0" text-anchor="middle" dominant-baseline="middle" class="textNormal">post_process_case.dart</text>
+  <text x="390.68" y="703.0" text-anchor="middle" fill="white" font-size="8.0" font-weight="bold">2</text><title>1. char_utils.dart
+2. post_process_helpers.dart</title></g><text x="269.0" y="696.0" text-anchor="middle" dominant-baseline="middle" class="textNormal">correction.dart</text>
 <g class="badge incomingBadge">
   <path d="M 385.0,723.0 L 397.0,716.0 Q 400.0,716.0 400.0,719.0 L 400.0,727.0 Q 400.0,730.0 397.0,730.0 Z" fill="#3b82f6"/>
   <text x="395.32" y="724.0" text-anchor="middle" fill="white" font-size="8.0" font-weight="bold">1</text><title>1. textify_post_process.dart</title></g><g class="badge outgoingBadge">
   <path d="M 401.0,734.0 L 389.0,727.0 Q 386.0,727.0 386.0,730.0 L 386.0,738.0 Q 386.0,741.0 389.0,741.0 Z" fill="#10b981"/>
-  <text x="390.68" y="735.0" text-anchor="middle" fill="white" font-size="8.0" font-weight="bold">1</text><title>1. post_process_helpers.dart</title></g><text x="269.0" y="728.0" text-anchor="middle" dominant-baseline="middle" class="textNormal">post_process_line.dart</text>
+  <text x="390.68" y="735.0" text-anchor="middle" fill="white" font-size="8.0" font-weight="bold">1</text><title>1. post_process_helpers.dart</title></g><text x="269.0" y="728.0" text-anchor="middle" dominant-baseline="middle" class="textNormal">post_process_bracket.dart</text>
 <g class="badge incomingBadge">
   <path d="M 385.0,755.0 L 397.0,748.0 Q 400.0,748.0 400.0,751.0 L 400.0,759.0 Q 400.0,762.0 397.0,762.0 Z" fill="#3b82f6"/>
   <text x="395.32" y="756.0" text-anchor="middle" fill="white" font-size="8.0" font-weight="bold">1</text><title>1. textify_post_process.dart</title></g><g class="badge outgoingBadge">
   <path d="M 401.0,766.0 L 389.0,759.0 Q 386.0,759.0 386.0,762.0 L 386.0,770.0 Q 386.0,773.0 389.0,773.0 Z" fill="#10b981"/>
-  <text x="390.68" y="767.0" text-anchor="middle" fill="white" font-size="8.0" font-weight="bold">1</text><title>1. post_process_helpers.dart</title></g><text x="269.0" y="760.0" text-anchor="middle" dominant-baseline="middle" class="textNormal">post_process_numeric.dart</text>
+  <text x="390.68" y="767.0" text-anchor="middle" fill="white" font-size="8.0" font-weight="bold">1</text><title>1. post_process_helpers.dart</title></g><text x="269.0" y="760.0" text-anchor="middle" dominant-baseline="middle" class="textNormal">post_process_line.dart</text>
 <g class="badge incomingBadge">
   <path d="M 385.0,787.0 L 397.0,780.0 Q 400.0,780.0 400.0,783.0 L 400.0,791.0 Q 400.0,794.0 397.0,794.0 Z" fill="#3b82f6"/>
   <text x="395.32" y="788.0" text-anchor="middle" fill="white" font-size="8.0" font-weight="bold">1</text><title>1. textify_post_process.dart</title></g><g class="badge outgoingBadge">
   <path d="M 401.0,798.0 L 389.0,791.0 Q 386.0,791.0 386.0,794.0 L 386.0,802.0 Q 386.0,805.0 389.0,805.0 Z" fill="#10b981"/>
-  <text x="390.68" y="799.0" text-anchor="middle" fill="white" font-size="8.0" font-weight="bold">1</text><title>1. post_process_helpers.dart</title></g><text x="269.0" y="792.0" text-anchor="middle" dominant-baseline="middle" class="textNormal">post_process_text.dart</text>
+  <text x="390.68" y="799.0" text-anchor="middle" fill="white" font-size="8.0" font-weight="bold">1</text><title>1. post_process_helpers.dart</title></g><text x="269.0" y="792.0" text-anchor="middle" dominant-baseline="middle" class="textNormal">post_process_numeric.dart</text>
 <g class="badge incomingBadge">
   <path d="M 385.0,819.0 L 397.0,812.0 Q 400.0,812.0 400.0,815.0 L 400.0,823.0 Q 400.0,826.0 397.0,826.0 Z" fill="#3b82f6"/>
-  <text x="395.32" y="820.0" text-anchor="middle" fill="white" font-size="8.0" font-weight="bold">3</text><title>1. post_process_dictionary.dart
-2. post_process_fragment.dart
-3. textify.dart</title></g><g class="badge outgoingBadge">
+  <text x="395.32" y="820.0" text-anchor="middle" fill="white" font-size="8.0" font-weight="bold">1</text><title>1. textify_post_process.dart</title></g><g class="badge outgoingBadge">
   <path d="M 401.0,830.0 L 389.0,823.0 Q 386.0,823.0 386.0,826.0 L 386.0,834.0 Q 386.0,837.0 389.0,837.0 Z" fill="#10b981"/>
-  <text x="390.68" y="831.0" text-anchor="middle" fill="white" font-size="8.0" font-weight="bold">1</text><title>1. char_utils.dart</title></g><text x="269.0" y="824.0" text-anchor="middle" dominant-baseline="middle" class="textNormal">correction.dart</text>
+  <text x="390.68" y="831.0" text-anchor="middle" fill="white" font-size="8.0" font-weight="bold">1</text><title>1. post_process_helpers.dart</title></g><text x="269.0" y="824.0" text-anchor="middle" dominant-baseline="middle" class="textNormal">post_process_text.dart</text>
 <g class="badge incomingBadge">
   <path d="M 383.0,851.0 L 399.0,843.4 Q 402.0,843.4 402.0,846.4 L 402.0,855.6 Q 402.0,858.6 399.0,858.6 Z" fill="#3b82f6"/>
   <text x="396.28" y="852.0" text-anchor="middle" fill="white" font-size="8.0" font-weight="bold" textLength="10.120000000000001" lengthAdjust="spacingAndGlyphs">11</text><title>1. artifact_analysis.dart
@@ -758,13 +769,14 @@
 3. textify.dart</title></g><text x="269.0" y="952.0" text-anchor="middle" dominant-baseline="middle" class="textNormal">constants.dart</text>
 <g class="badge incomingBadge">
   <path d="M 385.0,979.0 L 397.0,972.0 Q 400.0,972.0 400.0,975.0 L 400.0,983.0 Q 400.0,986.0 397.0,986.0 Z" fill="#3b82f6"/>
-  <text x="395.32" y="980.0" text-anchor="middle" fill="white" font-size="8.0" font-weight="bold">7</text><title>1. post_process_bracket.dart
-2. post_process_case.dart
-3. post_process_dictionary.dart
-4. post_process_fragment.dart
-5. post_process_line.dart
-6. post_process_numeric.dart
-7. post_process_text.dart</title></g><text x="269.0" y="984.0" text-anchor="middle" dominant-baseline="middle" class="textNormal">post_process_helpers.dart</text>
+  <text x="395.32" y="980.0" text-anchor="middle" fill="white" font-size="8.0" font-weight="bold">8</text><title>1. correction.dart
+2. post_process_bracket.dart
+3. post_process_case.dart
+4. post_process_dictionary.dart
+5. post_process_fragment.dart
+6. post_process_line.dart
+7. post_process_numeric.dart
+8. post_process_text.dart</title></g><text x="269.0" y="984.0" text-anchor="middle" dominant-baseline="middle" class="textNormal">post_process_helpers.dart</text>
 <g class="badge incomingBadge">
   <path d="M 385.0,1101.0 L 397.0,1094.0 Q 400.0,1094.0 400.0,1097.0 L 400.0,1105.0 Q 400.0,1108.0 397.0,1108.0 Z" fill="#3b82f6"/>
   <text x="395.32" y="1102.0" text-anchor="middle" fill="white" font-size="8.0" font-weight="bold">1</text><title>1. image_helpers.dart</title></g><g class="badge outgoingBadge">

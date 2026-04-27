@@ -7,6 +7,7 @@ import 'dart:math';
 
 import 'package:textify/char_utils.dart';
 import 'package:textify/models/english_words.dart';
+import 'package:textify/post_process_helpers.dart' show hasCodeLikeToken;
 
 const int _minSubstitutionPairsRequired = 2;
 
@@ -14,6 +15,8 @@ const int _minSubstitutionPairsRequired = 2;
 const int _minDictionaryTokenLength = 2;
 const int _maxDictionaryFallbackDistance = 1;
 const int _minFallbackCorrectionLength = 4;
+const int _restoredAcronymMinLetters = 3;
+const int _shortAcronymPhraseMaxWords = 4;
 
 /// Divisor for title-case majority threshold: uppercaseStartCount must exceed
 /// alphaWordCount divided by this value to be considered genuine title case.
@@ -39,7 +42,7 @@ bool isOcrConfusionPair(String a, String b) {
     'B': {'8', 'D', '0', 'O', 'L'},
     'Z': {'2'},
     '2': {'Z'},
-    'T': {'1', 'I', '7'},
+    'T': {'1', 'I', '7', 'F'},
     'G': {'6', '9'},
     '6': {'G'},
     '9': {'G'},
@@ -47,7 +50,7 @@ bool isOcrConfusionPair(String a, String b) {
     'M': {'N', 'H'},
     'H': {'N', 'M'},
     'E': {'O'},
-    'F': {'P'},
+    'F': {'P', 'T'},
     'P': {'F'},
   };
 
@@ -380,7 +383,10 @@ String applyDictionaryCorrectionOnSingleSentence(
 ///
 /// Returns the closest matching word with the original casing preserved for unchanged letters.
 String findClosestMatchingWordInDictionary(String word) {
-  String suggestion = findClosestWord(englishWords, word.toLowerCase());
+  final String lowerWord = word.toLowerCase();
+  String suggestion =
+      _findClosestSameLengthWordInDictionary(lowerWord) ??
+      findClosestWord(englishWords, lowerWord);
   String lastChar = word[word.length - 1];
   if ((lastChar == 's' || lastChar == 'S') &&
       word.length - 1 == suggestion.length) {
@@ -401,6 +407,65 @@ String findClosestMatchingWordInDictionary(String word) {
     word = suggestion;
   }
   return word;
+}
+
+/// Finds the nearest dictionary word with the same length as [word].
+///
+/// This narrows OCR fallback selection to candidates that preserve token width,
+/// then breaks ties by favoring candidates whose differing characters align
+/// with known OCR confusion pairs.
+String? _findClosestSameLengthWordInDictionary(String word) {
+  String? bestMatch;
+  int? bestDistance;
+  int bestConfusionScore = -1;
+
+  for (final String dictWord in englishWords) {
+    if (dictWord.length != word.length) {
+      continue;
+    }
+
+    final String lowerDictWord = dictWord.toLowerCase();
+    final int distance = levenshteinDistance(word, lowerDictWord);
+    final int confusionScore = _sameLengthOcrConfusionScore(
+      word,
+      lowerDictWord,
+    );
+
+    final bool isBetterMatch =
+        bestDistance == null ||
+        distance < bestDistance ||
+        (distance == bestDistance && confusionScore > bestConfusionScore) ||
+        (distance == bestDistance &&
+            confusionScore == bestConfusionScore &&
+            bestMatch != null &&
+            lowerDictWord.compareTo(bestMatch) < 0);
+
+    if (isBetterMatch) {
+      bestMatch = lowerDictWord;
+      bestDistance = distance;
+      bestConfusionScore = confusionScore;
+    }
+  }
+
+  return bestMatch;
+}
+
+/// Counts same-position character differences that are valid OCR confusions.
+///
+/// Higher scores indicate that [candidate] differs from [source] in ways that
+/// are more plausibly explained by OCR glyph substitution rather than a real
+/// lexical change.
+int _sameLengthOcrConfusionScore(String source, String candidate) {
+  int score = 0;
+  for (int i = 0; i < source.length; i++) {
+    if (source[i] == candidate[i]) {
+      continue;
+    }
+    if (isOcrConfusionPair(source[i], candidate[i])) {
+      score++;
+    }
+  }
+  return score;
 }
 
 /// Processes text to correct common OCR errors, focusing on zero/letter 'O' confusion.
@@ -569,12 +634,35 @@ int levenshteinDistance(final String s1, final String s2) {
   return v1[s2.length];
 }
 
+bool _isRestorableSentenceAcronym(String word) {
+  final String alpha = word.replaceAll(RegExp(r'[^A-Za-z]'), '');
+  if (alpha.isEmpty || alpha != alpha.toUpperCase()) {
+    return false;
+  }
+
+  return alpha.length >= _restoredAcronymMinLetters ||
+      !englishWords.contains(alpha.toLowerCase());
+}
+
+String _capitalizeVeryShortLowercaseWords(String sentence) {
+  return sentence.replaceAllMapped(RegExp(r'\b([a-z]{1,2})\b'), (Match m) {
+    final String word = m.group(1)!;
+    return word[0].toUpperCase() + word.substring(1);
+  });
+}
+
 /// Processes a sentence and applies appropriate casing rules.
 ///
 /// This function takes a sentence string and ensures the first letter is capitalized.
 /// Returns the processed sentence with normalized casing.
 String normalizeCasingOfSentence(final String sentence) {
   if (sentence.isEmpty) {
+    return sentence;
+  }
+
+  // Preserve codes and IDs, but keep normal prose lines with dates/numbers
+  // eligible for sentence-level case cleanup.
+  if (hasCodeLikeToken(sentence)) {
     return sentence;
   }
 
@@ -602,7 +690,8 @@ String normalizeCasingOfSentence(final String sentence) {
   // Words with noisy internal uppercase like "CaSe" disqualify the sentence.
   const int noisyCasingTransitionThreshold = 2;
   final List<String> words = sentence.trim().split(RegExp(r'\s+'));
-  int uppercaseStartCount = 0;
+  int titleCaseTokenCount = 0;
+  int acronymTokenCount = 0;
   int alphaWordCount = 0;
   bool hasNoisyCasing = false;
   for (final String word in words) {
@@ -621,7 +710,15 @@ String normalizeCasingOfSentence(final String sentence) {
       }
       if (hasDigit) continue;
 
-      uppercaseStartCount++;
+      final String alphaOnly = word.replaceAll(RegExp(r'[^A-Za-z]'), '');
+      if (alphaOnly.isNotEmpty && alphaOnly == alphaOnly.toUpperCase()) {
+        if (_isRestorableSentenceAcronym(word)) {
+          acronymTokenCount++;
+        }
+        continue;
+      }
+
+      titleCaseTokenCount++;
       // Detect noisy internal casing by counting case transitions in the tail.
       // "CaSe" tail: L,U,L → 2 transitions → noisy OCR artifact.
       // "OpenAI" tail: L,L,L,U,U → 1 transition → valid camelCase/brand.
@@ -646,24 +743,28 @@ String normalizeCasingOfSentence(final String sentence) {
   // uppercase.  A stray OCR capitalization (e.g., "With" for "with") should
   // not trigger short-word capitalization across the whole sentence.
   final bool isTitleCase =
-      uppercaseStartCount > 1 &&
+      titleCaseTokenCount > 1 &&
       !hasNoisyCasing &&
       alphaWordCount > 0 &&
-      uppercaseStartCount > alphaWordCount ~/ _titleCaseMajorityDivisor;
+      titleCaseTokenCount > alphaWordCount ~/ _titleCaseMajorityDivisor;
   if (isTitleCase) {
     // In title-case sentences, capitalize very short (1-2 char) lowercase
     // words to match the dominant pattern.  These often arise from OCR
     // confusion between 'l' and 'I' producing "in" instead of "In".
-    return sentence.replaceAllMapped(RegExp(r'\b([a-z]{1,2})\b'), (Match m) {
-      final String w = m.group(1)!;
-      return w[0].toUpperCase() + w.substring(1);
-    });
+    return _capitalizeVeryShortLowercaseWords(sentence);
   }
 
   // Preserve sentences with multiple uppercase-starting words even when
   // the strict title-case threshold is not met (e.g., one stray OCR
   // capitalization among many lowercase words).
-  if (uppercaseStartCount > 1 && !hasNoisyCasing) {
+  if (!hasNoisyCasing &&
+      (titleCaseTokenCount > 1 ||
+          (titleCaseTokenCount == 1 &&
+              acronymTokenCount == 1 &&
+              alphaWordCount <= _shortAcronymPhraseMaxWords))) {
+    if (titleCaseTokenCount > 1 && acronymTokenCount > 0) {
+      return _capitalizeVeryShortLowercaseWords(sentence);
+    }
     return sentence;
   }
 
@@ -679,6 +780,21 @@ String normalizeCasingOfSentence(final String sentence) {
   if (isLetter(firstChar)) {
     content = firstChar.toUpperCase() + content.substring(1);
   }
+
+  final StringBuffer restoredAcronyms = StringBuffer();
+  int restoreIndex = 0;
+  for (final Match match in RegExp(r'[A-Za-z][A-Za-z.]*').allMatches(trimmed)) {
+    restoredAcronyms.write(content.substring(restoreIndex, match.start));
+    final String originalToken = match.group(0)!;
+    if (_isRestorableSentenceAcronym(originalToken)) {
+      restoredAcronyms.write(originalToken);
+    } else {
+      restoredAcronyms.write(content.substring(match.start, match.end));
+    }
+    restoreIndex = match.end;
+  }
+  restoredAcronyms.write(content.substring(restoreIndex));
+  content = restoredAcronyms.toString();
 
   // Restore standalone single uppercase letters from the original text.
   // Words like "A" (article) and "I" (pronoun) should preserve their

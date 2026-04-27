@@ -44,6 +44,7 @@
         "Templatize",
         "textify",
         "Textifying",
+        "uppercases",
         "Upscaling",
         "Upsert",
         "vsync",
@@ -67,5 +68,6 @@
     "dart.testAdditionalArgs": [
         "--no-wrap"
     ],
-    "testing.automaticallyOpenTestResults": "neverOpen"
+    "testing.automaticallyOpenTestResults": "neverOpen",
+    "workbench.editorLargeFileConfirmation": 10024
 }

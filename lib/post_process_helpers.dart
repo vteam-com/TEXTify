@@ -14,6 +14,8 @@ const int digitNineCodeUnit = 57;
 const int asciiCaseOffset = 32;
 const int regexGroupFirst = 1;
 const int regexGroupSecond = 2;
+const int _codeLikeTokenMinCompactLength = 4;
+const int _codeLikeTokenMinLetterOrDigitCount = 2;
 
 /// Returns true when [code] is an ASCII uppercase letter.
 bool isUpper(int code) =>
@@ -113,6 +115,52 @@ bool isAcronym(String token) {
 
 /// Returns true when [value] contains only ASCII letters.
 bool isAlphaWord(String value) => RegExp(r'^[A-Za-z]+$').hasMatch(value);
+
+/// Returns true when any whitespace-delimited token mixes letters and digits.
+///
+/// This identifies code-like fields such as invoice numbers, SKUs, and IDs
+/// without treating ordinary prose lines that merely contain a separate number
+/// token as mixed-format. Short merged column values like `B1` in receipt rows
+/// are excluded so they do not suppress sentence casing for the whole line.
+bool hasCodeLikeToken(String value) {
+  for (final String token in value.split(RegExp(r'\s+'))) {
+    if (token.isEmpty) {
+      continue;
+    }
+
+    final String compact = token.replaceAll(RegExp(r'[^A-Za-z0-9]'), '');
+    if (compact.isEmpty) {
+      continue;
+    }
+
+    bool hasLetter = false;
+    bool hasDigit = false;
+    int letters = 0;
+    int digits = 0;
+    for (int i = 0; i < compact.length; i++) {
+      final int code = compact.codeUnitAt(i);
+      if (isLetter(code)) {
+        hasLetter = true;
+        letters++;
+      } else if (isDigit(code)) {
+        hasDigit = true;
+        digits++;
+      }
+    }
+
+    final bool looksLikeCode =
+        hasLetter &&
+        hasDigit &&
+        compact.length >= _codeLikeTokenMinCompactLength &&
+        (letters >= _codeLikeTokenMinLetterOrDigitCount ||
+            digits >= _codeLikeTokenMinLetterOrDigitCount);
+    if (looksLikeCode) {
+      return true;
+    }
+  }
+
+  return false;
+}
 
 const int minMixedCaseTokenLength = 3;
 const int minAcronymTokenLength = 2;

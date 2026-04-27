@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:textify/correction.dart';
 import 'package:textify/textify_post_process.dart';
 
 void main() {
@@ -87,6 +88,271 @@ void main() {
       // (?<=\d)\s*\.\s*(?=[A-Za-z0-9]) → .
       final result = postProcessText('123 . 456');
       expect(result.contains('123.456'), true);
+    });
+
+    test('repeated uppercase suffix before comma is split', () {
+      final result = postProcessText(
+        'EUROLOJAMATOSINHOS, MATOSINHOS',
+        applyDictionary: false,
+      );
+      expect(result, 'EUROLOJA MATOSINHOS, MATOSINHOS');
+    });
+
+    test('already split uppercase suffix before comma is preserved', () {
+      final result = postProcessText(
+        'EUROLOJA MATOSINHOS, MATOSINHOS',
+        applyDictionary: false,
+      );
+      expect(result, 'EUROLOJA MATOSINHOS, MATOSINHOS');
+    });
+
+    test('non-repeated uppercase comma suffix is preserved', () {
+      final result = postProcessText(
+        'REMARKABLE, OSLO',
+        applyDictionary: false,
+      );
+      expect(result, 'REMARKABLE, OSLO');
+    });
+
+    test('title-case token with trailing uppercase letter is split', () {
+      final result = postProcessText(
+        'Tuca ChaE Cafe, PORTO',
+        applyDictionary: false,
+      );
+      expect(result, 'Tuca Cha E Cafe, PORTO');
+    });
+
+    test('lowercase word with trailing uppercase letter is split', () {
+      final result = postProcessText('GadgetC 2 24-00', applyDictionary: false);
+      expect(result, 'Gadget C 2 24.00');
+    });
+
+    test(
+      'mixed-case brands with multi-letter uppercase suffix are preserved',
+      () {
+        final result = postProcessText(
+          'OpenAI Released GPT In 2020',
+          applyDictionary: false,
+        );
+        expect(result, 'OpenAI Released GPT In 2020');
+      },
+    );
+
+    test('dict-on trailing uppercase token in title-case phrase is split', () {
+      final result = postProcessText(
+        'Tuca ChaE Cafe, PORTO',
+        applyDictionary: true,
+      );
+      expect(result, 'Tuca Cha E Cafe, PORTO');
+    });
+
+    test(
+      'dict-on trailing uppercase token before numeric columns is split',
+      () {
+        final result = postProcessText(
+          'GadgetC 2 24-00',
+          applyDictionary: true,
+        );
+        expect(result, 'Gadget C 2 24.00');
+      },
+    );
+
+    test('dict-on standalone upper-digit token in item row is split', () {
+      final result = postProcessText('Widget B1 7-50', applyDictionary: true);
+      expect(result, 'Widget B 1 7.50');
+    });
+
+    test('receipt row with merged quantity and price is normalized', () {
+      final result = postProcessText('widget A 3.12-99', applyDictionary: true);
+      expect(result, 'Widget A 3 12.99');
+    });
+
+    test('uppercase summary row decimal comma is normalized', () {
+      final result = postProcessText('TOTAL 57,48', applyDictionary: false);
+      expect(result, 'TOTAL 57.48');
+    });
+
+    test(
+      'split postal code after region is normalized with dictionary off',
+      () {
+        final result = postProcessText(
+          'SAN FRANCISCO, CA 941 05',
+          applyDictionary: false,
+        );
+        expect(result, 'SAN FRANCISCO, CA 94105');
+      },
+    );
+
+    test(
+      'attached region and split postal code are normalized with dictionary on',
+      () {
+        final result = postProcessText(
+          'SAN FRANCISCO, CA941 05',
+          applyDictionary: true,
+        );
+        expect(result, 'SAN FRANCISCO, CA 94105');
+      },
+    );
+
+    test('non-address code with hyphenated digits is preserved', () {
+      final result = postProcessText(
+        'Reference: TX-98432',
+        applyDictionary: true,
+      );
+      expect(result, 'Reference: TX-98432');
+    });
+
+    test('structured code prefix before numeric id is uppercased', () {
+      final result = postProcessText(
+        'Reference: Tx-98432',
+        applyDictionary: true,
+      );
+      expect(result, 'Reference: TX-98432');
+    });
+
+    test('date-like structured field value normalizes numeric confusions', () {
+      final result = postProcessText('Date: zoz5-06-15', applyDictionary: true);
+      expect(result, 'Date: 2025-06-15');
+    });
+
+    test(
+      'structured field label near-miss is normalized with dictionary on',
+      () {
+        final result = postProcessText(
+          'Oate: 2025-06-15',
+          applyDictionary: true,
+        );
+        expect(result, 'Date: 2025-06-15');
+      },
+    );
+
+    test(
+      'structured field label near-miss is preserved with dictionary off',
+      () {
+        final result = postProcessText(
+          'Oate: 2025-06-15',
+          applyDictionary: false,
+        );
+        expect(result, 'Oate: 2025-06-15');
+      },
+    );
+
+    test('decimal structured field value normalizes numeric confusions', () {
+      final result = postProcessText(
+        'Amount: ], z5o.75',
+        applyDictionary: true,
+      );
+      expect(result, 'Amount: 1,250.75');
+    });
+
+    test('grid-like numeric row repairs all-letter digit-lookalike token', () {
+      final result = postProcessText('IOOI 2002 3003', applyDictionary: false);
+      expect(result, '1001 2002 3003');
+    });
+
+    test('standalone decimal-like token normalizes digit lookalikes', () {
+      final result = postProcessText(
+        'Your balance is now O.OO USD.',
+        applyDictionary: false,
+      );
+      expect(result, 'Your balance is now 0.00 USD.');
+    });
+
+    test('sentence-like line lowers short uppercase dictionary word', () {
+      final result = postProcessText(
+        'Your balance IS now O.OO USD.',
+        applyDictionary: false,
+      );
+      expect(result, 'Your balance is now 0.00 USD.');
+    });
+
+    test('dictionary near-miss fixes tor to for in prose', () {
+      final result = postProcessText(
+        'Thank you tor your purchase.',
+        applyDictionary: true,
+      );
+      expect(result, 'Thank you for your purchase.');
+    });
+
+    test('uppercase code label is preserved for code-like value', () {
+      final result = postProcessText(
+        'SKU: AB12CD34EF56',
+        applyDictionary: false,
+      );
+      expect(result, 'SKU: AB12CD34EF56');
+    });
+
+    test('missing colon after uppercase code label is restored', () {
+      final result = postProcessText(
+        'SKUI ABI2cD34zP56',
+        applyDictionary: false,
+      );
+      expect(result, 'SKU: AB12CD34ZP56');
+    });
+
+    test('missing colon before slash-delimited code value is restored', () {
+      final result = postProcessText(
+        'LOTI 2025/Q2/BATcHo7',
+        applyDictionary: false,
+      );
+      expect(result, 'LOT: 2025/Q2/BATCH07');
+    });
+
+    test('compound code row normalizes digits and separators', () {
+      final corrected = applyCorrection('oRD+2o25o6l5+oo42', false);
+      final result = postProcessText(corrected, applyDictionary: false);
+      expect(result, 'ORD-20250615-0042');
+    });
+
+    test(
+      'code token with embedded merchant id preserves internal I before digit',
+      () {
+        final result = postProcessText(
+          'WWW.AMAZON.* LSIAK28I5, LUXEMBOURG',
+          applyDictionary: false,
+        );
+        expect(result, 'WWW.AMAZON.* LSIAK28I5, LUXEMBOURG');
+      },
+    );
+
+    test('missing code-label colon does not trigger on numeric grid row', () {
+      final corrected = applyCorrection('IOOI 2002 3003', false);
+      final result = postProcessText(corrected, applyDictionary: false);
+      expect(result, '1001 2002 3003');
+    });
+
+    test('missing code-label colon ignores OCR-noisy numeric grid row', () {
+      final corrected = applyCorrection('IOOI 2OO2 3OO3', false);
+      final result = postProcessText(corrected, applyDictionary: false);
+      expect(result, '1001 2002 3003');
+    });
+
+    test('domain-like dotted token is preserved', () {
+      final result = postProcessText(
+        'Visit OpenAI.com',
+        applyDictionary: false,
+      );
+      expect(result, 'Visit OpenAI.com');
+    });
+
+    test('multiline structured field blob normalizes date and amount', () {
+      final result = postProcessText(
+        'Name: John Smlth\n'
+        'Date: zoz5-06-15\n'
+        'Reference: Tx-98432\n'
+        'Amount: ], z5o.75\n'
+        'Status: conrlrmfo',
+        applyDictionary: true,
+      );
+      final lines = result.split('\n');
+      expect(lines[1], 'Date: 2025-06-15');
+      expect(lines[2], 'Reference: TX-98432');
+      expect(lines[3], 'Amount: 1,250.75');
+    });
+
+    test('code-like upper-digit token is preserved in uppercase context', () {
+      final result = postProcessText('SKU B1 7-50', applyDictionary: true);
+      expect(result, 'SKU B1 7-50');
     });
   });
 

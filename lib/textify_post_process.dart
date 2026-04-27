@@ -23,9 +23,22 @@ String postProcessText(String text, {bool applyDictionary = true}) {
     value = normalizeWordCaseCoherence(value);
     value = normalizeLineCase(value);
     value = normalizeNameLikeLineTitleCase(value);
+    value = normalizeStructuredFieldLine(
+      value,
+      applyDictionary: applyDictionary,
+    );
+    value = normalizeRepeatedCommaSuffix(value);
+    value = normalizeTrailingSingleUpperTokenSplit(value);
+    value = normalizeRegionPostalCodeSpacing(value);
+    value = normalizeStructuredNumericFieldValue(value);
     value = normalizeNumericGaps(value);
     value = normalizeDigitSegments(value);
     value = normalizeDateSeparators(value);
+    value = normalizeCodeLikeTokens(value);
+    value = normalizeStandaloneDecimalLikeToken(value);
+    value = normalizeShortUppercaseDictionaryWords(value);
+    value = normalizePriceLikeTableRow(value);
+    value = normalizeStructuredNumericFieldValue(value);
     value = normalizeBracketAsLetterNoise(value);
     value = normalizeFragmentedLine(value, applyDictionary: applyDictionary);
     if (applyDictionary) {
@@ -40,5 +53,12 @@ String postProcessText(String text, {bool applyDictionary = true}) {
   final String joined = shortNoisyFixed.join('\n');
   final String normalized = normalizePunctuationHeavyText(joined);
   final String lettersFixed = normalizeLetterConfusions(normalized);
-  return normalizePunctuationSpacing(lettersFixed);
+  final String punctuationFixed = normalizePunctuationSpacing(lettersFixed);
+  final String trailingUpperFixed = normalizeTrailingSingleUpperTokenSplit(
+    punctuationFixed,
+  );
+  final String upperDigitFixed = normalizeStandaloneUpperDigitTokenSplit(
+    trailingUpperFixed,
+  );
+  return upperDigitFixed.split('\n').map(normalizePriceLikeTableRow).join('\n');
 }

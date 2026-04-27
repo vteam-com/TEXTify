@@ -88,6 +88,12 @@ void main() {
       expect(result, 'Hello World\nGood Morning');
     });
 
+    test('applyCorrection preserves separated receipt quantity token', () {
+      const String input = 'widget B 1 7-50';
+      final String result = applyCorrection(input, true);
+      expect(result, 'Widget B 1 7-50');
+    });
+
     test('findClosestWord finds similar words', () {
       final Set<String> dictionary = {'apple', 'banana', 'orange'};
       expect(findClosestWord(dictionary, 'appie'), 'apple');
@@ -113,8 +119,36 @@ void main() {
         'OpenAI Released GPT In 2020',
       );
       expect(
+        normalizeCasingOfParagraph('OpenAI Released GPT in 2020'),
+        'OpenAI Released GPT In 2020',
+      );
+      expect(
         normalizeCasingOfParagraph('Version 4 Arrived In March'),
         'Version 4 Arrived In March',
+      );
+      expect(
+        normalizeCasingOfParagraph('Your balance IS now O.OO USD.'),
+        'Your balance is now O.OO USD.',
+      );
+      expect(normalizeCasingOfParagraph('NASA Launch'), 'NASA Launch');
+    });
+
+    test('normalizeCasing capitalizes receipt-style item rows', () {
+      expect(
+        normalizeCasingOfParagraph('widget A 3.12-99'),
+        'Widget A 3.12-99',
+      );
+      expect(normalizeCasingOfParagraph('widget B1 7-50'), 'Widget B1 7-50');
+    });
+
+    test('normalizeCasing preserves true code-like rows', () {
+      expect(
+        normalizeCasingOfParagraph('SKU: AB12CD34EF56'),
+        'SKU: AB12CD34EF56',
+      );
+      expect(
+        normalizeCasingOfParagraph('ORD+20250615+o042'),
+        'ORD+20250615+o042',
       );
     });
 
@@ -136,6 +170,10 @@ void main() {
         // Test case 4: Word with close dictionary match
         String result4 = findClosestMatchingWordInDictionary('helloz');
         expect(result4, 'hellos'); // 'hellos' is distance 1, same length.
+
+        // Test case 5: Prefer same-length OCR-compatible fallback over longer ties.
+        String result5 = findClosestMatchingWordInDictionary('tor');
+        expect(result5, 'for');
       },
     );
 

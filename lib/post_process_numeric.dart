@@ -8,6 +8,84 @@ import 'package:textify/post_process_helpers.dart';
 
 const int _digitJoinMinCount = 2;
 const int _maxShortLetterSegmentLength = 2;
+const int _gridLikeRowMinNumericPeers = 2;
+const int _gridLikeRowMinTokenLength = 3;
+const int _structuredFieldLabelGroup = 1;
+const int _structuredFieldValueGroup = 2;
+const int _structuredFieldMaxLabelWords = 3;
+const int _structuredDecimalFractionLength = 2;
+
+/// Normalizes numeric-like values in simple structured field lines.
+///
+/// This targets lines like `Date: zoz5-06-15` and `Amount: ], z5o.75`, where
+/// the label is alphabetic and the value has a date-like or decimal-like
+/// numeric shape polluted only by OCR digit lookalikes.
+String normalizeStructuredNumericFieldValue(String line) {
+  if (line.isEmpty) {
+    return line;
+  }
+
+  final Match? match = RegExp(
+    r'^\s*([A-Za-z]+(?:\s+[A-Za-z]+){0,2})\s*:\s*(.+?)\s*$',
+  ).firstMatch(line);
+  if (match == null) {
+    return line;
+  }
+
+  final String label = match.group(_structuredFieldLabelGroup) ?? '';
+  final String rawValue = match.group(_structuredFieldValueGroup) ?? '';
+  if (label.isEmpty || rawValue.isEmpty) {
+    return line;
+  }
+
+  final int labelWordCount = label
+      .split(RegExp(r'\s+'))
+      .where((String token) => token.isNotEmpty)
+      .length;
+  if (labelWordCount == 0 || labelWordCount > _structuredFieldMaxLabelWords) {
+    return line;
+  }
+
+  String? normalizedValue;
+  if (_looksDateLikeStructuredNumericValue(rawValue)) {
+    normalizedValue = normalizeDateSeparators(
+      _mapDigitLookalikesInValue(rawValue),
+    );
+  } else if (_looksDecimalStructuredNumericValue(rawValue)) {
+    normalizedValue = normalizeDateSeparators(
+      _mapDigitLookalikesInValue(rawValue),
+    );
+  }
+
+  if (normalizedValue == null || normalizedValue == rawValue) {
+    return line;
+  }
+
+  return '$label: $normalizedValue';
+}
+
+/// Normalizes standalone decimal-like tokens made only of digit lookalikes.
+///
+/// This reuses the same decimal-shape validator as structured fields, but
+/// applies it to free-standing tokens in prose such as `O.OO USD`.
+String normalizeStandaloneDecimalLikeToken(String line) {
+  if (line.isEmpty) {
+    return line;
+  }
+
+  return line.replaceAllMapped(
+    RegExp(
+      r'(?<![A-Za-z0-9])([\[\]|!A-Za-z0-9]+\.[A-Za-z0-9]{2})(?![A-Za-z0-9])',
+    ),
+    (Match match) {
+      final String token = match.group(regexGroupFirst) ?? '';
+      if (!_looksDecimalStructuredNumericValue(token)) {
+        return token;
+      }
+      return normalizeDateSeparators(_mapDigitLookalikesInValue(token));
+    },
+  );
+}
 
 /// Corrects letter-like confusions inside digit-dominant token segments.
 String normalizeDigitSegments(String line) {
@@ -91,7 +169,14 @@ String normalizeDigitSegments(String line) {
       }
       segment = mapped.toString();
     } else if (isAllLetters(segment) &&
-        segment.length <= _maxShortLetterSegmentLength) {
+        (_isGridLikeDigitToken(
+              tokens,
+              tokenIsAlnum,
+              ti,
+              segment,
+              isDigitDominant,
+            ) ||
+            segment.length <= _maxShortLetterSegmentLength)) {
       // Short all-letter segment near digit-dominant neighbors
       // e.g. "2020-Ol-02" → "Ol" between "2020" and "02" → "01".
       bool prevDigit = false, nextDigit = false;
@@ -135,6 +220,41 @@ String normalizeDigitSegments(String line) {
   }
 
   return out.toString();
+}
+
+/// Returns true when [segment] looks like a digit cell inside a numeric grid.
+///
+/// This catches rows like `IOOI 2002 3003`, where one token is all letters but
+/// has the same width as neighboring numeric cells and is composed entirely of
+/// high-confidence digit lookalikes.
+bool _isGridLikeDigitToken(
+  List<String> tokens,
+  List<bool> tokenIsAlnum,
+  int tokenIndex,
+  String segment,
+  bool Function(String) isDigitDominant,
+) {
+  if (segment.length < _gridLikeRowMinTokenLength) {
+    return false;
+  }
+
+  for (int i = 0; i < segment.length; i++) {
+    if (!highConfidenceDigitLookalikes.contains(segment[i])) {
+      return false;
+    }
+  }
+
+  int matchingNumericPeers = 0;
+  for (int i = 0; i < tokens.length; i++) {
+    if (i == tokenIndex || !tokenIsAlnum[i]) {
+      continue;
+    }
+    if (tokens[i].length == segment.length && isDigitDominant(tokens[i])) {
+      matchingNumericPeers++;
+    }
+  }
+
+  return matchingNumericPeers >= _gridLikeRowMinNumericPeers;
 }
 
 /// Repairs noisy separators and spacing in numeric expressions.
@@ -238,6 +358,82 @@ String normalizeDateSeparators(String line) {
     value = value.replaceAll(splitDigits, '');
   }
   return value;
+}
+
+/// Returns true when [value] has a date-like numeric shape with only
+/// digit-lookalike alphabetic noise.
+bool _looksDateLikeStructuredNumericValue(String value) {
+  if (!RegExp(
+    r'^[A-Za-z0-9]{1,4}(?:\s*[./-]\s*[A-Za-z0-9]{1,4}){2,}$',
+  ).hasMatch(value)) {
+    return false;
+  }
+
+  int digitCount = 0;
+  int letterCount = 0;
+  for (int i = 0; i < value.length; i++) {
+    final String ch = value[i];
+    final int code = value.codeUnitAt(i);
+    if (isDigit(code)) {
+      digitCount++;
+    } else if (isLetter(code)) {
+      letterCount++;
+      if (!digitConfusionMap.containsKey(ch)) {
+        return false;
+      }
+    }
+  }
+
+  return digitCount > 0 && digitCount >= letterCount;
+}
+
+/// Returns true when [value] has a decimal-number shape with only
+/// digit-lookalike alphabetic or punctuation noise.
+bool _looksDecimalStructuredNumericValue(String value) {
+  if (!RegExp(r'^[\[\]|!,\sA-Za-z0-9]+\.[A-Za-z0-9]{2}$').hasMatch(value)) {
+    return false;
+  }
+
+  int digitLikeCount = 0;
+  for (int i = 0; i < value.length; i++) {
+    final String ch = value[i];
+    final int code = value.codeUnitAt(i);
+    if (isDigit(code) ||
+        digitConfusionMap.containsKey(ch) ||
+        digitNonAlnumMap.containsKey(ch)) {
+      digitLikeCount++;
+      continue;
+    }
+    if (isLetter(code)) {
+      return false;
+    }
+  }
+
+  final Match? fractionMatch = RegExp(r'\.([A-Za-z0-9]+)$').firstMatch(value);
+  if (fractionMatch == null) {
+    return false;
+  }
+
+  final String fraction = fractionMatch.group(regexGroupFirst) ?? '';
+  return digitLikeCount > _structuredDecimalFractionLength &&
+      fraction.length == _structuredDecimalFractionLength;
+}
+
+/// Maps OCR digit-lookalike letters and symbols across an already validated
+/// numeric-like field value.
+String _mapDigitLookalikesInValue(String value) {
+  final StringBuffer buffer = StringBuffer();
+  for (int i = 0; i < value.length; i++) {
+    final String ch = value[i];
+    if (digitConfusionMap.containsKey(ch)) {
+      buffer.write(digitConfusionMap[ch]);
+    } else if (digitNonAlnumMap.containsKey(ch)) {
+      buffer.write(digitNonAlnumMap[ch]);
+    } else {
+      buffer.write(ch);
+    }
+  }
+  return buffer.toString();
 }
 
 /// Map of letters commonly confused with digits by OCR.

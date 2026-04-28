@@ -401,6 +401,50 @@ void main() async {
       );
     },
   );
+
+  test(
+    'asset uppercase prose preserves I glyph without dictionary help',
+    () async {
+      final ui.Image image = await Textify.loadImageFromAssets(
+        'assets/test/the-quick-brown-fox.png',
+      );
+
+      final Textify instance = Textify(
+        config: const TextifyConfig(applyDictionaryCorrection: false),
+      );
+      await instance.init(pathToAssetsDefinition: 'assets/matrices.json');
+
+      expect(
+        await instance.getTextFromImage(image: image),
+        'THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG\n'
+        'The quick brown fox jumps over the lazy dog\n'
+        '2025-12-31',
+      );
+    },
+  );
+
+  test(
+    'asset receipt items preserves uppercase T glyphs without dictionary help',
+    () async {
+      final ui.Image image = await Textify.loadImageFromAssets(
+        'assets/test/receipt-items.png',
+      );
+
+      final Textify instance = Textify(
+        config: const TextifyConfig(applyDictionaryCorrection: false),
+      );
+      await instance.init(pathToAssetsDefinition: 'assets/matrices.json');
+
+      expect(
+        await instance.getTextFromImage(image: image),
+        'ITEM QTY PRICE\n'
+        'Widget A 3 12.99\n'
+        'Widget B 1 7.50\n'
+        'Gadget C 2 24.00\n'
+        'TOTAL 57.48',
+      );
+    },
+  );
 }
 
 Future<void> myExpectWord(final String input, final String expected) async {

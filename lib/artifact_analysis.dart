@@ -13,6 +13,9 @@ const double _lowerRightStrokeYRatio = 0.55;
 const double _lowerRightStrokeDensityRatio = 0.6;
 const double _stemThresholdRatio = 0.8;
 const double _thresholdLinePercentage = 0.7;
+const double _horizontalBarRegionRatio = 0.25;
+const double _topBarCoverageRatio = 0.75;
+const double _bottomToTopBarMaxRatio = 0.55;
 
 /// Which side of the artifact to check for a vertical line.
 enum _VerticalLineSide { left, right }
@@ -138,6 +141,74 @@ int _countVerticalStems(Artifact artifact) {
   return stems;
 }
 
+/// Detects whether a glyph has a distinctly wider top bar than bottom bar.
+///
+/// This separates `T`-like shapes from `I`-like shapes in uppercase text.
+bool _hasTopHeavyHorizontalBar(Artifact artifact) {
+  final IntRect content = artifact.getContentRect();
+  if (content.isEmpty || content.width <= 0 || content.height <= 0) {
+    return false;
+  }
+
+  final int bandHeight = max(
+    1,
+    (content.height * _horizontalBarRegionRatio).round(),
+  );
+  final IntRect topBand = IntRect.fromLTRB(
+    content.left,
+    content.top,
+    content.right,
+    min(content.bottom, content.top + bandHeight),
+  );
+  final IntRect bottomBand = IntRect.fromLTRB(
+    content.left,
+    max(content.top, content.bottom - bandHeight),
+    content.right,
+    content.bottom,
+  );
+
+  final int topSpan = _maxHorizontalInkSpan(artifact, topBand);
+  if (topSpan == 0) {
+    return false;
+  }
+
+  final int bottomSpan = _maxHorizontalInkSpan(artifact, bottomBand);
+  final double topCoverage = topSpan / content.width;
+  final double bottomRatio = bottomSpan / topSpan;
+  return topCoverage >= _topBarCoverageRatio &&
+      bottomRatio <= _bottomToTopBarMaxRatio;
+}
+
+/// Returns the widest horizontal ink span across any row inside [rect].
+int _maxHorizontalInkSpan(Artifact artifact, IntRect rect) {
+  if (rect.isEmpty) {
+    return 0;
+  }
+
+  int widest = 0;
+  for (int y = rect.top; y < rect.bottom; y++) {
+    int minX = rect.right;
+    int maxX = rect.left - 1;
+    for (int x = rect.left; x < rect.right; x++) {
+      if (!artifact.cellGet(x, y)) {
+        continue;
+      }
+      if (x < minX) {
+        minX = x;
+      }
+      if (x > maxX) {
+        maxX = x;
+      }
+    }
+
+    if (maxX >= minX) {
+      widest = max(widest, (maxX - minX) + 1);
+    }
+  }
+
+  return widest;
+}
+
 /// Checks if the artifact has a vertical line on the left side.
 bool hasVerticalLineLeft(Artifact matrix) {
   return _hasVerticalLine(matrix, _VerticalLineSide.left);
@@ -251,6 +322,9 @@ extension ArtifactAnalysisExt on Artifact {
 
   /// Estimates the number of strong vertical stems in a glyph.
   int countVerticalStems() => _countVerticalStems(this);
+
+  /// Returns true when the glyph preserves a distinctly top-heavy bar.
+  bool hasTopHeavyHorizontalBar() => _hasTopHeavyHorizontalBar(this);
 
   /// Lazily evaluates and caches vertical line detection on the left side.
   bool get verticalLineLeft =>

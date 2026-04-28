@@ -47,6 +47,7 @@ class Textify {
   static const double _uppercaseDominanceRatio = 0.70;
   static const double _uppercaseEFSwapDelta = 0.02;
   static const double _uppercaseFSparseLowerThirdMax = 0.33;
+  static const double _uppercaseTIProxyDelta = 0.12;
   static const double _uppercaseWeakLScoreThreshold = 0.45;
   static const double _uppercaseWeakMScoreThreshold = 0.45;
   static const double _uppercaseMUProxyDelta = 0.03;
@@ -1220,6 +1221,8 @@ class Textify {
       return;
     }
 
+    final bool uppercaseProseBand = _looksLikeUppercaseProseBand(band);
+
     for (final Artifact artifact in artifacts) {
       if (!isLetter(artifact.matchingCharacter)) {
         continue;
@@ -1229,6 +1232,20 @@ class Textify {
       final List<ScoreMatch> scores = getMatchingScoresOfNormalizedMatrix(
         artifact,
       );
+      if (uppercaseProseBand && artifact.matchingCharacter == 'T') {
+        final double? iScore = _scoreForCharacter(scores, 'I');
+        final double? lProxyScore = _scoreForCharacter(scores, 'l');
+        final double? uppercaseIProxyScore = iScore ?? lProxyScore;
+        if (uppercaseIProxyScore != null &&
+            artifact.countVerticalStems() == 1 &&
+            !artifact.hasTopHeavyHorizontalBar() &&
+            (originalScore - uppercaseIProxyScore) <= _uppercaseTIProxyDelta) {
+          artifact.matchingCharacter = 'I';
+          artifact.matchingScore = uppercaseIProxyScore;
+          continue;
+        }
+      }
+
       if (artifact.matchingCharacter == 'E') {
         final double? fScore = _scoreForCharacter(scores, 'F');
         if (fScore != null &&

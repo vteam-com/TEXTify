@@ -17,6 +17,37 @@ const int regexGroupSecond = 2;
 const int _codeLikeTokenMinCompactLength = 4;
 const int _codeLikeTokenMinLetterOrDigitCount = 2;
 
+/// Returns true for long already-lowercase prose that should stay lowercase.
+///
+/// This is used by sentence and line casing passes to avoid capitalizing
+/// coherent lowercase prose samples that are already internally consistent.
+bool shouldPreserveLongLowercaseProse(
+  String value, {
+  required int minTokens,
+  required int minLetters,
+}) {
+  if (RegExp(r'[A-Z]').hasMatch(value)) {
+    return false;
+  }
+
+  final List<String> tokens = RegExp(
+    r'[A-Za-z]+',
+  ).allMatches(value).map((match) => match.group(0)!).toList();
+  if (tokens.length < minTokens) {
+    return false;
+  }
+
+  int letterCount = 0;
+  for (final String token in tokens) {
+    if (token != token.toLowerCase()) {
+      return false;
+    }
+    letterCount += token.length;
+  }
+
+  return letterCount >= minLetters;
+}
+
 /// Returns true when [code] is an ASCII uppercase letter.
 bool isUpper(int code) =>
     code >= uppercaseACodeUnit && code <= uppercaseZCodeUnit;

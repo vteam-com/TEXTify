@@ -441,6 +441,7 @@ const Map<String, String> digitConfusionMap = {
   'O': '0',
   'o': '0',
   'I': '1',
+  'i': '1',
   'l': '1',
   'L': '1',
   't': '1',
@@ -465,7 +466,7 @@ const Map<String, String> digitNonAlnumMap = {
 /// digits even with only one digit-dominant neighbor.
 const Set<String> highConfidenceDigitLookalikes = {
   'O', 'o', // → 0
-  'I', 'l', 'L', // → 1
+  'I', 'i', 'l', 'L', // -> 1
   'S', 's', // → 5
   'Z', 'z', // → 2
 };

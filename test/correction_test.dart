@@ -94,6 +94,15 @@ void main() {
       expect(result, 'Widget B 1 7-50');
     });
 
+    test(
+      'applyCorrection preserves structured short uppercase field value',
+      () {
+        const String input = 'Status: OK';
+        final String result = applyCorrection(input, true);
+        expect(result, 'Status: OK');
+      },
+    );
+
     test('findClosestWord finds similar words', () {
       final Set<String> dictionary = {'apple', 'banana', 'orange'};
       expect(findClosestWord(dictionary, 'appie'), 'apple');
@@ -111,6 +120,12 @@ void main() {
 
     test('normalizeCasing handles different casing patterns', () {
       expect(normalizeCasingOfParagraph('hello world'), 'Hello world');
+      expect(
+        normalizeCasingOfParagraph(
+          'the quick brown fox jumps over the lazy dog',
+        ),
+        'the quick brown fox jumps over the lazy dog',
+      );
       expect(normalizeCasingOfParagraph('HELLO WORLD'), 'HELLO WORLD');
       expect(normalizeCasingOfParagraph('hello. world'), 'Hello. World');
       // Title case / mixed case with acronyms should be preserved

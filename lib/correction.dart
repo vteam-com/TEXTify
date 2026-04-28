@@ -7,7 +7,7 @@ import 'dart:math';
 
 import 'package:textify/char_utils.dart';
 import 'package:textify/models/english_words.dart';
-import 'package:textify/post_process_helpers.dart' show hasCodeLikeToken;
+import 'package:textify/post_process_helpers.dart' show hasCodeLikeToken, shouldPreserveLongLowercaseProse;
 
 const int _minSubstitutionPairsRequired = 2;
 
@@ -17,6 +17,10 @@ const int _maxDictionaryFallbackDistance = 1;
 const int _minFallbackCorrectionLength = 4;
 const int _restoredAcronymMinLetters = 3;
 const int _shortAcronymPhraseMaxWords = 4;
+const int _longLowercaseSentenceMinTokens = 6;
+const int _longLowercaseSentenceMinLetters = 24;
+const int _structuredUpperValueMaxWords = 2;
+const int _structuredUpperValueMaxLength = 3;
 
 /// Divisor for title-case majority threshold: uppercaseStartCount must exceed
 /// alphaWordCount divided by this value to be considered genuine title case.
@@ -31,6 +35,7 @@ bool isOcrConfusionPair(String a, String b) {
 
   // Symmetric lookup: visual-similarity groups for OCR template matching.
   const Map<String, Set<String>> confusionGroups = {
+    'A': {'X', '@'},
     'I': {'L', '1', '!', '|', 'T'},
     'L': {'I', '1', '!', '|', 'B'},
     '1': {'I', 'L', '!', '|'},
@@ -49,6 +54,8 @@ bool isOcrConfusionPair(String a, String b) {
     'N': {'M', 'H'},
     'M': {'N', 'H'},
     'H': {'N', 'M'},
+    'U': {'L'},
+    'X': {'A'},
     'E': {'O'},
     'F': {'P', 'T'},
     'P': {'F'},
@@ -644,6 +651,38 @@ bool _isRestorableSentenceAcronym(String word) {
       !englishWords.contains(alpha.toLowerCase());
 }
 
+/// Returns true for structured `Label: VALUE` lines with short uppercase values.
+///
+/// This identifies status-like or field/value rows such as `Status: OK` so
+/// sentence-level casing normalization can preserve the uppercase value.
+bool _hasStructuredShortUppercaseFieldValue(String sentence) {
+  final Match? match = RegExp(
+    r'^\s*[A-Za-z]+(?:\s+[A-Za-z]+){0,2}\s*:\s*([A-Z]{2,}(?:\s+[A-Z]{2,}){0,1})\s*$',
+  ).firstMatch(sentence);
+  if (match == null) {
+    return false;
+  }
+
+  final String rawValue = match.group(1) ?? '';
+  if (rawValue.isEmpty) {
+    return false;
+  }
+
+  final List<String> tokens = rawValue
+      .split(RegExp(r'\s+'))
+      .where((String token) => token.isNotEmpty)
+      .toList();
+  if (tokens.isEmpty || tokens.length > _structuredUpperValueMaxWords) {
+    return false;
+  }
+
+  return tokens.every(
+    (String token) =>
+        token.length >= _minDictionaryTokenLength &&
+        token.length <= _structuredUpperValueMaxLength,
+  );
+}
+
 String _capitalizeVeryShortLowercaseWords(String sentence) {
   return sentence.replaceAllMapped(RegExp(r'\b([a-z]{1,2})\b'), (Match m) {
     final String word = m.group(1)!;
@@ -662,7 +701,8 @@ String normalizeCasingOfSentence(final String sentence) {
 
   // Preserve codes and IDs, but keep normal prose lines with dates/numbers
   // eligible for sentence-level case cleanup.
-  if (hasCodeLikeToken(sentence)) {
+  if (hasCodeLikeToken(sentence) ||
+      _hasStructuredShortUppercaseFieldValue(sentence)) {
     return sentence;
   }
 
@@ -774,6 +814,14 @@ String normalizeCasingOfSentence(final String sentence) {
   }
 
   final int offset = sentence.length - trimmed.length;
+  if (shouldPreserveLongLowercaseProse(
+    trimmed,
+    minTokens: _longLowercaseSentenceMinTokens,
+    minLetters: _longLowercaseSentenceMinLetters,
+  )) {
+    return sentence.substring(0, offset) + trimmed.toLowerCase();
+  }
+
   String content = trimmed.toLowerCase();
   final String firstChar = content[0];
 

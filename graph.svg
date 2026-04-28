@@ -119,7 +119,10 @@
     <g id='Node_lib'>
       <rect x="21.5" y="189" width="2727" height="852" rx="2" ry="2" class="nodeFolder"/>
       <g id='Node_textify.dart'>
-        <rect x="1239" y="224" width="292" height="72" rx="8" ry="8" class="nodeFile"/>
+        <rect x="1089" y="224" width="292" height="72" rx="8" ry="8" class="nodeFile"/>
+      </g>
+      <g id='Node_textify_refinement_helpers.dart'>
+        <rect x="1389" y="224" width="292" height="72" rx="8" ry="8" class="nodeFileOrphan"/>
       </g>
       <g id='Node_textify_post_process.dart'>
         <rect x="639" y="304" width="292" height="72" rx="8" ry="8" class="nodeFile"/>
@@ -166,13 +169,13 @@
       <g id='Node_artifact_grid_transform.dart'>
         <rect x="639" y="464" width="292" height="72" rx="8" ry="8" class="nodeFile"/>
       </g>
-      <g id='Node_correction.dart'>
+      <g id='Node_artifact_region.dart'>
         <rect x="939" y="464" width="292" height="72" rx="8" ry="8" class="nodeFile"/>
       </g>
-      <g id='Node_artifact_region.dart'>
+      <g id='Node_artifact_splitting.dart'>
         <rect x="1239" y="464" width="292" height="72" rx="8" ry="8" class="nodeFile"/>
       </g>
-      <g id='Node_artifact_splitting.dart'>
+      <g id='Node_correction.dart'>
         <rect x="1539" y="464" width="292" height="72" rx="8" ry="8" class="nodeFile"/>
       </g>
       <g id='Node_artifact_serialize.dart'>
@@ -181,7 +184,7 @@
       <g id='Node_artifact_analysis.dart'>
         <rect x="1089" y="544" width="292" height="72" rx="8" ry="8" class="nodeFile"/>
       </g>
-      <g id='Node_char_utils.dart'>
+      <g id='Node_constants.dart'>
         <rect x="1389" y="544" width="292" height="72" rx="8" ry="8" class="nodeFile"/>
       </g>
       <g id='Node_artifact.dart'>
@@ -211,7 +214,7 @@
       <g id='Node_post_process_helpers.dart'>
         <rect x="1556.5" y="784" width="292" height="72" rx="8" ry="8" class="nodeFile"/>
       </g>
-      <g id='Node_constants.dart'>
+      <g id='Node_char_utils.dart'>
         <rect x="1856.5" y="784" width="292" height="72" rx="8" ry="8" class="nodeFile"/>
       </g>
     </g>
@@ -246,7 +249,7 @@ artifact.dart</title>
 ⬇
 image_helpers.dart</title>
     </path>
-    <path d="M2115 360 C 2125 420,1245 420, 1255 480" fill="none" class="line">
+    <path d="M2115 360 C 2125 420,945 420, 955 480" fill="none" class="line">
       <title>artifact_morphology.dart
 ⬇
 artifact_region.dart</title>
@@ -266,7 +269,7 @@ image_helpers.dart</title>
 ⬇
 artifact_grid_transform.dart</title>
     </path>
-    <path d="M1515 360 C 1525 420,1545 420, 1555 480" fill="none" class="line">
+    <path d="M1515 360 C 1525 420,1245 420, 1255 480" fill="none" class="line">
       <title>artifact_projection.dart
 ⬇
 artifact_splitting.dart</title>
@@ -281,12 +284,12 @@ artifact.dart</title>
 ⬇
 image_helpers.dart</title>
     </path>
-    <path d="M1515 520 C 1525 580,1245 580, 1255 640" fill="none" class="line">
+    <path d="M1215 520 C 1225 580,1245 580, 1255 640" fill="none" class="line">
       <title>artifact_region.dart
 ⬇
 artifact.dart</title>
     </path>
-    <path d="M1515 520 C 1525 620,1245 620, 1255 720" fill="none" class="line">
+    <path d="M1215 520 C 1225 620,1245 620, 1255 720" fill="none" class="line">
       <title>artifact_region.dart
 ⬇
 image_helpers.dart</title>
@@ -296,27 +299,27 @@ image_helpers.dart</title>
 ⬇
 artifact.dart</title>
     </path>
-    <path d="M2115 520 C 2125 540,1395 540, 1405 560" fill="none" class="line">
+    <path d="M2115 520 C 2125 660,1862.5 660, 1872.5 800" fill="none" class="line">
       <title>artifact_serialize.dart
 ⬇
 char_utils.dart</title>
     </path>
-    <path d="M2115 520 C 2125 660,1862.5 660, 1872.5 800" fill="none" class="line">
+    <path d="M2115 520 C 2125 540,1395 540, 1405 560" fill="none" class="line">
       <title>artifact_serialize.dart
 ⬇
 constants.dart</title>
     </path>
-    <path d="M1815 520 C 1825 540,1095 540, 1105 560" fill="none" class="line">
+    <path d="M1515 520 C 1525 540,1095 540, 1105 560" fill="none" class="line">
       <title>artifact_splitting.dart
 ⬇
 artifact_analysis.dart</title>
     </path>
-    <path d="M1815 520 C 1825 580,1245 580, 1255 640" fill="none" class="line">
+    <path d="M1515 520 C 1525 580,1245 580, 1255 640" fill="none" class="line">
       <title>artifact_splitting.dart
 ⬇
 artifact.dart</title>
     </path>
-    <path d="M1815 520 C 1825 620,1245 620, 1255 720" fill="none" class="line">
+    <path d="M1515 520 C 1525 620,1245 620, 1255 720" fill="none" class="line">
       <title>artifact_splitting.dart
 ⬇
 image_helpers.dart</title>
@@ -331,12 +334,12 @@ image_helpers.dart</title>
 ⬇
 artifact_grid_transform.dart</title>
     </path>
-    <path d="M315 440 C 325 460,1245 460, 1255 480" fill="none" class="line">
+    <path d="M315 440 C 325 460,945 460, 955 480" fill="none" class="line">
       <title>band.dart
 ⬇
 artifact_region.dart</title>
     </path>
-    <path d="M315 440 C 325 460,1545 460, 1555 480" fill="none" class="line">
+    <path d="M315 440 C 325 460,1245 460, 1255 480" fill="none" class="line">
       <title>band.dart
 ⬇
 artifact_splitting.dart</title>
@@ -386,20 +389,15 @@ artifact.dart</title>
 ⬇
 character_definition.dart</title>
     </path>
-    <path d="M1215 520 C 1225 540,1395 540, 1405 560" fill="none" class="line">
+    <path d="M1815 520 C 1825 660,1862.5 660, 1872.5 800" fill="none" class="line">
       <title>correction.dart
 ⬇
 char_utils.dart</title>
     </path>
-    <path d="M1215 520 C 1228 717,642 718, 655 915" fill="none" class="line">
+    <path d="M1815 520 C 1828 717,642 718, 655 915" fill="none" class="line">
       <title>correction.dart
 ⬇
 english_words.dart</title>
-    </path>
-    <path d="M1215 520 C 1225 660,1562.5 660, 1572.5 800" fill="none" class="line">
-      <title>correction.dart
-⬇
-post_process_helpers.dart</title>
     </path>
     <path d="M1515 760 C 1525 797,795 798, 805 835" fill="none" class="line">
       <title>image_helpers.dart
@@ -426,7 +424,7 @@ english_words.dart</title>
 ⬇
 post_process_helpers.dart</title>
     </path>
-    <path d="M1215 440 C 1225 460,945 460, 955 480" fill="none" class="line">
+    <path d="M1215 440 C 1225 460,1545 460, 1555 480" fill="none" class="line">
       <title>post_process_dictionary.dart
 ⬇
 correction.dart</title>
@@ -441,12 +439,12 @@ english_words.dart</title>
 ⬇
 post_process_helpers.dart</title>
     </path>
-    <path d="M615 440 C 627 620,1860.5 620, 1872.5 800" fill="none" class="line">
+    <path d="M615 440 C 625 500,1395 500, 1405 560" fill="none" class="line">
       <title>post_process_fragment.dart
 ⬇
 constants.dart</title>
     </path>
-    <path d="M615 440 C 625 460,945 460, 955 480" fill="none" class="line">
+    <path d="M615 440 C 625 460,1545 460, 1555 480" fill="none" class="line">
       <title>post_process_fragment.dart
 ⬇
 correction.dart</title>
@@ -516,72 +514,72 @@ post_process_numeric.dart</title>
 ⬇
 post_process_text.dart</title>
     </path>
-    <path d="M1515 280 C 1525 420,1095 420, 1105 560" fill="none" class="line">
+    <path d="M1365 280 C 1375 420,1095 420, 1105 560" fill="none" class="line">
       <title>textify.dart
 ⬇
 artifact_analysis.dart</title>
     </path>
-    <path d="M1515 280 C 1525 380,645 380, 655 480" fill="none" class="line">
+    <path d="M1365 280 C 1375 380,645 380, 655 480" fill="none" class="line">
       <title>textify.dart
 ⬇
 artifact_grid_transform.dart</title>
     </path>
-    <path d="M1515 280 C 1525 300,1845 300, 1855 320" fill="none" class="line">
+    <path d="M1365 280 C 1375 300,1845 300, 1855 320" fill="none" class="line">
       <title>textify.dart
 ⬇
 artifact_morphology.dart</title>
     </path>
-    <path d="M1515 280 C 1525 300,1245 300, 1255 320" fill="none" class="line">
+    <path d="M1365 280 C 1375 300,1245 300, 1255 320" fill="none" class="line">
       <title>textify.dart
 ⬇
 artifact_projection.dart</title>
     </path>
-    <path d="M1515 280 C 1525 380,1245 380, 1255 480" fill="none" class="line">
+    <path d="M1365 280 C 1375 380,945 380, 955 480" fill="none" class="line">
       <title>textify.dart
 ⬇
 artifact_region.dart</title>
     </path>
-    <path d="M1515 280 C 1525 300,1545 300, 1555 320" fill="none" class="line">
+    <path d="M1365 280 C 1375 300,1545 300, 1555 320" fill="none" class="line">
       <title>textify.dart
 ⬇
 bands.dart</title>
     </path>
-    <path d="M1515 280 C 1525 420,1395 420, 1405 560" fill="none" class="line">
+    <path d="M1365 280 C 1382 540,1855.5 540, 1872.5 800" fill="none" class="line">
       <title>textify.dart
 ⬇
 char_utils.dart</title>
     </path>
-    <path d="M1515 280 C 1525 300,945 300, 955 320" fill="none" class="line">
+    <path d="M1365 280 C 1375 300,945 300, 955 320" fill="none" class="line">
       <title>textify.dart
 ⬇
 character_definitions.dart</title>
     </path>
-    <path d="M1515 280 C 1532 540,1855.5 540, 1872.5 800" fill="none" class="line">
+    <path d="M1365 280 C 1375 420,1395 420, 1405 560" fill="none" class="line">
       <title>textify.dart
 ⬇
 constants.dart</title>
     </path>
-    <path d="M1515 280 C 1525 380,945 380, 955 480" fill="none" class="line">
+    <path d="M1365 280 C 1375 380,1545 380, 1555 480" fill="none" class="line">
       <title>textify.dart
 ⬇
 correction.dart</title>
     </path>
-    <path d="M1515 280 C 1529 500,1241 500, 1255 720" fill="none" class="line">
+    <path d="M1365 280 C 1379 500,1241 500, 1255 720" fill="none" class="line">
       <title>textify.dart
 ⬇
 image_helpers.dart</title>
     </path>
-    <path d="M1515 280 C 1536 597,1234 598, 1255 915" fill="none" class="line">
+    <path d="M1365 280 C 1386 597,1234 598, 1255 915" fill="none" class="line">
       <title>textify.dart
 ⬇
 score_match.dart</title>
     </path>
-    <path d="M1515 280 C 1533 557,1087 558, 1105 835" fill="none" class="line">
+    <path d="M1365 280 C 1383 557,1087 558, 1105 835" fill="none" class="line">
       <title>textify.dart
 ⬇
 textify_config.dart</title>
     </path>
-    <path d="M1515 280 C 1525 300,645 300, 655 320" fill="none" class="line">
+    <path d="M1365 280 C 1375 300,645 300, 655 320" fill="none" class="line">
       <title>textify.dart
 ⬇
 textify_post_process.dart</title>
@@ -606,7 +604,7 @@ character_definitions.dart</title>
 ⬇
 image_helpers.dart</title>
     </path>
-    <path d="M1365 130 C 1375 185,1245 185, 1255 240" fill="none" class="line">
+    <path d="M1365 130 C 1375 185,1095 185, 1105 240" fill="none" class="line">
       <title>update_font_templates_test.dart
 ⬇
 textify.dart</title>
@@ -631,7 +629,7 @@ character_definitions.dart</title>
 ⬇
 image_helpers.dart</title>
     </path>
-    <path d="M1665 130 C 1675 185,1245 185, 1255 240" fill="none" class="line">
+    <path d="M1665 130 C 1675 185,1095 185, 1105 240" fill="none" class="line">
       <title>update_times_templates_test.dart
 ⬇
 textify.dart</title>
@@ -641,8 +639,8 @@ textify.dart</title>
     <g id='Counters_lib'>
       <g id='Counters_textify.dart'>
         <g>
-          <circle cx="1515" cy="280" r="10" fill="green"/>
-          <text x="1515" y="280" fill="white" font-size="10" text-anchor="middle" dominant-baseline="central">14</text>
+          <circle cx="1365" cy="280" r="10" fill="green"/>
+          <text x="1365" y="280" fill="white" font-size="10" text-anchor="middle" dominant-baseline="central">14</text>
           <title>textify.dart
 ⬇
 1 /lib/artifact_analysis.dart
@@ -661,13 +659,15 @@ textify.dart</title>
 14 /lib/textify_post_process.dart</title>
         </g>
         <g>
-          <circle cx="1255" cy="240" r="10" fill="blue"/>
-          <text x="1255" y="240" fill="white" font-size="10" text-anchor="middle" dominant-baseline="central">2</text>
+          <circle cx="1105" cy="240" r="10" fill="blue"/>
+          <text x="1105" y="240" fill="white" font-size="10" text-anchor="middle" dominant-baseline="central">2</text>
           <title>1 /tool/update_font_templates_test.dart
 2 /tool/update_times_templates_test.dart
 ⬇
 textify.dart</title>
         </g>
+      </g>
+      <g id='Counters_textify_refinement_helpers.dart'>
       </g>
       <g id='Counters_textify_post_process.dart'>
         <g>
@@ -948,38 +948,18 @@ post_process_numeric.dart</title>
 artifact_grid_transform.dart</title>
         </g>
       </g>
-      <g id='Counters_correction.dart'>
-        <g>
-          <circle cx="1215" cy="520" r="10" fill="green"/>
-          <text x="1215" y="520" fill="white" font-size="10" text-anchor="middle" dominant-baseline="central">3</text>
-          <title>correction.dart
-⬇
-1 /lib/char_utils.dart
-2 /lib/models/english_words.dart
-3 /lib/post_process_helpers.dart</title>
-        </g>
-        <g>
-          <circle cx="955" cy="480" r="10" fill="blue"/>
-          <text x="955" y="480" fill="white" font-size="10" text-anchor="middle" dominant-baseline="central">3</text>
-          <title>1 /lib/post_process_dictionary.dart
-2 /lib/post_process_fragment.dart
-3 /lib/textify.dart
-⬇
-correction.dart</title>
-        </g>
-      </g>
       <g id='Counters_artifact_region.dart'>
         <g>
-          <circle cx="1515" cy="520" r="10" fill="green"/>
-          <text x="1515" y="520" fill="white" font-size="10" text-anchor="middle" dominant-baseline="central">2</text>
+          <circle cx="1215" cy="520" r="10" fill="green"/>
+          <text x="1215" y="520" fill="white" font-size="10" text-anchor="middle" dominant-baseline="central">2</text>
           <title>artifact_region.dart
 ⬇
 1 /lib/artifact.dart
 2 /lib/image_helpers.dart</title>
         </g>
         <g>
-          <circle cx="1255" cy="480" r="10" fill="blue"/>
-          <text x="1255" y="480" fill="white" font-size="10" text-anchor="middle" dominant-baseline="central">3</text>
+          <circle cx="955" cy="480" r="10" fill="blue"/>
+          <text x="955" y="480" fill="white" font-size="10" text-anchor="middle" dominant-baseline="central">3</text>
           <title>1 /lib/artifact_morphology.dart
 2 /lib/band.dart
 3 /lib/textify.dart
@@ -989,8 +969,8 @@ artifact_region.dart</title>
       </g>
       <g id='Counters_artifact_splitting.dart'>
         <g>
-          <circle cx="1815" cy="520" r="10" fill="green"/>
-          <text x="1815" y="520" fill="white" font-size="10" text-anchor="middle" dominant-baseline="central">3</text>
+          <circle cx="1515" cy="520" r="10" fill="green"/>
+          <text x="1515" y="520" fill="white" font-size="10" text-anchor="middle" dominant-baseline="central">3</text>
           <title>artifact_splitting.dart
 ⬇
 1 /lib/artifact.dart
@@ -998,12 +978,31 @@ artifact_region.dart</title>
 3 /lib/image_helpers.dart</title>
         </g>
         <g>
-          <circle cx="1555" cy="480" r="10" fill="blue"/>
-          <text x="1555" y="480" fill="white" font-size="10" text-anchor="middle" dominant-baseline="central">2</text>
+          <circle cx="1255" cy="480" r="10" fill="blue"/>
+          <text x="1255" y="480" fill="white" font-size="10" text-anchor="middle" dominant-baseline="central">2</text>
           <title>1 /lib/artifact_projection.dart
 2 /lib/band.dart
 ⬇
 artifact_splitting.dart</title>
+        </g>
+      </g>
+      <g id='Counters_correction.dart'>
+        <g>
+          <circle cx="1815" cy="520" r="10" fill="green"/>
+          <text x="1815" y="520" fill="white" font-size="10" text-anchor="middle" dominant-baseline="central">2</text>
+          <title>correction.dart
+⬇
+1 /lib/char_utils.dart
+2 /lib/models/english_words.dart</title>
+        </g>
+        <g>
+          <circle cx="1555" cy="480" r="10" fill="blue"/>
+          <text x="1555" y="480" fill="white" font-size="10" text-anchor="middle" dominant-baseline="central">3</text>
+          <title>1 /lib/post_process_dictionary.dart
+2 /lib/post_process_fragment.dart
+3 /lib/textify.dart
+⬇
+correction.dart</title>
         </g>
       </g>
       <g id='Counters_artifact_serialize.dart'>
@@ -1042,15 +1041,15 @@ artifact_serialize.dart</title>
 artifact_analysis.dart</title>
         </g>
       </g>
-      <g id='Counters_char_utils.dart'>
+      <g id='Counters_constants.dart'>
         <g>
           <circle cx="1405" cy="560" r="10" fill="blue"/>
           <text x="1405" y="560" fill="white" font-size="10" text-anchor="middle" dominant-baseline="central">3</text>
           <title>1 /lib/artifact_serialize.dart
-2 /lib/correction.dart
+2 /lib/post_process_fragment.dart
 3 /lib/textify.dart
 ⬇
-char_utils.dart</title>
+constants.dart</title>
         </g>
       </g>
       <g id='Counters_artifact.dart'>
@@ -1171,28 +1170,27 @@ score_match.dart</title>
       <g id='Counters_post_process_helpers.dart'>
         <g>
           <circle cx="1572.5" cy="800" r="10" fill="blue"/>
-          <text x="1572.5" y="800" fill="white" font-size="10" text-anchor="middle" dominant-baseline="central">8</text>
-          <title>1 /lib/correction.dart
-2 /lib/post_process_bracket.dart
-3 /lib/post_process_case.dart
-4 /lib/post_process_dictionary.dart
-5 /lib/post_process_fragment.dart
-6 /lib/post_process_line.dart
-7 /lib/post_process_numeric.dart
-8 /lib/post_process_text.dart
+          <text x="1572.5" y="800" fill="white" font-size="10" text-anchor="middle" dominant-baseline="central">7</text>
+          <title>1 /lib/post_process_bracket.dart
+2 /lib/post_process_case.dart
+3 /lib/post_process_dictionary.dart
+4 /lib/post_process_fragment.dart
+5 /lib/post_process_line.dart
+6 /lib/post_process_numeric.dart
+7 /lib/post_process_text.dart
 ⬇
 post_process_helpers.dart</title>
         </g>
       </g>
-      <g id='Counters_constants.dart'>
+      <g id='Counters_char_utils.dart'>
         <g>
           <circle cx="1872.5" cy="800" r="10" fill="blue"/>
           <text x="1872.5" y="800" fill="white" font-size="10" text-anchor="middle" dominant-baseline="central">3</text>
           <title>1 /lib/artifact_serialize.dart
-2 /lib/post_process_fragment.dart
+2 /lib/correction.dart
 3 /lib/textify.dart
 ⬇
-constants.dart</title>
+char_utils.dart</title>
         </g>
       </g>
     </g>
@@ -1231,7 +1229,10 @@ constants.dart</title>
     <g id='Labels_lib'>
       <text class="folderName" x="27.5" y="195">lib</text>
       <g id='Labels_textify.dart'>
-        <text class="nodeName" x="1385" y="260" font-size="120%">textify.dart</text>
+        <text class="nodeName" x="1235" y="260" font-size="120%">textify.dart</text>
+      </g>
+      <g id='Labels_textify_refinement_helpers.dart'>
+        <text class="nodeName" x="1535" y="260" font-size="90%">textify_refinement_helpers.dart</text>
       </g>
       <g id='Labels_textify_post_process.dart'>
         <text class="nodeName" x="785" y="340" font-size="120%">textify_post_process.dart</text>
@@ -1278,14 +1279,14 @@ constants.dart</title>
       <g id='Labels_artifact_grid_transform.dart'>
         <text class="nodeName" x="785" y="500" font-size="90%">artifact_grid_transform.dart</text>
       </g>
-      <g id='Labels_correction.dart'>
-        <text class="nodeName" x="1085" y="500" font-size="120%">correction.dart</text>
-      </g>
       <g id='Labels_artifact_region.dart'>
-        <text class="nodeName" x="1385" y="500" font-size="120%">artifact_region.dart</text>
+        <text class="nodeName" x="1085" y="500" font-size="120%">artifact_region.dart</text>
       </g>
       <g id='Labels_artifact_splitting.dart'>
-        <text class="nodeName" x="1685" y="500" font-size="120%">artifact_splitting.dart</text>
+        <text class="nodeName" x="1385" y="500" font-size="120%">artifact_splitting.dart</text>
+      </g>
+      <g id='Labels_correction.dart'>
+        <text class="nodeName" x="1685" y="500" font-size="120%">correction.dart</text>
       </g>
       <g id='Labels_artifact_serialize.dart'>
         <text class="nodeName" x="1985" y="500" font-size="120%">artifact_serialize.dart</text>
@@ -1293,8 +1294,8 @@ constants.dart</title>
       <g id='Labels_artifact_analysis.dart'>
         <text class="nodeName" x="1235" y="580" font-size="120%">artifact_analysis.dart</text>
       </g>
-      <g id='Labels_char_utils.dart'>
-        <text class="nodeName" x="1535" y="580" font-size="120%">char_utils.dart</text>
+      <g id='Labels_constants.dart'>
+        <text class="nodeName" x="1535" y="580" font-size="120%">constants.dart</text>
       </g>
       <g id='Labels_artifact.dart'>
         <text class="nodeName" x="1385" y="660" font-size="120%">artifact.dart</text>
@@ -1323,8 +1324,8 @@ constants.dart</title>
       <g id='Labels_post_process_helpers.dart'>
         <text class="nodeName" x="1702.5" y="820" font-size="120%">post_process_helpers.dart</text>
       </g>
-      <g id='Labels_constants.dart'>
-        <text class="nodeName" x="2002.5" y="820" font-size="120%">constants.dart</text>
+      <g id='Labels_char_utils.dart'>
+        <text class="nodeName" x="2002.5" y="820" font-size="120%">char_utils.dart</text>
       </g>
     </g>
     <g id='Labels_tool'>

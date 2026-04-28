@@ -12,6 +12,14 @@ void main() {
       final result = postProcessText('HELLO WORLD');
       expect(result.isNotEmpty, true);
     });
+
+    test('long lowercase prose stays lowercase', () {
+      final result = postProcessText(
+        'the quick brown fox jumps over the lazy dog',
+        applyDictionary: false,
+      );
+      expect(result, 'the quick brown fox jumps over the lazy dog');
+    });
   });
 
   group('numeric gap normalization', () {
@@ -274,6 +282,51 @@ void main() {
       expect(result, 'Thank you for your purchase.');
     });
 
+    test('uppercase near-miss in uppercase prose is corrected', () {
+      final result = postProcessText(
+        'THE QUICK BROWN FOX JUMPS OVER THE UXZY DOG',
+        applyDictionary: true,
+      );
+      expect(result, 'THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG');
+    });
+
+    test('uppercase missing-character near-miss in prose is corrected', () {
+      final result = postProcessText(
+        'THE QUCK BROWN FOX JUMPS OVER THE LAZY DOG',
+        applyDictionary: true,
+      );
+      expect(result, 'THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG');
+    });
+
+    test('uppercase near-miss stays with dictionary off', () {
+      final result = postProcessText(
+        'THE QUICK BROWN FOX JUMPS OVER THE UXZY DOG',
+        applyDictionary: false,
+      );
+      expect(result, 'THE QUICK BROWN FOX JUMPS OVER THE UXZY DOG');
+    });
+
+    test('uppercase missing-character near-miss stays with dictionary off', () {
+      final result = postProcessText(
+        'THE QUCK BROWN FOX JUMPS OVER THE LAZY DOG',
+        applyDictionary: false,
+      );
+      expect(result, 'THE QUCK BROWN FOX JUMPS OVER THE LAZY DOG');
+    });
+
+    test('uppercase short-word prose is preserved', () {
+      final result = postProcessText(
+        'GO BIG OR GO HOME\nBE THE BEST YOU CAN BE',
+        applyDictionary: true,
+      );
+      expect(result, 'GO BIG OR GO HOME\nBE THE BEST YOU CAN BE');
+    });
+
+    test('short uppercase non-prose token is preserved', () {
+      final result = postProcessText('SKU UXZY', applyDictionary: true);
+      expect(result, 'SKU UXZY');
+    });
+
     test('uppercase code label is preserved for code-like value', () {
       final result = postProcessText(
         'SKU: AB12CD34EF56',
@@ -345,9 +398,21 @@ void main() {
         applyDictionary: true,
       );
       final lines = result.split('\n');
+      expect(lines[0], 'Name: John Smith');
       expect(lines[1], 'Date: 2025-06-15');
       expect(lines[2], 'Reference: TX-98432');
       expect(lines[3], 'Amount: 1,250.75');
+      expect(lines[4], 'Status: CONFIRMED');
+    });
+
+    test('name-like line repairs common surname OCR confusion', () {
+      final result = postProcessText('Alice Jolmson', applyDictionary: true);
+      expect(result, 'Alice Johnson');
+    });
+
+    test('structured status value uses shared dictionary words', () {
+      final result = postProcessText('Status: pending', applyDictionary: true);
+      expect(result, 'Status: PENDING');
     });
 
     test('code-like upper-digit token is preserved in uppercase context', () {

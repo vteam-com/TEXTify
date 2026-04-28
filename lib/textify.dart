@@ -22,6 +22,8 @@ import 'package:textify/models/score_match.dart';
 import 'package:textify/models/textify_config.dart';
 import 'package:textify/textify_post_process.dart';
 
+part 'textify_refinement_helpers.dart';
+
 /// Main OCR class for extracting text from clean digital images.
 ///
 /// Processes images by identifying text regions, organizing them into lines (bands),
@@ -34,13 +36,35 @@ class Textify {
   static const double _letterOverPunctuationDelta = 0.05;
   static const double _letterDominanceRatio = 0.6;
   static const double _bandContextPromotionDelta = 0.22;
+  static const double _digitContextPromotionDelta = 0.12;
+  static const int _digitContextMinDigits = 2;
+  static const double _leadingLowercaseUpperTokenDelta = 0.05;
+  static const double _lowercaseILPromotionDelta = 0.04;
+  static const double _punctuationToLetterPromotionDelta = 0.10;
+  static const double _structuredSeparatorMaxAspectRatio = 0.30;
+  static const int _structuredSeparatorMinimumArtifacts = 3;
+  static const int _leadingLowercaseUpperTokenLength = 2;
   static const double _uppercaseDominanceRatio = 0.70;
+  static const double _uppercaseEFSwapDelta = 0.02;
+  static const double _uppercaseFSparseLowerThirdMax = 0.33;
+  static const double _uppercaseWeakLScoreThreshold = 0.45;
+  static const double _uppercaseWeakMScoreThreshold = 0.45;
+  static const double _uppercaseMUProxyDelta = 0.03;
+  static const double _uppercaseUProxyDelta = 0.10;
+  static const double _uppercaseMUSwapDelta = 0.02;
+  static const double _uppercaseUFromLMaxAspectRatio = 1.05;
+  static const double _uppercaseUFromMMaxAspectRatio = 0.68;
+  static const int _uppercaseUStemThreshold = 2;
+  static const int _uppercaseMStemThreshold = 3;
+  static const int _uppercaseProseMinSpaces = 4;
+  static const int _uppercaseProseMinLetters = 12;
   static const int _mergeGapWidthDivisor = 2;
   static const double _mergeScoreThreshold = 0.6;
   static const double _mergeScoreDelta = 0.05;
   static const double _mergeNarrowWidthRatio = 0.6;
   static const double _mergeMaxWidthRatio = 1.3;
   static const int _weakArtifactMaxWidth = 10;
+  static const int _punctuationOnlyBandMinCharacters = 4;
   static const double _structuralTieBreakDelta = 0.02;
   static const double _scoreEqualityTolerance = 1e-9;
   static const int _minimumTieBreakCandidates = 2;
@@ -465,10 +489,25 @@ class Textify {
       band.sortArtifactsLeftToRight();
       _reMergeConsecutiveVerticalStrokes(band);
       _reMergeSplitFragments(band);
+      _refineDigitsInDigitContext(band);
+      _recoverStructuredHorizontalSeparators(band);
       _refinePunctuationInLetterContext(band);
+      _reMergeSplitFragments(band);
       _refineUppercaseInUppercaseContext(band);
-      for (final Artifact artifact in band.artifacts) {
+      _refineLowercaseILInLowercaseContext(band);
+      _refineLeadingLowercaseUpperToken(band);
+      _removeFalseSpacesInPunctuationBand(band);
+      for (int i = 0; i < band.artifacts.length; i++) {
+        final Artifact artifact = band.artifacts[i];
         line += artifact.matchingCharacter;
+        if (i >= band.artifacts.length - 1) {
+          continue;
+        }
+
+        final Artifact next = band.artifacts[i + 1];
+        if (_shouldInsertResidualSpace(band, artifact, next)) {
+          line += ' ';
+        }
       }
 
       linesFound.add(line);
@@ -640,181 +679,6 @@ class Textify {
     return scores;
   }
 
-  /// Resolves near-ties by preferring candidates with stronger structure matches.
-  ///
-  /// This helps disambiguate lookalikes such as `B` vs `D` when pixel distance
-  /// is very close but one candidate better matches enclosure/line features.
-  static void _applyStructuralTieBreak(
-    List<ScoreMatch> scores,
-    Map<String, double> structuralMatchByCharacter,
-  ) {
-    if (scores.length < _minimumTieBreakCandidates) {
-      return;
-    }
-
-    final double bestScore = scores.first.score;
-    final int topCategory = _characterCategory(scores.first.character);
-    final bool topIsUppercase = isUppercaseLetter(scores.first.character);
-    final bool topIsLowercase = isLowercaseLetter(scores.first.character);
-    int bestIndex = 0;
-    double bestStructural =
-        structuralMatchByCharacter[scores.first.character] ?? 0;
-
-    for (int i = 1; i < scores.length; i++) {
-      final ScoreMatch candidate = scores[i];
-      if ((bestScore - candidate.score) > _structuralTieBreakDelta) {
-        break;
-      }
-
-      final int category = _characterCategory(candidate.character);
-      if (category != topCategory) {
-        continue;
-      }
-      if (category == _characterCategoryLetter &&
-          !_matchesLetterCase(
-            candidate.character,
-            topIsUppercase,
-            topIsLowercase,
-          )) {
-        continue;
-      }
-
-      final double structural =
-          structuralMatchByCharacter[candidate.character] ?? 0;
-      final bool strongerStructural =
-          structural > (bestStructural + _scoreEqualityTolerance);
-      final bool sameStructuralBetterScore =
-          (structural - bestStructural).abs() <= _scoreEqualityTolerance &&
-          candidate.score > scores[bestIndex].score;
-      if (strongerStructural || sameStructuralBetterScore) {
-        bestIndex = i;
-        bestStructural = structural;
-      }
-    }
-
-    if (bestIndex == 0) {
-      return;
-    }
-
-    final ScoreMatch selected = scores.removeAt(bestIndex);
-    scores.insert(0, selected);
-  }
-
-  /// Returns true when candidate letter casing is compatible with top score.
-  static bool _matchesLetterCase(
-    String candidate,
-    bool topIsUppercase,
-    bool topIsLowercase,
-  ) {
-    if (topIsUppercase) {
-      return isUppercaseLetter(candidate);
-    }
-    if (topIsLowercase) {
-      return isLowercaseLetter(candidate);
-    }
-    return true;
-  }
-
-  /// Classifies recognized candidates into broad groups for tie-break safety.
-  static int _characterCategory(String character) {
-    if (isLetter(character)) {
-      return _characterCategoryLetter;
-    }
-    if (isDigit(character)) {
-      return _characterCategoryDigit;
-    }
-    return _characterCategoryOther;
-  }
-
-  /// Prefers `R/r` over `P/p` when a lower-right stroke is detected.
-  static void _promoteRWhenLowerRightStroke(List<ScoreMatch> scores) {
-    if (scores.isEmpty) {
-      return;
-    }
-
-    final int pIndex = scores.indexWhere(
-      (score) => score.character == 'P' || score.character == 'p',
-    );
-    final int rIndex = scores.indexWhere(
-      (score) => score.character == 'R' || score.character == 'r',
-    );
-
-    if (pIndex != 0 || rIndex < 0) {
-      return;
-    }
-
-    final double pScore = scores[pIndex].score;
-    final double rScore = scores[rIndex].score;
-    if ((pScore - rScore) <= _lowerRightStrokeSwapDelta) {
-      final ScoreMatch r = scores.removeAt(rIndex);
-      scores.insert(0, r);
-    }
-  }
-
-  /// Prefers `u` when a narrow lowercase `m` candidate is likely over-segmented.
-  static void _promoteUWhenNarrowLowercaseM(
-    List<ScoreMatch> scores,
-    double inputAspectRatio,
-    int stemCount,
-  ) {
-    if (scores.isEmpty) {
-      return;
-    }
-
-    final int mIndex = scores.indexWhere((score) => score.character == 'm');
-    final int uIndex = scores.indexWhere((score) => score.character == 'u');
-
-    if (mIndex != 0 || uIndex < 0) {
-      return;
-    }
-
-    if (stemCount <= _lowercaseMToUStemThreshold) {
-      final ScoreMatch u = scores.removeAt(uIndex);
-      scores.insert(0, u);
-      return;
-    }
-
-    if (inputAspectRatio >= _lowercaseMToUAspectRatioThreshold) {
-      return;
-    }
-
-    final double mScore = scores[mIndex].score;
-    final double uScore = scores[uIndex].score;
-    if ((mScore - uScore) <= _lowercaseMUScoreDelta) {
-      final ScoreMatch u = scores.removeAt(uIndex);
-      scores.insert(0, u);
-    }
-  }
-
-  /// Prefers a letter over punctuation/symbol when scores are close.
-  ///
-  /// Text images overwhelmingly contain letters. When a bracket or symbol
-  /// wins by a tiny margin over a letter with matching structural features,
-  /// the letter is almost always the correct reading.
-  static void _promoteLetterOverPunctuation(List<ScoreMatch> scores) {
-    if (scores.length < _minimumTieBreakCandidates) {
-      return;
-    }
-
-    final ScoreMatch top = scores.first;
-    if (isLetter(top.character) || isDigit(top.character)) {
-      return;
-    }
-
-    // Top is punctuation/symbol — look for a close letter alternative
-    for (int i = 1; i < scores.length; i++) {
-      final ScoreMatch candidate = scores[i];
-      if ((top.score - candidate.score) > _letterOverPunctuationDelta) {
-        break;
-      }
-      if (isLetter(candidate.character)) {
-        final ScoreMatch letter = scores.removeAt(i);
-        scores.insert(0, letter);
-        return;
-      }
-    }
-  }
-
   /// Re-evaluates punctuation/symbol matches when surrounded by letters.
   ///
   /// When a band is dominated by letter characters, isolated punctuation
@@ -863,14 +727,209 @@ class Textify {
       final List<ScoreMatch> scores = getMatchingScoresOfNormalizedMatrix(
         artifact,
       );
+      final double allowedPromotionDelta = leftIsLetter && rightIsLetter
+          ? _bandContextPromotionDelta
+          : _punctuationToLetterPromotionDelta;
       for (final ScoreMatch score in scores) {
-        if (isLetter(score.character) &&
-            (originalScore - score.score) <= _bandContextPromotionDelta) {
+        if (!isLetter(score.character)) {
+          continue;
+        }
+        if ((originalScore - score.score) > allowedPromotionDelta) {
+          break;
+        }
+
+        artifact.matchingCharacter = score.character;
+        artifact.matchingScore = score.score;
+        break;
+      }
+    }
+  }
+
+  /// Promotes digit alternatives inside digit-heavy runs and digit islands.
+  void _refineDigitsInDigitContext(Band band) {
+    final List<Artifact> artifacts = band.artifacts;
+    if (artifacts.length < _minimumTieBreakCandidates) {
+      return;
+    }
+
+    int start = 0;
+    while (start < artifacts.length) {
+      while (start < artifacts.length &&
+          !_isAlphanumericArtifact(artifacts[start])) {
+        start++;
+      }
+      if (start >= artifacts.length) {
+        return;
+      }
+
+      int end = start;
+      int digitCount = 0;
+      int letterCount = 0;
+      while (end < artifacts.length &&
+          _isAlphanumericArtifact(artifacts[end])) {
+        if (isDigit(artifacts[end].matchingCharacter)) {
+          digitCount++;
+        } else if (isLetter(artifacts[end].matchingCharacter)) {
+          letterCount++;
+        }
+        end++;
+      }
+
+      final bool runDigitDominant =
+          digitCount >= _digitContextMinDigits && digitCount >= letterCount;
+
+      for (int i = start; i < end; i++) {
+        final Artifact artifact = artifacts[i];
+        if (!isLetter(artifact.matchingCharacter)) {
+          continue;
+        }
+
+        final bool leftDigit =
+            i > start && isDigit(artifacts[i - 1].matchingCharacter);
+        final bool rightDigit =
+            i + 1 < end && isDigit(artifacts[i + 1].matchingCharacter);
+        if (!runDigitDominant && !(leftDigit && rightDigit)) {
+          continue;
+        }
+
+        final List<ScoreMatch> scores = getMatchingScoresOfNormalizedMatrix(
+          artifact,
+        );
+        for (final ScoreMatch score in scores) {
+          if (!isDigit(score.character)) {
+            continue;
+          }
+          if ((artifact.matchingScore - score.score) >
+              _digitContextPromotionDelta) {
+            break;
+          }
+
           artifact.matchingCharacter = score.character;
           artifact.matchingScore = score.score;
           break;
         }
       }
+
+      start = end + 1;
+    }
+  }
+
+  /// Restores dropped hyphen-like separators between alphanumeric neighbors.
+  void _recoverStructuredHorizontalSeparators(Band band) {
+    final List<Artifact> artifacts = band.artifacts;
+    if (artifacts.length < _structuredSeparatorMinimumArtifacts) {
+      return;
+    }
+
+    for (int i = 1; i < artifacts.length - 1; i++) {
+      final Artifact artifact = artifacts[i];
+      if (artifact.matchingCharacter.isNotEmpty) {
+        continue;
+      }
+      if (artifact.getContentRect().isEmpty ||
+          artifact.aspectRatioOfContent() >
+              _structuredSeparatorMaxAspectRatio) {
+        continue;
+      }
+
+      final Artifact left = artifacts[i - 1];
+      final Artifact right = artifacts[i + 1];
+      if (!_isAlphanumericArtifact(left) || !_isAlphanumericArtifact(right)) {
+        continue;
+      }
+      if (!isDigit(left.matchingCharacter) &&
+          !isDigit(right.matchingCharacter)) {
+        continue;
+      }
+
+      artifact.matchingCharacter = '-';
+      artifact.matchingScore =
+          _scoreForCharacter(
+            getMatchingScoresOfNormalizedMatrix(artifact),
+            '-',
+          ) ??
+          0;
+    }
+  }
+
+  /// Promotes tokens like `oK` to `OK` when the uppercase alternative is near.
+  void _refineLeadingLowercaseUpperToken(Band band) {
+    final List<Artifact> artifacts = band.artifacts;
+    if (artifacts.length < _leadingLowercaseUpperTokenLength) {
+      return;
+    }
+
+    for (int i = 0; i < artifacts.length - 1; i++) {
+      final Artifact current = artifacts[i];
+      final Artifact next = artifacts[i + 1];
+      if (!isLowercaseLetter(current.matchingCharacter) ||
+          !isUppercaseLetter(next.matchingCharacter)) {
+        continue;
+      }
+
+      final bool startsToken =
+          i == 0 || !isLetter(artifacts[i - 1].matchingCharacter);
+      final bool endsToken =
+          i + _leadingLowercaseUpperTokenLength >= artifacts.length ||
+          !isLetter(
+            artifacts[i + _leadingLowercaseUpperTokenLength].matchingCharacter,
+          );
+      if (!startsToken || !endsToken) {
+        continue;
+      }
+
+      final String uppercaseCandidate = current.matchingCharacter.toUpperCase();
+      final double? uppercaseScore = _scoreForCharacter(
+        getMatchingScoresOfNormalizedMatrix(current),
+        uppercaseCandidate,
+      );
+      if (uppercaseScore == null ||
+          (current.matchingScore - uppercaseScore) >
+              _leadingLowercaseUpperTokenDelta) {
+        continue;
+      }
+
+      current.matchingCharacter = uppercaseCandidate;
+      current.matchingScore = uppercaseScore;
+    }
+  }
+
+  static bool _isAlphanumericArtifact(Artifact artifact) {
+    final String character = artifact.matchingCharacter;
+    return isLetter(character) || isDigit(character);
+  }
+
+  /// Promotes `i` over `l` inside long lowercase prose words when scores are close.
+  void _refineLowercaseILInLowercaseContext(Band band) {
+    if (!_looksLikeLowercaseProseBand(band)) {
+      return;
+    }
+
+    final List<Artifact> artifacts = band.artifacts;
+    for (int i = 1; i < artifacts.length - 1; i++) {
+      final Artifact artifact = artifacts[i];
+      if (artifact.matchingCharacter != 'l') {
+        continue;
+      }
+
+      final Artifact previous = artifacts[i - 1];
+      final Artifact next = artifacts[i + 1];
+      if (!isLowercaseLetter(previous.matchingCharacter) ||
+          !isLowercaseLetter(next.matchingCharacter)) {
+        continue;
+      }
+
+      final List<ScoreMatch> scores = getMatchingScoresOfNormalizedMatrix(
+        artifact,
+      );
+      final double? iScore = _scoreForCharacter(scores, 'i');
+      if (iScore == null ||
+          (artifact.matchingScore - iScore) > _lowercaseILPromotionDelta) {
+        continue;
+      }
+
+      artifact.matchingCharacter = 'i';
+      artifact.matchingScore = iScore;
     }
   }
 
@@ -992,6 +1051,42 @@ class Textify {
     }
   }
 
+  /// Removes inserted spaces from dense punctuation-only bands.
+  ///
+  /// Space detection runs before recognition, so isolated punctuation lines can
+  /// pick up false spaces from slightly wider glyph gaps. Once the band resolves
+  /// to punctuation-only content, those synthetic spaces are more harmful than
+  /// helpful.
+  static void _removeFalseSpacesInPunctuationBand(Band band) {
+    int punctuationCount = 0;
+    int alphaNumericCount = 0;
+    int spaceCount = 0;
+
+    for (final Artifact artifact in band.artifacts) {
+      final String character = artifact.matchingCharacter;
+      if (character == ' ') {
+        spaceCount++;
+        continue;
+      }
+      if (isLetter(character) || isDigit(character)) {
+        alphaNumericCount++;
+        continue;
+      }
+      if (character.isNotEmpty) {
+        punctuationCount++;
+      }
+    }
+
+    if (spaceCount == 0 || alphaNumericCount > 0) {
+      return;
+    }
+    if (punctuationCount < _punctuationOnlyBandMinCharacters) {
+      return;
+    }
+
+    band.artifacts.removeWhere((artifact) => artifact.matchingCharacter == ' ');
+  }
+
   /// Returns true only if splitting an artifact into [parts] produces a mean
   /// score strictly better than [originalScore].
   ///
@@ -1011,6 +1106,86 @@ class Textify {
       total += s.isEmpty ? 0 : s.first.score;
     }
     return (total / parts.length) > originalScore;
+  }
+
+  /// Returns true when a remaining wide gap should be treated as a space.
+  static bool _shouldInsertResidualSpace(
+    Band band,
+    Artifact current,
+    Artifact next,
+  ) {
+    if (!_looksLikeUppercaseProseBand(band) &&
+        !_looksLikeLowercaseProseBand(band)) {
+      return false;
+    }
+    if (current.matchingCharacter == ' ' || next.matchingCharacter == ' ') {
+      return false;
+    }
+    if ((!isLetter(current.matchingCharacter) &&
+            !isDigit(current.matchingCharacter)) ||
+        (!isLetter(next.matchingCharacter) &&
+            !isDigit(next.matchingCharacter))) {
+      return false;
+    }
+
+    final int gap = next.rectFound.left - current.rectFound.right;
+    if (gap <= 0) {
+      return false;
+    }
+
+    final int avgWidth = band.averageWidth;
+    final int avgKerning = band.averageKerning;
+    final int threshold = max(
+      1,
+      max((avgWidth * 0.45).round(), avgKerning + 2),
+    );
+    return gap >= threshold;
+  }
+
+  /// Returns true when a band looks like a long all-uppercase prose line.
+  static bool _looksLikeUppercaseProseBand(Band band) {
+    int spaceCount = 0;
+    int letterCount = 0;
+
+    for (final Artifact artifact in band.artifacts) {
+      final String ch = artifact.matchingCharacter;
+      if (ch == ' ') {
+        spaceCount++;
+        continue;
+      }
+      if (ch == '0') {
+        letterCount++;
+        continue;
+      }
+      if (!isUppercaseLetter(ch)) {
+        return false;
+      }
+      letterCount++;
+    }
+
+    return spaceCount >= _uppercaseProseMinSpaces &&
+        letterCount >= _uppercaseProseMinLetters;
+  }
+
+  /// Returns true when a band looks like a long all-lowercase prose line.
+  static bool _looksLikeLowercaseProseBand(Band band) {
+    int spaceCount = 0;
+    int letterCount = 0;
+
+    for (final Artifact artifact in band.artifacts) {
+      final String ch = artifact.matchingCharacter;
+      if (ch == ' ') {
+        spaceCount++;
+        continue;
+      }
+      if (!isLowercaseLetter(ch)) {
+        return false;
+      }
+      letterCount++;
+    }
+
+    return spaceCount >= _uppercaseProseMinSpaces &&
+        letterCount >= _uppercaseProseMinLetters;
   }
 
   /// Promotes lowercase-matched artifacts to their uppercase equivalent when
@@ -1046,7 +1221,7 @@ class Textify {
     }
 
     for (final Artifact artifact in artifacts) {
-      if (!isLowercaseLetter(artifact.matchingCharacter)) {
+      if (!isLetter(artifact.matchingCharacter)) {
         continue;
       }
 
@@ -1054,6 +1229,60 @@ class Textify {
       final List<ScoreMatch> scores = getMatchingScoresOfNormalizedMatrix(
         artifact,
       );
+      if (artifact.matchingCharacter == 'E') {
+        final double? fScore = _scoreForCharacter(scores, 'F');
+        if (fScore != null &&
+            (originalScore - fScore) <= _uppercaseEFSwapDelta &&
+            _lowerThirdDensity(artifact) <= _uppercaseFSparseLowerThirdMax) {
+          artifact.matchingCharacter = 'F';
+          artifact.matchingScore = fScore;
+          continue;
+        }
+      }
+
+      if (artifact.matchingCharacter == 'L') {
+        final double? uProxyScore = _scoreForCharacter(scores, 'u');
+        if (uProxyScore != null &&
+            originalScore <= _uppercaseWeakLScoreThreshold &&
+            artifact.countVerticalStems() >= _uppercaseUStemThreshold &&
+            artifact.aspectRatioOfContent() <= _uppercaseUFromLMaxAspectRatio &&
+            (originalScore - uProxyScore) <= _uppercaseUProxyDelta) {
+          artifact.matchingCharacter = 'U';
+          artifact.matchingScore = uProxyScore;
+          continue;
+        }
+      }
+
+      if (artifact.matchingCharacter == 'M') {
+        final double? uScore = _scoreForCharacter(scores, 'U');
+        if (uScore != null &&
+            originalScore <= _uppercaseWeakMScoreThreshold &&
+            artifact.countVerticalStems() >= _uppercaseMStemThreshold &&
+            artifact.aspectRatioOfContent() <= _uppercaseUFromMMaxAspectRatio &&
+            (originalScore - uScore) <= _uppercaseMUSwapDelta) {
+          artifact.matchingCharacter = 'U';
+          artifact.matchingScore = uScore;
+          continue;
+        }
+      }
+
+      if (!isLowercaseLetter(artifact.matchingCharacter)) {
+        continue;
+      }
+
+      if (artifact.matchingCharacter == 'm') {
+        final double? uProxyScore = _scoreForCharacter(scores, 'u');
+        if (uProxyScore != null &&
+            originalScore <= _uppercaseWeakMScoreThreshold &&
+            artifact.countVerticalStems() >= _uppercaseMStemThreshold &&
+            artifact.aspectRatioOfContent() <= _uppercaseUFromMMaxAspectRatio &&
+            (originalScore - uProxyScore) <= _uppercaseMUProxyDelta) {
+          artifact.matchingCharacter = 'U';
+          artifact.matchingScore = uProxyScore;
+          continue;
+        }
+      }
+
       for (final ScoreMatch score in scores) {
         if (isUppercaseLetter(score.character) &&
             (originalScore - score.score) <= _bandContextPromotionDelta) {

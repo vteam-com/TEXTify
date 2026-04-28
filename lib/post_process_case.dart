@@ -4,8 +4,7 @@
 /// line-level case normalization, and name-like title-case formatting.
 library;
 
-import 'package:textify/correction.dart'
-    show findClosestWord, isOcrConfusionPair, levenshteinDistance;
+import 'package:textify/correction.dart' show findClosestWord, isOcrConfusionPair, levenshteinDistance;
 import 'package:textify/models/english_words.dart';
 import 'package:textify/post_process_helpers.dart';
 
@@ -21,6 +20,8 @@ const int _titleCasePreserveLowerTokenMaxLength = 2;
 const int _shortUppercaseDictionaryTokenLength = 2;
 const int _sentenceLikeLowercaseTokenMinCount = 2;
 const int _sentenceLikeTitleCaseTokenMaxCount = 1;
+const int _longLowercaseProseMinTokens = 6;
+const int _longLowercaseProseMinLetters = 24;
 const int _structuredFieldLabelMaxWords = 3;
 const int _structuredFieldValueMinWords = 2;
 const int _structuredFieldValueMaxWords = 4;
@@ -39,6 +40,9 @@ const int _compoundCodePartCount = 3;
 const int _compoundCodePrefixPartIndex = 0;
 const int _compoundCodeMiddlePartIndex = 1;
 const int _compoundCodeSuffixPartIndex = 2;
+const int _structuredStatusValueMinLength = 4;
+const int _structuredStatusValueMaxDistance = 4;
+const int _nameLikeTokenMaxDistance = 2;
 
 const Map<String, String> _codeDigitLookalikeMap = {
   'O': '0',
@@ -203,7 +207,15 @@ String normalizeLineCase(String line) {
     return line.toUpperCase();
   }
   if (lowerRatio >= _dominantCaseRatio && firstLetterCode != null) {
-    return sentenceCase(line.toLowerCase());
+    final String lowercased = line.toLowerCase();
+    if (shouldPreserveLongLowercaseProse(
+      line,
+      minTokens: _longLowercaseProseMinTokens,
+      minLetters: _longLowercaseProseMinLetters,
+    )) {
+      return lowercased;
+    }
+    return sentenceCase(lowercased);
   }
 
   return line;
@@ -270,7 +282,7 @@ String normalizeNameLikeLineTitleCase(String line) {
       normalized.add(token);
       continue;
     }
-    normalized.add(toTitleCaseWord(token));
+    normalized.add(toTitleCaseWord(_normalizeNameLikeToken(token)));
   }
 
   return normalized.join(' ');
@@ -393,19 +405,85 @@ String normalizeStructuredFieldLine(
       .split(RegExp(r'\s+'))
       .where((String token) => token.isNotEmpty)
       .toList();
+  final bool nameLikeLabel =
+      applyDictionary &&
+      labelTokens.length == 1 &&
+      labelTokens.first.toLowerCase() == 'name';
   final bool alphaPhrase =
       valueTokens.length >= _structuredFieldValueMinWords &&
       valueTokens.length <= _structuredFieldValueMaxWords &&
       valueTokens.every(isAlphaWord);
   if (alphaPhrase) {
     normalizedValue = valueTokens
+        .map(
+          (String token) =>
+              nameLikeLabel ? _normalizeNameLikeToken(token) : token,
+        )
         .map((String token) => toTitleCaseWord(token))
         .join(' ');
+  }
+
+  final bool statusLikeLabel =
+      applyDictionary &&
+      labelTokens.length == 1 &&
+      labelTokens.first.toLowerCase() == 'status' &&
+      valueTokens.length == 1 &&
+      isAlphaWord(valueTokens.first);
+  if (statusLikeLabel) {
+    normalizedValue = _normalizeStructuredStatusValue(valueTokens.first);
   }
 
   normalizedValue = _normalizeStructuredCodeValue(normalizedValue);
 
   return '$normalizedLabel: $normalizedValue';
+}
+
+/// Repairs a likely name token using the shared English dictionary.
+///
+/// This stays scoped to name-like lines and `Name:` fields, but avoids any
+/// dedicated name-only lexicon by using the normal dictionary source.
+String _normalizeNameLikeToken(String token) {
+  if (!isAlphaWord(token)) {
+    return token;
+  }
+
+  final String lower = token.toLowerCase();
+  if (englishWords.contains(lower)) {
+    return lower;
+  }
+
+  final String suggestion = findClosestWord(englishWords, lower);
+  if (suggestion.length != token.length ||
+      levenshteinDistance(lower, suggestion) > _nameLikeTokenMaxDistance) {
+    return token;
+  }
+
+  return suggestion;
+}
+
+/// Normalizes single-word `Status:` field values to a known uppercase status.
+///
+/// When the OCR result is close to a supported status word such as
+/// `CONFIRMED`, this restores the canonical uppercase form while leaving
+/// unrelated values alone.
+String _normalizeStructuredStatusValue(String value) {
+  final String lower = value.toLowerCase();
+  if (value.length < _structuredStatusValueMinLength) {
+    return value;
+  }
+
+  if (englishWords.contains(lower)) {
+    return lower.toUpperCase();
+  }
+
+  final String suggestion = findClosestWord(englishWords, lower);
+  if (suggestion.length != value.length ||
+      levenshteinDistance(lower, suggestion) >
+          _structuredStatusValueMaxDistance) {
+    return value;
+  }
+
+  return suggestion.toUpperCase();
 }
 
 /// Restores a missing colon after short uppercase labels in code-like rows.

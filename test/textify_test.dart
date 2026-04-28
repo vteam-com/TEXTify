@@ -1,5 +1,6 @@
 import 'dart:ui' as ui;
 import 'package:flutter/widgets.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:textify/band.dart';
 import 'package:textify/character_definition.dart';
@@ -16,6 +17,50 @@ void printMatrix(final Artifact matrix) {
   print(
     '${matrix.gridToString()}\n     L:${matrix.rectFound.left} T:${matrix.rectFound.top}  W:${matrix.cols} H:${matrix.rows}\n',
   );
+}
+
+Future<void> loadFontIfAvailable(String family, String assetPath) async {
+  try {
+    final ByteData fontData = await rootBundle.load(assetPath);
+    final FontLoader loader = FontLoader(family)
+      ..addFont(Future.value(fontData));
+    await loader.load();
+  } catch (_) {
+    // Fall back to an installed system font when the asset is unavailable.
+  }
+}
+
+Future<ui.Image> renderTextImage({
+  required String text,
+  required String fontFamily,
+  required double fontSize,
+  int padding = 12,
+}) async {
+  final TextPainter textPainter = TextPainter(
+    text: TextSpan(
+      text: text,
+      style: TextStyle(
+        color: const ui.Color(0xFF000000),
+        fontSize: fontSize,
+        fontWeight: FontWeight.bold,
+        fontFamily: fontFamily,
+      ),
+    ),
+    textDirection: TextDirection.ltr,
+  )..layout();
+
+  final int width = textPainter.width.ceil() + (padding * 2);
+  final int height = textPainter.height.ceil() + (padding * 2);
+
+  final ui.PictureRecorder recorder = ui.PictureRecorder();
+  final ui.Canvas canvas = ui.Canvas(recorder);
+  canvas.drawRect(
+    ui.Rect.fromLTWH(0, 0, width.toDouble(), height.toDouble()),
+    ui.Paint()..color = const ui.Color(0xFFFFFFFF),
+  );
+  textPainter.paint(canvas, Offset(padding.toDouble(), padding.toDouble()));
+
+  return recorder.endRecording().toImage(width, height);
 }
 
 void main() async {
@@ -261,6 +306,99 @@ void main() async {
           .map((m) => m.character)
           .toSet();
       expect(returnedChars.every((char) => specificChars.contains(char)), true);
+    },
+  );
+
+  test('getTextInBands drops false spaces in punctuation-only band', () async {
+    final Textify instance = await Textify().init(
+      pathToAssetsDefinition: 'assets/matrices.json',
+    );
+
+    Artifact matchedArtifact(String character, int left) {
+      final Artifact artifact = Artifact(3, 5);
+      artifact.matchingCharacter = character;
+      artifact.matchingScore = 1;
+      artifact.locationFound = IntOffset(left, 0);
+      artifact.locationAdjusted = IntOffset(left, 0);
+      return artifact;
+    }
+
+    final Band band = Band();
+    band.addArtifacts(<Artifact>[
+      matchedArtifact('(', 0),
+      matchedArtifact(' ', 4),
+      matchedArtifact(')', 8),
+      matchedArtifact('{', 12),
+      matchedArtifact('}', 16),
+      matchedArtifact('[', 16),
+    ]);
+
+    await instance.getTextInBands(listOfBands: <Band>[band]);
+
+    expect(band.spacesCount, 0);
+    expect(
+      band.artifacts.map((artifact) => artifact.matchingCharacter).join(),
+      '(){}[',
+    );
+  });
+
+  test('generated invoice identifier preserves hyphen and digits', () async {
+    await loadFontIfAvailable(
+      'Courier',
+      'assets/fonts/CourierPrime-Regular.ttf',
+    );
+
+    final Textify instance = await Textify(
+      config: const TextifyConfig(applyDictionaryCorrection: false),
+    ).init(pathToAssetsDefinition: 'assets/matrices.json');
+
+    final ui.Image image = await renderTextImage(
+      text: 'INV-2025/12/31',
+      fontFamily: 'Courier',
+      fontSize: 24,
+    );
+
+    expect(await instance.getTextFromImage(image: image), 'INV-2025/12/31');
+  });
+
+  test(
+    'generated status line preserves punctuation and acronym case',
+    () async {
+      await loadFontIfAvailable('Roboto', 'assets/fonts/Roboto-Regular.ttf');
+
+      final Textify instance = await Textify(
+        config: const TextifyConfig(applyDictionaryCorrection: false),
+      ).init(pathToAssetsDefinition: 'assets/matrices.json');
+
+      final ui.Image image = await renderTextImage(
+        text: 'Status: OK',
+        fontFamily: 'Roboto',
+        fontSize: 22,
+      );
+
+      expect(await instance.getTextFromImage(image: image), 'Status: OK');
+    },
+  );
+
+  test(
+    'generated lowercase prose preserves word spacing and i glyphs',
+    () async {
+      await loadFontIfAvailable('Roboto', 'assets/fonts/Roboto-Regular.ttf');
+
+      final Textify instance = await Textify(
+        config: const TextifyConfig(applyDictionaryCorrection: false),
+      ).init(pathToAssetsDefinition: 'assets/matrices.json');
+
+      final ui.Image image = await renderTextImage(
+        text: 'the quick brown fox jumps over the lazy dog',
+        fontFamily: 'Roboto',
+        fontSize: 24,
+      );
+
+      expect(
+        await instance.getTextFromImage(image: image),
+        'the quick brown fox jumps over the lazy dog',
+      );
     },
   );
 }

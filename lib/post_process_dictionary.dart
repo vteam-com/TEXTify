@@ -9,6 +9,116 @@ import 'package:textify/models/english_words.dart';
 import 'package:textify/post_process_helpers.dart';
 
 const int _nearMissMinTokenLength = 3;
+const int _uppercaseSentenceMinTokens = 5;
+const int _uppercaseSentenceMaxMisses = 2;
+const int _uppercaseNearMissMinTokenLength = 4;
+const int _uppercaseNearMissDistance = 2;
+const int _uppercaseInsertionDeletionDistance = 1;
+
+/// Finds a dictionary suggestion for uppercase prose tokens missing one letter.
+///
+/// This only accepts candidates that differ by a single insertion/deletion so
+/// lines like `THE QUCK BROWN...` can recover `QUICK` without broadening the
+/// normal near-miss policy for codes and abbreviations.
+String? _findClosestUppercaseLengthFlexibleSuggestion(String token) {
+  final String lower = token.toLowerCase();
+  String? bestSuggestion;
+
+  for (final String dictWord in englishWords) {
+    if (dictWord.length != lower.length + 1) {
+      continue;
+    }
+
+    if (levenshteinDistance(lower, dictWord) !=
+        _uppercaseInsertionDeletionDistance) {
+      continue;
+    }
+
+    if (!_isSingleInsertionDeletionNearMatch(lower, dictWord)) {
+      continue;
+    }
+
+    if (bestSuggestion == null || dictWord.compareTo(bestSuggestion) < 0) {
+      bestSuggestion = dictWord;
+    }
+  }
+
+  return bestSuggestion;
+}
+
+/// Returns true when two strings differ by exactly one inserted character.
+///
+/// The caller already constrains edit distance to 1, and this helper narrows
+/// that to the specific insertion/deletion shape used by uppercase prose repair.
+bool _isSingleInsertionDeletionNearMatch(String source, String candidate) {
+  if ((source.length - candidate.length).abs() != 1) {
+    return false;
+  }
+
+  final String shorter = source.length < candidate.length ? source : candidate;
+  final String longer = source.length < candidate.length ? candidate : source;
+
+  int shorterIndex = 0;
+  int longerIndex = 0;
+  bool skippedExtraCharacter = false;
+
+  while (shorterIndex < shorter.length && longerIndex < longer.length) {
+    if (shorter[shorterIndex] == longer[longerIndex]) {
+      shorterIndex++;
+      longerIndex++;
+      continue;
+    }
+
+    if (skippedExtraCharacter) {
+      return false;
+    }
+
+    skippedExtraCharacter = true;
+    longerIndex++;
+  }
+
+  if (longerIndex < longer.length) {
+    if (skippedExtraCharacter) {
+      return false;
+    }
+    skippedExtraCharacter = true;
+    longerIndex++;
+  }
+
+  return skippedExtraCharacter &&
+      shorterIndex == shorter.length &&
+      longerIndex == longer.length;
+}
+
+/// Detects all-uppercase prose lines where near-miss dictionary repair is safe.
+///
+/// The line must look sentence-like rather than code-like, and almost all
+/// alphabetic tokens must already be dictionary words so the remaining misses
+/// are likely OCR confusions instead of identifiers or abbreviations.
+bool _looksLikeUppercaseProseLine(String line) {
+  if (hasCodeLikeToken(line)) {
+    return false;
+  }
+
+  final List<String> tokens = RegExp(
+    r'[A-Za-z]+',
+  ).allMatches(line).map((match) => match.group(0)!).toList();
+  if (tokens.length < _uppercaseSentenceMinTokens) {
+    return false;
+  }
+
+  int dictionaryTokens = 0;
+  for (final String token in tokens) {
+    if (token != token.toUpperCase()) {
+      return false;
+    }
+    if (englishWords.contains(token.toLowerCase())) {
+      dictionaryTokens++;
+    }
+  }
+
+  return dictionaryTokens >= (tokens.length - _uppercaseSentenceMaxMisses);
+}
 
 /// Corrects near-miss dictionary words with strict edit-distance limits.
 String correctNearMissDictionaryWords(String line) {
@@ -16,15 +126,22 @@ String correctNearMissDictionaryWords(String line) {
     return line;
   }
 
+  final bool allowUppercaseProseCorrection = _looksLikeUppercaseProseLine(line);
+
   return line.replaceAllMapped(RegExp(r'[A-Za-z]+'), (Match match) {
     final String token = match.group(0)!;
+    final bool tokenIsUppercase = token == token.toUpperCase();
     if (token.length < _nearMissMinTokenLength) {
       return token;
     }
 
     // Protect mixed-case words (e.g., 'OpenAI') and acronyms (e.g., 'GPT')
     // from being "corrected" to lowercase dictionary words.
-    if (isAcronym(token) || isMixedCase(token)) {
+    if (isMixedCase(token)) {
+      return token;
+    }
+    if (isAcronym(token) &&
+        !(allowUppercaseProseCorrection && tokenIsUppercase)) {
       return token;
     }
 
@@ -33,37 +150,57 @@ String correctNearMissDictionaryWords(String line) {
       return token;
     }
 
-    final String suggestion = findClosestMatchingWordInDictionary(token);
-    if (suggestion.isEmpty) {
-      return token;
-    }
+    String suggestion = findClosestMatchingWordInDictionary(token);
+    bool allowCorrection = false;
 
-    final int distance = levenshteinDistance(lower, suggestion.toLowerCase());
+    if (suggestion.isNotEmpty && suggestion.length == token.length) {
+      final int distance = levenshteinDistance(lower, suggestion.toLowerCase());
 
-    // STRICT POLICY: Only allow corrections of distance 1 and matching length.
-    if (distance != 1 || suggestion.length != token.length) {
-      return token;
-    }
+      int diffCount = 0;
+      int confusionDiffCount = 0;
+      bool validSameLengthSuggestion = true;
+      for (int i = 0; i < token.length; i++) {
+        if (token[i].toLowerCase() != suggestion[i].toLowerCase()) {
+          diffCount++;
+          if (!isOcrConfusionPair(token[i], suggestion[i])) {
+            validSameLengthSuggestion = false;
+            break;
+          }
+          confusionDiffCount++;
+        }
+      }
 
-    // Determine which character is being changed.
-    int diffIndex = -1;
-    for (int i = 0; i < token.length; i++) {
-      if (token[i].toLowerCase() != suggestion[i].toLowerCase()) {
-        diffIndex = i;
-        break;
+      if (validSameLengthSuggestion) {
+        final bool allowSingleConfusionCorrection =
+            distance == 1 && diffCount == 1 && confusionDiffCount == 1;
+        final bool allowUppercaseDoubleConfusionCorrection =
+            allowUppercaseProseCorrection &&
+            tokenIsUppercase &&
+            token.length >= _uppercaseNearMissMinTokenLength &&
+            distance == _uppercaseNearMissDistance &&
+            diffCount == _uppercaseNearMissDistance &&
+            confusionDiffCount == _uppercaseNearMissDistance;
+
+        allowCorrection =
+            allowSingleConfusionCorrection ||
+            allowUppercaseDoubleConfusionCorrection;
       }
     }
 
-    if (diffIndex != -1) {
-      final String from = token[diffIndex];
-      final String to = suggestion[diffIndex];
-
-      // Only allow corrections where the changed character is a known
-      // OCR confusion (l/I, O/0, etc.). This prevents morphological
-      // form changes like "Released" → "Releases" (d→s).
-      if (!isOcrConfusionPair(from, to)) {
-        return token;
+    if (!allowCorrection &&
+        allowUppercaseProseCorrection &&
+        tokenIsUppercase &&
+        token.length >= _uppercaseNearMissMinTokenLength) {
+      final String? flexibleSuggestion =
+          _findClosestUppercaseLengthFlexibleSuggestion(token);
+      if (flexibleSuggestion != null) {
+        suggestion = flexibleSuggestion;
+        allowCorrection = true;
       }
+    }
+
+    if (!allowCorrection) {
+      return token;
     }
 
     if (isTitleCaseWord(token)) {
@@ -71,6 +208,9 @@ String correctNearMissDictionaryWords(String line) {
     }
     if (token == token.toLowerCase()) {
       return suggestion.toLowerCase();
+    }
+    if (tokenIsUppercase) {
+      return suggestion.toUpperCase();
     }
     return suggestion;
   });

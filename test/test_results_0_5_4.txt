@@ -7,114 +7,92 @@ upper-alpha-helvetica | font:Helvetica 24px | expected:43 actual:43 | char-acc:9
   expected: "THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG"
   actual:   "THE QUICK BROWN FOX JUMPS OVER THE UXZY DOG"
 upper-alpha-arial | font:Arial 24px | expected:43 actual:43 | char-acc:100.0% | exact:yes| 0.1s
-upper-alpha-times | font:Times New Roman 24px | expected:43 actual:42 | char-acc:83.7% | exact:no| 0.7s
+upper-alpha-times | font:Times New Roman 24px | expected:43 actual:42 | char-acc:97.7% | exact:no| 0.5s
   expected: "THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG"
-  actual:   "THE QMCK BROWN EOX JLMIIS OVER THE LAZYDOG"
-lower-alpha | font:Roboto 24px | expected:43 actual:42 | char-acc:93.0% | exact:no| 0.1s
-  expected: "the quick brown fox jumps over the lazy dog"
-  actual:   "The qulck brown foxjumps over the lazy dog"
-digits | font:Courier 24px | expected:10 actual:10 | char-acc:90.0% | exact:no| 0.0s
-  expected: "0123456789"
-  actual:   "0123456759"
-mixed-1 | font:Courier 24px | expected:14 actual:13 | char-acc:85.7% | exact:no| 0.0s
-  expected: "INV-2025/12/31"
-  actual:   "INV2O25/12/31"
-punctuation | font:Courier 24px | expected:24 actual:27 | char-acc:58.3% | exact:no| 0.1s
+  actual:   "THE QUCK BROWN FOX JUMPS OVER THE LAZY DOG"
+lower-alpha | font:Roboto 24px | expected:43 actual:43 | char-acc:100.0% | exact:yes| 0.1s
+digits | font:Courier 24px | expected:10 actual:10 | char-acc:100.0% | exact:yes| 0.0s
+mixed-1 | font:Courier 24px | expected:14 actual:14 | char-acc:100.0% | exact:yes| 0.0s
+punctuation | font:Courier 24px | expected:24 actual:27 | char-acc:58.3% | exact:no| 0.0s
   expected: "(){}[]<>/\,;:.!@#$&*-+=?"
   actual:   "( ){}[ ]<>/\'; I. le#*&*+=?"
-multi-line | font:Roboto 22px | expected:36 actual:36 | char-acc:94.4% | exact:no| 0.1s
-  expected: "Order: 12345\nTotal: 67.89\nStatus: OK"
-  actual:   "Order: 12345\nTotal: 67.89\nStatusr oK"
+multi-line | font:Roboto 22px | expected:36 actual:36 | char-acc:100.0% | exact:yes| 0.1s
 --- Asset images (dict:off) ---
-input_test_image | asset | expected:39 actual:39 | char-acc:100.0% | exact:yes | 0.2s
+input_test_image | asset | expected:39 actual:39 | char-acc:100.0% | exact:yes | 0.1s
 the-quick-brown-fox | asset | expected:98 actual:98 | char-acc:99.0% | exact:no | 0.3s
   expected: "THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG\nThe quick brown fox jumps over the lazy dog\n2025-12-31"
   actual:   "THE QUTCK BROWN FOX JUMPS OVER THE LAZY DOG\nThe quick brown fox jumps over the lazy dog\n2025-12-31"
-lines-circles | asset | expected:134 actual:134 | char-acc:100.0% | exact:yes | 0.5s
-bank_statement | asset | expected:314 actual:310 | char-acc:98.1% | exact:no | 1.6s
+lines-circles | asset | expected:134 actual:134 | char-acc:100.0% | exact:yes | 0.4s
+bank_statement | asset | expected:314 actual:310 | char-acc:98.1% | exact:no | 1.5s
   expected: "FINO GOLF CLUB, MATOSINHOS\nCONTINENTE BOM DIA, MATOSINHOS\nWWW.AMAZON.* LSIAK28I5, LUXEMBOURG\nREMARKABLE, OSLO\nPINGO DOCE MATOSINHOS, MATOSINHOS\nCONTINENTE BOM DIA, MATOSINHOS\nPAD PORT MATO, MATOSINHOS\nCASA DAS UTILIDADES, Guimaraes\nEUROLOJA MATOSINHOS, MATOSINHOS\nCORES SABORES BOLHAO, PORTO\nTuca Cha E Cafe, PORTO"
   actual:   "FINO GOLF CLUB, MATOSINHOS\nCONTINENTE BOM DIA, MATOSINHOS\nWWW.AMAZON.* LSIAK28I5, LUXEEOURG\nREMARELE, OSLO\nPINGO DOCE MATOSINHO, MATOSINHOS\nCONTINENTE BOM DIA, MATOSINHOS\nPAD PORT MATO, MATOSINHOS\nCASA DAS UTILIDADES, Guimaraes\nEUROLOJA MATOSINHOS, MATOSINHOS\nCORES SABORES BOLHAO, PORTO\nTuca Cha E Cafe, PORTO"
 REMARKABLE | asset | expected:10 actual:10 | char-acc:100.0% | exact:yes | 0.3s
 address-block | asset | expected:53 actual:53 | char-acc:100.0% | exact:yes | 0.1s
-receipt-items | asset | expected:76 actual:76 | char-acc:100.0% | exact:yes | 0.2s
+receipt-items | asset | expected:76 actual:76 | char-acc:100.0% | exact:yes | 0.1s
 mixed-case-sentence | asset | expected:61 actual:61 | char-acc:96.7% | exact:no | 0.1s
   expected: "OpenAI Released GPT In 2020.\nVersion 4 Arrived In March 2023."
   actual:   "OpenAI Released GPT In 2020.\nVerslon 4 Arrlved In March 2023."
 single-line-large | asset | expected:20 actual:20 | char-acc:100.0% | exact:yes | 0.1s
 numbers-grid | asset | expected:44 actual:44 | char-acc:100.0% | exact:yes | 0.2s
-small-text-dense | asset | expected:88 actual:88 | char-acc:90.9% | exact:no | 0.7s
+small-text-dense | asset | expected:88 actual:88 | char-acc:90.9% | exact:no | 0.4s
   expected: "Name: John Smith\nDate: 2025-06-15\nReference: TX-98432\nAmount: 1,250.75\nStatus: CONFIRMED"
   actual:   "Name: John Smlth\nOate: 2025-06-15\nReference: TX-98432\nAmount: 1,250.75\nStatus: coNrlRMFo"
 uppercase-short-words | asset | expected:40 actual:40 | char-acc:100.0% | exact:yes | 0.1s
-title-case-names | asset | expected:40 actual:40 | char-acc:92.5% | exact:no | 0.3s
+title-case-names | asset | expected:40 actual:40 | char-acc:90.0% | exact:no | 0.2s
   expected: "Alice Johnson\nBob Williams\nCharlie Brown"
-  actual:   "Alice JolmSon\nBob Williams\nCharlie Brown"
-codes-and-ids | asset | expected:56 actual:56 | char-acc:96.4% | exact:no | 0.2s
+  actual:   "Alice JolmSon\nBob williams\nCharlie Brown"
+codes-and-ids | asset | expected:56 actual:56 | char-acc:96.4% | exact:no | 0.1s
   expected: "ORD-20250615-0042\nSKU: AB12CD34EF56\nLOT: 2025/Q2/BATCH07"
   actual:   "ORD-20250615-0042\nSKU: AB12CD34ZP56\nLOT: 2025/Q2/BATCH07"
-paragraph-helvetica | asset | expected:90 actual:90 | char-acc:91.1% | exact:no | 0.4s
+paragraph-helvetica | asset | expected:90 actual:90 | char-acc:91.1% | exact:no | 0.3s
   expected: "Payment received on 03/15/2025.\nYour balance is now 0.00 USD.\nThank you for your purchase."
   actual:   "Paymont rocolvod on 03/15/2025.\nYour balanco is now 0.00 USD.\nThank you tor your purchaso."
 --- (dict:off) ---
-Generated: accuracy=91.0%
-Assets:    accuracy=97.4%
-Overall:   accuracy=96.1%
-Total time: 7.2s
-Shell: OCR eval (dict:off): generated= 91.0% assets= 97.4% overall= 96.1% | images= 24 bands=  67 artifacts= 1466 chars= 1462 |   7.2s
-00:07 +1: OCR evaluation (dictionary on)
+Generated: accuracy=95.7%
+Assets:    accuracy=97.3%
+Overall:   accuracy=97.0%
+Total time: 5.9s
+Shell: OCR eval (dict:off): generated= 95.7% assets= 97.3% overall= 97.0% | images= 24 bands=  67 artifacts= 1465 chars= 1462 |   5.9s
+00:05 +1: OCR evaluation (dictionary on)
 --- Generated images (dict:on ) ---
 upper-alpha | font:Roboto 24px | expected:43 actual:43 | char-acc:100.0% | exact:yes| 0.1s
-upper-alpha-helvetica | font:Helvetica 24px | expected:43 actual:43 | char-acc:95.3% | exact:no| 0.2s
-  expected: "THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG"
-  actual:   "THE QUICK BROWN FOX JUMPS OVER THE UXZY DOG"
+upper-alpha-helvetica | font:Helvetica 24px | expected:43 actual:43 | char-acc:100.0% | exact:yes| 0.2s
 upper-alpha-arial | font:Arial 24px | expected:43 actual:43 | char-acc:100.0% | exact:yes| 0.1s
-upper-alpha-times | font:Times New Roman 24px | expected:43 actual:43 | char-acc:86.0% | exact:no| 0.7s
-  expected: "THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG"
-  actual:   "THE QMCK BROWN EOX JLMIIS OVER THE LAZY DOG"
-lower-alpha | font:Roboto 24px | expected:43 actual:43 | char-acc:97.7% | exact:no| 0.1s
-  expected: "the quick brown fox jumps over the lazy dog"
-  actual:   "The quick brown fox jumps over the lazy dog"
-digits | font:Courier 24px | expected:10 actual:10 | char-acc:90.0% | exact:no| 0.0s
-  expected: "0123456789"
-  actual:   "0123456759"
-mixed-1 | font:Courier 24px | expected:14 actual:13 | char-acc:85.7% | exact:no| 0.0s
-  expected: "INV-2025/12/31"
-  actual:   "INV2O25/12/31"
-punctuation | font:Courier 24px | expected:24 actual:27 | char-acc:58.3% | exact:no| 0.1s
+upper-alpha-times | font:Times New Roman 24px | expected:43 actual:43 | char-acc:100.0% | exact:yes| 0.6s
+lower-alpha | font:Roboto 24px | expected:43 actual:43 | char-acc:100.0% | exact:yes| 0.1s
+digits | font:Courier 24px | expected:10 actual:10 | char-acc:100.0% | exact:yes| 0.0s
+mixed-1 | font:Courier 24px | expected:14 actual:14 | char-acc:100.0% | exact:yes| 0.0s
+punctuation | font:Courier 24px | expected:24 actual:27 | char-acc:58.3% | exact:no| 0.0s
   expected: "(){}[]<>/\,;:.!@#$&*-+=?"
   actual:   "( ){}[ ]<>/\'; I. Le#*&*+=?"
-multi-line | font:Roboto 22px | expected:36 actual:36 | char-acc:91.7% | exact:no| 0.1s
-  expected: "Order: 12345\nTotal: 67.89\nStatus: OK"
-  actual:   "Order: 12345\nTotal: 67.89\nStatusr ok"
+multi-line | font:Roboto 22px | expected:36 actual:36 | char-acc:100.0% | exact:yes| 0.1s
 --- Asset images (dict:on ) ---
-input_test_image | asset | expected:39 actual:39 | char-acc:100.0% | exact:yes | 0.2s
+input_test_image | asset | expected:39 actual:39 | char-acc:100.0% | exact:yes | 0.1s
 the-quick-brown-fox | asset | expected:98 actual:98 | char-acc:100.0% | exact:yes | 0.3s
-lines-circles | asset | expected:134 actual:134 | char-acc:100.0% | exact:yes | 0.4s
-bank_statement | asset | expected:314 actual:310 | char-acc:97.8% | exact:no | 1.7s
+lines-circles | asset | expected:134 actual:134 | char-acc:100.0% | exact:yes | 0.3s
+bank_statement | asset | expected:314 actual:310 | char-acc:97.8% | exact:no | 1.4s
   expected: "FINO GOLF CLUB, MATOSINHOS\nCONTINENTE BOM DIA, MATOSINHOS\nWWW.AMAZON.* LSIAK28I5, LUXEMBOURG\nREMARKABLE, OSLO\nPINGO DOCE MATOSINHOS, MATOSINHOS\nCONTINENTE BOM DIA, MATOSINHOS\nPAD PORT MATO, MATOSINHOS\nCASA DAS UTILIDADES, Guimaraes\nEUROLOJA MATOSINHOS, MATOSINHOS\nCORES SABORES BOLHAO, PORTO\nTuca Cha E Cafe, PORTO"
   actual:   "FIND GOLF CLUB, MATOSINHOS\nCONTINENTE BOM DIA, MATOSINHOS\nWWW.AMAZON.* LSIAK28I5, LUXEEOURG\nREMARELE, OSLO\nPINGO DOCE MATOSINHO, MATOSINHOS\nCONTINENTE BOM DIA, MATOSINHOS\nPAD PORT MATO, MATOSINHOS\nCASA DAS UTILIDADES, Guimaraes\nEUROLOJA MATOSINHOS, MATOSINHOS\nCORES SABORES BOLHAO, PORTO\nTuca Cha E Cafe, PORTO"
 REMARKABLE | asset | expected:10 actual:10 | char-acc:100.0% | exact:yes | 0.3s
 address-block | asset | expected:53 actual:53 | char-acc:100.0% | exact:yes | 0.1s
-receipt-items | asset | expected:76 actual:76 | char-acc:100.0% | exact:yes | 0.2s
+receipt-items | asset | expected:76 actual:76 | char-acc:100.0% | exact:yes | 0.1s
 mixed-case-sentence | asset | expected:61 actual:61 | char-acc:100.0% | exact:yes | 0.1s
 single-line-large | asset | expected:20 actual:20 | char-acc:100.0% | exact:yes | 0.1s
 numbers-grid | asset | expected:44 actual:44 | char-acc:100.0% | exact:yes | 0.2s
-small-text-dense | asset | expected:88 actual:88 | char-acc:88.6% | exact:no | 0.6s
-  expected: "Name: John Smith\nDate: 2025-06-15\nReference: TX-98432\nAmount: 1,250.75\nStatus: CONFIRMED"
-  actual:   "Name: John Smlth\nDate: 2025-06-15\nReference: TX-98432\nAmount: 1,250.75\nStatus: conrlrmfo"
+small-text-dense | asset | expected:88 actual:88 | char-acc:100.0% | exact:yes | 0.4s
 uppercase-short-words | asset | expected:40 actual:40 | char-acc:100.0% | exact:yes | 0.1s
-title-case-names | asset | expected:40 actual:40 | char-acc:95.0% | exact:no | 0.3s
+title-case-names | asset | expected:40 actual:40 | char-acc:97.5% | exact:no | 0.2s
   expected: "Alice Johnson\nBob Williams\nCharlie Brown"
-  actual:   "Alice Jolmson\nBob Williams\nCharlie Brown"
+  actual:   "Alice Johnson\nBob williams\nCharlie Brown"
 codes-and-ids | asset | expected:56 actual:56 | char-acc:96.4% | exact:no | 0.1s
   expected: "ORD-20250615-0042\nSKU: AB12CD34EF56\nLOT: 2025/Q2/BATCH07"
   actual:   "ORD-20250615-0042\nSKU: AB12CD34ZP56\nLOT: 2025/Q2/BATCH07"
-paragraph-helvetica | asset | expected:90 actual:90 | char-acc:100.0% | exact:yes | 0.4s
+paragraph-helvetica | asset | expected:90 actual:90 | char-acc:100.0% | exact:yes | 0.3s
 --- (dict:on ) ---
-Generated: accuracy=91.6%
-Assets:    accuracy=98.2%
-Overall:   accuracy=96.9%
-Total time: 7.0s
-Shell: OCR eval (dict:on ): generated= 91.6% assets= 98.2% overall= 96.9% | images= 24 bands=  67 artifacts= 1466 chars= 1462 |   7.0s
-00:14 +2: (tearDownAll)
-00:14 +2: All tests passed!
+Generated: accuracy=96.7%
+Assets:    accuracy=99.1%
+Overall:   accuracy=98.6%
+Total time: 5.5s
+Shell: OCR eval (dict:on ): generated= 96.7% assets= 99.1% overall= 98.6% | images= 24 bands=  67 artifacts= 1465 chars= 1462 |   5.5s
+00:11 +2: (tearDownAll)
+00:11 +2: All tests passed!

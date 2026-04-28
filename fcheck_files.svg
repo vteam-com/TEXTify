@@ -248,9 +248,7 @@
 <rect x="2585.0" y="50" width="270.0" height="650.0" rx="8.0" class="layerBackground"/>
 <text x="2720.0" y="75.0" class="layerTitle">9</text>
 <rect x="50.0" y="90.0" width="220" height="50" class="fileNode"><title>File: /Users/jp/src/github/vteam/textify/lib/textify.dart</title></rect>
-<rect x="50.0" y="160.0" width="220" height="50" class="fileNode fileNodeWarning"><title>File: /Users/jp/src/github/vteam/textify/lib/textify_refinement_helpers.dart
-
-2 Magic Numbers warnings</title></rect>
+<rect x="50.0" y="160.0" width="220" height="50" class="fileNode"><title>File: /Users/jp/src/github/vteam/textify/lib/textify_refinement_helpers.dart</title></rect>
 <rect x="370.0" y="90.0" width="220" height="50" class="fileNode"><title>File: /Users/jp/src/github/vteam/textify/lib/textify_post_process.dart</title></rect>
 <rect x="370.0" y="160.0" width="220" height="50" class="fileNode"><title>File: /Users/jp/src/github/vteam/textify/lib/artifact_projection.dart</title></rect>
 <rect x="370.0" y="230.0" width="220" height="50" class="fileNode"><title>File: /Users/jp/src/github/vteam/textify/lib/bands.dart</title></rect>

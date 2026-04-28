@@ -3,88 +3,68 @@
 00:00 +0: OCR evaluation (dictionary off)
 --- Generated images (dict:off) ---
 upper-alpha | font:Roboto 24px | expected:43 actual:43 | char-acc:100.0% | exact:yes| 0.2s
-upper-alpha-helvetica | font:Helvetica 24px | expected:43 actual:43 | char-acc:95.3% | exact:no| 0.2s
-  expected: "THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG"
-  actual:   "THE QUICK BROWN FOX JUMPS OVER THE UXZY DOG"
+upper-alpha-helvetica | font:Helvetica 24px | expected:43 actual:43 | char-acc:100.0% | exact:yes| 0.4s
 upper-alpha-arial | font:Arial 24px | expected:43 actual:43 | char-acc:100.0% | exact:yes| 0.1s
-upper-alpha-times | font:Times New Roman 24px | expected:43 actual:42 | char-acc:97.7% | exact:no| 0.6s
-  expected: "THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG"
-  actual:   "THE QUCK BROWN FOX JUMPS OVER THE LAZY DOG"
+upper-alpha-times | font:Times New Roman 24px | expected:43 actual:43 | char-acc:100.0% | exact:yes| 0.8s
 lower-alpha | font:Roboto 24px | expected:43 actual:43 | char-acc:100.0% | exact:yes| 0.1s
 digits | font:Courier 24px | expected:10 actual:10 | char-acc:100.0% | exact:yes| 0.0s
 mixed-1 | font:Courier 24px | expected:14 actual:14 | char-acc:100.0% | exact:yes| 0.0s
-punctuation | font:Courier 24px | expected:24 actual:27 | char-acc:58.3% | exact:no| 0.0s
-  expected: "(){}[]<>/\,;:.!@#$&*-+=?"
-  actual:   "( ){}[ ]<>/\'; I. le#*&*+=?"
+punctuation | font:Courier 24px | expected:24 actual:24 | char-acc:100.0% | exact:yes| 0.1s
 multi-line | font:Roboto 22px | expected:36 actual:36 | char-acc:100.0% | exact:yes| 0.1s
 --- Asset images (dict:off) ---
-input_test_image | asset | expected:39 actual:39 | char-acc:100.0% | exact:yes | 0.1s
-the-quick-brown-fox | asset | expected:98 actual:98 | char-acc:100.0% | exact:yes | 0.3s
+input_test_image | asset | expected:39 actual:39 | char-acc:100.0% | exact:yes | 0.2s
+the-quick-brown-fox | asset | expected:98 actual:98 | char-acc:100.0% | exact:yes | 0.4s
 lines-circles | asset | expected:134 actual:134 | char-acc:100.0% | exact:yes | 0.4s
-bank_statement | asset | expected:313 actual:313 | char-acc:100.0% | exact:yes | 1.5s
+bank_statement | asset | expected:313 actual:313 | char-acc:100.0% | exact:yes | 1.7s
 REMARKABLE | asset | expected:10 actual:10 | char-acc:100.0% | exact:yes | 0.3s
 address-block | asset | expected:53 actual:53 | char-acc:100.0% | exact:yes | 0.1s
-receipt-items | asset | expected:76 actual:76 | char-acc:100.0% | exact:yes | 0.1s
-mixed-case-sentence | asset | expected:61 actual:61 | char-acc:96.7% | exact:no | 0.1s
-  expected: "OpenAI Released GPT In 2020.\nVersion 4 Arrived In March 2023."
-  actual:   "OpenAI Released GPT In 2020.\nVerslon 4 Arrlved In March 2023."
-single-line-large | asset | expected:20 actual:20 | char-acc:100.0% | exact:yes | 0.1s
-numbers-grid | asset | expected:44 actual:44 | char-acc:100.0% | exact:yes | 0.2s
-small-text-dense | asset | expected:88 actual:88 | char-acc:100.0% | exact:yes | 0.4s
-uppercase-short-words | asset | expected:40 actual:40 | char-acc:100.0% | exact:yes | 0.1s
-title-case-names | asset | expected:40 actual:40 | char-acc:90.0% | exact:no | 0.2s
-  expected: "Alice Johnson\nBob Williams\nCharlie Brown"
-  actual:   "Alice JolmSon\nBob williams\nCharlie Brown"
-codes-and-ids | asset | expected:56 actual:56 | char-acc:96.4% | exact:no | 0.1s
-  expected: "ORD-20250615-0042\nSKU: AB12CD34EF56\nLOT: 2025/Q2/BATCH07"
-  actual:   "ORD-20250615-0042\nSKU: AB12CD34ZP56\nLOT: 2025/Q2/BATCH07"
-paragraph-helvetica | asset | expected:90 actual:90 | char-acc:91.1% | exact:no | 0.3s
-  expected: "Payment received on 03/15/2025.\nYour balance is now 0.00 USD.\nThank you for your purchase."
-  actual:   "Paymont rocolvod on 03/15/2025.\nYour balanco is now 0.00 USD.\nThank you tor your purchaso."
---- (dict:off) ---
-Generated: accuracy=95.7%
-Assets:    accuracy=98.6%
-Overall:   accuracy=98.0%
-Total time: 5.9s
-Shell: OCR eval (dict:off): generated= 95.7% assets= 98.6% overall= 98.0% | images= 24 bands=  67 artifacts= 1468 chars= 1461 |   5.9s
-00:05 +1: OCR evaluation (dictionary on)
---- Generated images (dict:on ) ---
-upper-alpha | font:Roboto 24px | expected:43 actual:43 | char-acc:100.0% | exact:yes| 0.1s
-upper-alpha-helvetica | font:Helvetica 24px | expected:43 actual:43 | char-acc:100.0% | exact:yes| 0.2s
-upper-alpha-arial | font:Arial 24px | expected:43 actual:43 | char-acc:100.0% | exact:yes| 0.1s
-upper-alpha-times | font:Times New Roman 24px | expected:43 actual:43 | char-acc:100.0% | exact:yes| 0.6s
-lower-alpha | font:Roboto 24px | expected:43 actual:43 | char-acc:100.0% | exact:yes| 0.1s
-digits | font:Courier 24px | expected:10 actual:10 | char-acc:100.0% | exact:yes| 0.0s
-mixed-1 | font:Courier 24px | expected:14 actual:14 | char-acc:100.0% | exact:yes| 0.0s
-punctuation | font:Courier 24px | expected:24 actual:27 | char-acc:58.3% | exact:no| 0.1s
-  expected: "(){}[]<>/\,;:.!@#$&*-+=?"
-  actual:   "( ){}[ ]<>/\'; I. Le#*&*+=?"
-multi-line | font:Roboto 22px | expected:36 actual:36 | char-acc:100.0% | exact:yes| 0.1s
---- Asset images (dict:on ) ---
-input_test_image | asset | expected:39 actual:39 | char-acc:100.0% | exact:yes | 0.1s
-the-quick-brown-fox | asset | expected:98 actual:98 | char-acc:100.0% | exact:yes | 0.2s
-lines-circles | asset | expected:134 actual:134 | char-acc:100.0% | exact:yes | 0.3s
-bank_statement | asset | expected:313 actual:313 | char-acc:100.0% | exact:yes | 1.5s
-REMARKABLE | asset | expected:10 actual:10 | char-acc:100.0% | exact:yes | 0.3s
-address-block | asset | expected:53 actual:53 | char-acc:100.0% | exact:yes | 0.1s
-receipt-items | asset | expected:76 actual:76 | char-acc:100.0% | exact:yes | 0.1s
+receipt-items | asset | expected:76 actual:76 | char-acc:100.0% | exact:yes | 0.2s
 mixed-case-sentence | asset | expected:61 actual:61 | char-acc:100.0% | exact:yes | 0.1s
 single-line-large | asset | expected:20 actual:20 | char-acc:100.0% | exact:yes | 0.1s
 numbers-grid | asset | expected:44 actual:44 | char-acc:100.0% | exact:yes | 0.2s
-small-text-dense | asset | expected:88 actual:88 | char-acc:100.0% | exact:yes | 0.4s
+small-text-dense | asset | expected:88 actual:88 | char-acc:100.0% | exact:yes | 0.6s
 uppercase-short-words | asset | expected:40 actual:40 | char-acc:100.0% | exact:yes | 0.1s
-title-case-names | asset | expected:40 actual:40 | char-acc:97.5% | exact:no | 0.2s
-  expected: "Alice Johnson\nBob Williams\nCharlie Brown"
-  actual:   "Alice Johnson\nBob williams\nCharlie Brown"
-codes-and-ids | asset | expected:56 actual:56 | char-acc:96.4% | exact:no | 0.1s
-  expected: "ORD-20250615-0042\nSKU: AB12CD34EF56\nLOT: 2025/Q2/BATCH07"
-  actual:   "ORD-20250615-0042\nSKU: AB12CD34ZP56\nLOT: 2025/Q2/BATCH07"
-paragraph-helvetica | asset | expected:90 actual:90 | char-acc:100.0% | exact:yes | 0.3s
+title-case-names | asset | expected:40 actual:40 | char-acc:100.0% | exact:yes | 0.3s
+codes-and-ids | asset | expected:56 actual:56 | char-acc:100.0% | exact:yes | 0.1s
+paragraph-helvetica | asset | expected:90 actual:90 | char-acc:100.0% | exact:yes | 0.4s
+--- (dict:off) ---
+Generated: accuracy=100.0%
+Assets:    accuracy=100.0%
+Overall:   accuracy=100.0%
+Total time: 7.5s
+Shell: OCR eval (dict:off): generated=100.0% assets=100.0% overall=100.0% | images= 24 bands=  67 artifacts= 1463 chars= 1461 |   7.5s
+00:07 +1: OCR evaluation (dictionary on)
+--- Generated images (dict:on ) ---
+upper-alpha | font:Roboto 24px | expected:43 actual:43 | char-acc:100.0% | exact:yes| 0.2s
+upper-alpha-helvetica | font:Helvetica 24px | expected:43 actual:43 | char-acc:100.0% | exact:yes| 0.4s
+upper-alpha-arial | font:Arial 24px | expected:43 actual:43 | char-acc:100.0% | exact:yes| 0.1s
+upper-alpha-times | font:Times New Roman 24px | expected:43 actual:43 | char-acc:100.0% | exact:yes| 0.8s
+lower-alpha | font:Roboto 24px | expected:43 actual:43 | char-acc:100.0% | exact:yes| 0.1s
+digits | font:Courier 24px | expected:10 actual:10 | char-acc:100.0% | exact:yes| 0.0s
+mixed-1 | font:Courier 24px | expected:14 actual:14 | char-acc:100.0% | exact:yes| 0.0s
+punctuation | font:Courier 24px | expected:24 actual:24 | char-acc:100.0% | exact:yes| 0.1s
+multi-line | font:Roboto 22px | expected:36 actual:36 | char-acc:100.0% | exact:yes| 0.1s
+--- Asset images (dict:on ) ---
+input_test_image | asset | expected:39 actual:39 | char-acc:100.0% | exact:yes | 0.2s
+the-quick-brown-fox | asset | expected:98 actual:98 | char-acc:100.0% | exact:yes | 0.4s
+lines-circles | asset | expected:134 actual:134 | char-acc:100.0% | exact:yes | 0.4s
+bank_statement | asset | expected:313 actual:313 | char-acc:100.0% | exact:yes | 1.7s
+REMARKABLE | asset | expected:10 actual:10 | char-acc:100.0% | exact:yes | 0.3s
+address-block | asset | expected:53 actual:53 | char-acc:100.0% | exact:yes | 0.1s
+receipt-items | asset | expected:76 actual:76 | char-acc:100.0% | exact:yes | 0.2s
+mixed-case-sentence | asset | expected:61 actual:61 | char-acc:100.0% | exact:yes | 0.1s
+single-line-large | asset | expected:20 actual:20 | char-acc:100.0% | exact:yes | 0.1s
+numbers-grid | asset | expected:44 actual:44 | char-acc:100.0% | exact:yes | 0.2s
+small-text-dense | asset | expected:88 actual:88 | char-acc:100.0% | exact:yes | 0.6s
+uppercase-short-words | asset | expected:40 actual:40 | char-acc:100.0% | exact:yes | 0.1s
+title-case-names | asset | expected:40 actual:40 | char-acc:100.0% | exact:yes | 0.3s
+codes-and-ids | asset | expected:56 actual:56 | char-acc:100.0% | exact:yes | 0.1s
+paragraph-helvetica | asset | expected:90 actual:90 | char-acc:100.0% | exact:yes | 0.4s
 --- (dict:on ) ---
-Generated: accuracy=96.7%
-Assets:    accuracy=99.7%
-Overall:   accuracy=99.1%
-Total time: 5.6s
-Shell: OCR eval (dict:on ): generated= 96.7% assets= 99.7% overall= 99.1% | images= 24 bands=  67 artifacts= 1468 chars= 1461 |   5.6s
-00:11 +2: (tearDownAll)
-00:11 +2: All tests passed!
+Generated: accuracy=100.0%
+Assets:    accuracy=100.0%
+Overall:   accuracy=100.0%
+Total time: 7.4s
+Shell: OCR eval (dict:on ): generated=100.0% assets=100.0% overall=100.0% | images= 24 bands=  67 artifacts= 1463 chars= 1461 |   7.4s
+00:14 +2: (tearDownAll)
+00:15 +2: All tests passed!

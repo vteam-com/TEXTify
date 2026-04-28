@@ -1,5 +1,8 @@
 part of 'textify.dart';
 
+const int _splitPartCount = 2;
+const int _structuralMismatchSentinel = 1 << 30;
+
 /// Resolves near-ties by preferring candidates with stronger structure matches.
 ///
 /// This helps disambiguate lookalikes such as `B` vs `D` when pixel distance
@@ -22,7 +25,10 @@ void _applyStructuralTieBreak(
 
   for (int i = 1; i < scores.length; i++) {
     final ScoreMatch candidate = scores[i];
-    if ((bestScore - candidate.score) > Textify._structuralTieBreakDelta) {
+    final double allowedDelta = i == 1 && topIsLowercase
+        ? Textify._runnerUpStructuralTieBreakDelta
+        : Textify._structuralTieBreakDelta;
+    if ((bestScore - candidate.score) > allowedDelta) {
       break;
     }
 
@@ -213,6 +219,487 @@ double _lowerThirdDensity(Artifact artifact) {
   return artifact.countOnPixels(rect: lowerThird) / totalOn;
 }
 
+/// Splits a weak wide uppercase artifact when its right side is a strong `I`.
+void _splitMergedTrailingUppercaseI(Textify instance, Band band) {
+  if (!Textify._looksLikeUppercaseProseBand(band)) {
+    return;
+  }
+
+  final int avgWidth = band.averageWidth;
+  if (avgWidth <= 0) {
+    return;
+  }
+
+  int index = 0;
+  while (index < band.artifacts.length) {
+    final Artifact artifact = band.artifacts[index];
+    if (!_shouldTryTrailingUppercaseISplit(artifact, avgWidth)) {
+      index++;
+      continue;
+    }
+
+    final _UppercaseTrailingISplitCandidate? candidate =
+        _bestTrailingUppercaseISplit(instance, artifact);
+    if (candidate == null) {
+      index++;
+      continue;
+    }
+
+    candidate.left.matchingCharacter = candidate.leftMatch.character;
+    candidate.left.matchingScore = candidate.leftMatch.score;
+    candidate.left.wasPartOfSplit = true;
+    candidate.right.matchingCharacter = candidate.rightMatch.character;
+    candidate.right.matchingScore = candidate.rightMatch.score;
+    candidate.right.wasPartOfSplit = true;
+    band.replaceOneArtifactWithMore(artifact, <Artifact>[
+      candidate.left,
+      candidate.right,
+    ]);
+    index += _splitPartCount;
+  }
+}
+
+/// Returns true when a weak wide uppercase glyph may end with a trailing `I`.
+///
+/// This keeps the split search limited to uppercase artifacts whose width,
+/// stem count, enclosure count, and low confidence all suggest a merged glyph.
+bool _shouldTryTrailingUppercaseISplit(Artifact artifact, int averageWidth) {
+  if (!isUppercaseLetter(artifact.matchingCharacter)) {
+    return false;
+  }
+  if (artifact.matchingScore >
+      Textify._uppercaseTrailingISplitMaxOriginalScore) {
+    return false;
+  }
+  if (artifact.enclosures != 0) {
+    return false;
+  }
+  if (artifact.countVerticalStems() < Textify._uppercaseMStemThreshold) {
+    return false;
+  }
+  return artifact.rectFound.width >=
+      (averageWidth * Textify._uppercaseTrailingISplitWidthRatio).round();
+}
+
+/// Finds the best cut that turns one artifact into `uppercase + I`.
+///
+/// Each legal split point is rescored independently, and the best candidate is
+/// accepted only when the right fragment is a strong `I` and the split gains
+/// enough average confidence over the original merged match.
+_UppercaseTrailingISplitCandidate? _bestTrailingUppercaseISplit(
+  Textify instance,
+  Artifact artifact,
+) {
+  final int minPartWidth = Textify._uppercaseTrailingISplitMinPartWidth;
+  if (artifact.cols < (minPartWidth * _splitPartCount)) {
+    return null;
+  }
+
+  _UppercaseTrailingISplitCandidate? best;
+  for (int cut = minPartWidth; cut <= artifact.cols - minPartWidth; cut++) {
+    final Artifact left = artifact.extractSubGrid(
+      rect: IntRect.fromLTWH(0, 0, cut, artifact.rows),
+    );
+    final Artifact right = artifact.extractSubGrid(
+      rect: IntRect.fromLTWH(cut, 0, artifact.cols - cut, artifact.rows),
+    );
+
+    final List<ScoreMatch> leftScores = instance
+        .getMatchingScoresOfNormalizedMatrix(left);
+    final List<ScoreMatch> rightScores = instance
+        .getMatchingScoresOfNormalizedMatrix(right);
+    if (leftScores.isEmpty || rightScores.isEmpty) {
+      continue;
+    }
+
+    final ScoreMatch leftMatch = leftScores.first;
+    final ScoreMatch rightMatch = rightScores.first;
+    if (!isUppercaseLetter(leftMatch.character) ||
+        rightMatch.character != 'I') {
+      continue;
+    }
+
+    if (rightMatch.score < Textify._uppercaseTrailingISplitMinIScore) {
+      continue;
+    }
+
+    final double averageScore = (leftMatch.score + rightMatch.score) / 2;
+    if ((averageScore - artifact.matchingScore) <
+        Textify._uppercaseTrailingISplitMinGain) {
+      continue;
+    }
+
+    if (best == null || averageScore > best.averageScore) {
+      best = _UppercaseTrailingISplitCandidate(
+        left: left,
+        right: right,
+        leftMatch: leftMatch,
+        rightMatch: rightMatch,
+        averageScore: averageScore,
+      );
+    }
+  }
+
+  return best;
+}
+
+class _UppercaseTrailingISplitCandidate {
+  const _UppercaseTrailingISplitCandidate({
+    required this.left,
+    required this.right,
+    required this.leftMatch,
+    required this.rightMatch,
+    required this.averageScore,
+  });
+
+  final Artifact left;
+  final Artifact right;
+  final ScoreMatch leftMatch;
+  final ScoreMatch rightMatch;
+  final double averageScore;
+}
+
+/// Repairs split uppercase `LA` when `A` sheds a narrow slash fragment.
+void _repairSplitUppercaseLA(Textify instance, Band band) {
+  if (!Textify._looksLikeUppercaseProseBand(band)) {
+    return;
+  }
+
+  final int avgWidth = band.averageWidth;
+  if (avgWidth <= 0) {
+    return;
+  }
+
+  int index = 0;
+  while (index < band.artifacts.length - 1) {
+    final Artifact current = band.artifacts[index];
+    final Artifact next = band.artifacts[index + 1];
+    final List<ScoreMatch> nextScores = instance
+        .getMatchingScoresOfNormalizedMatrix(next);
+    if (!_shouldTryUppercaseLASplit(
+      band,
+      current,
+      next,
+      nextScores,
+      avgWidth,
+    )) {
+      index++;
+      continue;
+    }
+
+    final _UppercaseLASplitCandidate? candidate = _bestUppercaseLASplit(
+      instance,
+      current,
+      next,
+    );
+    if (candidate == null) {
+      index++;
+      continue;
+    }
+
+    candidate.left.matchingCharacter = candidate.leftMatch.character;
+    candidate.left.matchingScore = candidate.leftMatch.score;
+    candidate.left.wasPartOfSplit = true;
+    candidate.right.matchingCharacter = candidate.rightMatch.character;
+    candidate.right.matchingScore = candidate.rightMatch.score;
+    candidate.right.wasPartOfSplit = true;
+    band.artifacts.removeAt(index + 1);
+    band.artifacts.removeAt(index);
+    band.artifacts.insertAll(index, <Artifact>[
+      candidate.left,
+      candidate.right,
+    ]);
+    band.clearStats();
+    index += _splitPartCount;
+  }
+}
+
+/// Returns true when adjacent uppercase artifacts resemble a broken `LA` pair.
+///
+/// The current artifact must look like a weak wide uppercase letter, the next
+/// artifact must be a narrow fragment close by, and that fragment must still
+/// score competitively as a slash-like shape.
+bool _shouldTryUppercaseLASplit(
+  Band band,
+  Artifact current,
+  Artifact next,
+  List<ScoreMatch> nextScores,
+  int averageWidth,
+) {
+  if (!isUppercaseLetter(current.matchingCharacter)) {
+    return false;
+  }
+  if (current.matchingScore > Textify._uppercaseLASplitMaxOriginalScore) {
+    return false;
+  }
+  if (current.enclosures != 0 || current.countVerticalStems() > 1) {
+    return false;
+  }
+  if (current.rectFound.width <
+      (averageWidth * Textify._uppercaseLASplitMinCurrentWidthRatio).round()) {
+    return false;
+  }
+
+  if (next.enclosures != 0 || next.countVerticalStems() > 1) {
+    return false;
+  }
+  if (next.rectFound.width >
+      (averageWidth * Textify._uppercaseLASplitMaxFragmentWidthRatio).round()) {
+    return false;
+  }
+
+  final int gap = next.rectFound.left - current.rectFound.right;
+  final int maxGap = max(1, band.averageKerning ~/ 2);
+  if (gap < 0 || gap > maxGap) {
+    return false;
+  }
+
+  return _looksLikeSlashFragment(nextScores);
+}
+
+/// Returns true when the fragment still behaves like a slash candidate.
+///
+/// This accepts direct slash or backslash near-misses as well as the common
+/// `X`/`x` proxy that appears when a thin diagonal fragment is matched alone.
+bool _looksLikeSlashFragment(List<ScoreMatch> scores) {
+  if (scores.isEmpty) {
+    return false;
+  }
+
+  final double bestScore = scores.first.score;
+  final double? slashScore = _scoreForCharacter(scores, '/');
+  final double? backslashScore = _scoreForCharacter(scores, '\\');
+
+  if ((slashScore != null &&
+          (bestScore - slashScore) <=
+              Textify._uppercaseLASplitSlashCandidateDelta) ||
+      (backslashScore != null &&
+          (bestScore - backslashScore) <=
+              Textify._uppercaseLASplitSlashCandidateDelta)) {
+    return true;
+  }
+
+  return scores.first.character == 'X' || scores.first.character == 'x';
+}
+
+/// Finds the highest-confidence `L` + `A` split for a merged uppercase pair.
+///
+/// The merged artifact is cut at every legal boundary and rescored. A split is
+/// kept only when the left side cleanly reads as `L`, the right side keeps the
+/// `A` enclosure, and the combined score improves enough over the originals.
+_UppercaseLASplitCandidate? _bestUppercaseLASplit(
+  Textify instance,
+  Artifact current,
+  Artifact next,
+) {
+  final Artifact merged = Artifact.fromMatrix(current);
+  merged.mergeArtifact(next);
+
+  final int minPartWidth = Textify._uppercaseLASplitMinPartWidth;
+  if (merged.cols < (minPartWidth * _splitPartCount) ||
+      merged.enclosures == 0) {
+    return null;
+  }
+
+  final double originalAverage =
+      (current.matchingScore + next.matchingScore) / 2;
+
+  _UppercaseLASplitCandidate? best;
+  for (int cut = minPartWidth; cut <= merged.cols - minPartWidth; cut++) {
+    final Artifact left = merged.extractSubGrid(
+      rect: IntRect.fromLTWH(0, 0, cut, merged.rows),
+    );
+    final Artifact right = merged.extractSubGrid(
+      rect: IntRect.fromLTWH(cut, 0, merged.cols - cut, merged.rows),
+    );
+    if (left.enclosures != 0 || right.enclosures != 1) {
+      continue;
+    }
+
+    final List<ScoreMatch> leftScores = instance
+        .getMatchingScoresOfNormalizedMatrix(left);
+    final List<ScoreMatch> rightScores = instance
+        .getMatchingScoresOfNormalizedMatrix(right);
+    if (leftScores.isEmpty || rightScores.isEmpty) {
+      continue;
+    }
+
+    final ScoreMatch leftMatch = leftScores.first;
+    final ScoreMatch rightMatch = rightScores.first;
+    if (leftMatch.character != 'L' || rightMatch.character != 'A') {
+      continue;
+    }
+    if (leftMatch.score < Textify._uppercaseLASplitMinLScore ||
+        rightMatch.score < Textify._uppercaseLASplitMinAScore) {
+      continue;
+    }
+
+    final double averageScore = (leftMatch.score + rightMatch.score) / 2;
+    if ((averageScore - originalAverage) < Textify._uppercaseLASplitMinGain) {
+      continue;
+    }
+
+    if (best == null || averageScore > best.averageScore) {
+      best = _UppercaseLASplitCandidate(
+        left: left,
+        right: right,
+        leftMatch: leftMatch,
+        rightMatch: rightMatch,
+        averageScore: averageScore,
+      );
+    }
+  }
+
+  return best;
+}
+
+class _UppercaseLASplitCandidate {
+  const _UppercaseLASplitCandidate({
+    required this.left,
+    required this.right,
+    required this.leftMatch,
+    required this.rightMatch,
+    required this.averageScore,
+  });
+
+  final Artifact left;
+  final Artifact right;
+  final ScoreMatch leftMatch;
+  final ScoreMatch rightMatch;
+  final double averageScore;
+}
+
+/// Iterates contiguous alphabetic tokens and reports their case counts.
+void _forEachLetterToken(
+  List<Artifact> artifacts,
+  void Function(int, int, int, int) onToken,
+) {
+  int index = 0;
+  while (index < artifacts.length) {
+    while (index < artifacts.length &&
+        !isLetter(artifacts[index].matchingCharacter)) {
+      index++;
+    }
+    if (index >= artifacts.length) {
+      return;
+    }
+
+    int end = index;
+    int lowerCount = 0;
+    int upperCount = 0;
+    while (end < artifacts.length &&
+        isLetter(artifacts[end].matchingCharacter)) {
+      if (isLowercaseLetter(artifacts[end].matchingCharacter)) {
+        lowerCount++;
+      } else if (isUppercaseLetter(artifacts[end].matchingCharacter)) {
+        upperCount++;
+      }
+      end++;
+    }
+
+    onToken(index, end, lowerCount, upperCount);
+    index = end;
+  }
+}
+
+/// Refines ordinary title-case tokens inside mixed-case prose bands.
+///
+/// This catches internal `l` vs `i` misses in words like `Version` without
+/// touching mixed-case brands such as `OpenAI`, which contain additional
+/// uppercase letters beyond the initial title-case prefix.
+void _refineTitleCaseTokensInMixedCaseBand(Textify instance, Band band) {
+  if (Textify._looksLikeUppercaseProseBand(band) ||
+      Textify._looksLikeLowercaseProseBand(band)) {
+    return;
+  }
+
+  final List<Artifact> artifacts = band.artifacts;
+  _forEachLetterToken(artifacts, (
+    int index,
+    int end,
+    int lowerCount,
+    int upperCount,
+  ) {
+    final int tokenLength = end - index;
+    final bool titleCaseLike =
+        tokenLength >= Textify._structuredTitleCaseTokenMinLength &&
+        isUppercaseLetter(artifacts[index].matchingCharacter) &&
+        upperCount == 1 &&
+        lowerCount == tokenLength - 1;
+    if (titleCaseLike) {
+      _refineStructuredTitleCaseToken(instance, artifacts, index, end);
+    }
+  });
+}
+
+/// Refines lowercase-like prose tokens inside mixed-content bands.
+///
+/// Sentence bands that include dates, punctuation, or a stray uppercase OCR
+/// miss do not qualify as lowercase prose globally, but their ordinary word
+/// tokens can still use lowercase-local rescues such as `l -> i` and `o -> e`.
+void _refineLowercaseLikeTokens(Textify instance, Band band) {
+  if (Textify._looksLikeUppercaseProseBand(band)) {
+    return;
+  }
+
+  final List<Artifact> artifacts = band.artifacts;
+  _forEachLetterToken(artifacts, (
+    int index,
+    int end,
+    int lowerCount,
+    int upperCount,
+  ) {
+    final int tokenLength = end - index;
+    final bool lowercaseLike =
+        tokenLength >= Textify._lowercaseTokenRefinementMinLength &&
+        upperCount <= Textify._lowercaseTokenMaxUppercase &&
+        lowerCount >= tokenLength - Textify._lowercaseTokenMaxUppercase;
+    if (lowercaseLike) {
+      _refineLowercaseLikeToken(instance, artifacts, index, end);
+    }
+  });
+}
+
+/// Refines local lowercase confusions inside a lowercase-like token.
+void _refineLowercaseLikeToken(
+  Textify instance,
+  List<Artifact> artifacts,
+  int start,
+  int end,
+) {
+  for (int i = start; i < end; i++) {
+    final Artifact artifact = artifacts[i];
+    final List<ScoreMatch> scores = instance
+        .getMatchingScoresOfNormalizedMatrix(artifact);
+
+    if (artifact.matchingCharacter == 'l' && i > start && i < end - 1) {
+      final double? iScore = _scoreForCharacter(scores, 'i');
+      if (iScore != null &&
+          (artifact.matchingScore - iScore) <=
+              Textify._lowercaseILPromotionDelta) {
+        artifact.matchingCharacter = 'i';
+        artifact.matchingScore = iScore;
+        continue;
+      }
+    }
+
+    if (artifact.matchingCharacter != 'o' || artifact.enclosures != 1) {
+      continue;
+    }
+
+    final double? eScore = _scoreForCharacter(scores, 'e');
+    if (eScore == null ||
+        (artifact.matchingScore - eScore) >
+            Textify._lowercaseOEPromotionDelta ||
+        _lowerThirdDensity(artifact) > Textify._lowercaseESparseLowerThirdMax) {
+      continue;
+    }
+
+    artifact.matchingCharacter = 'e';
+    artifact.matchingScore = eScore;
+  }
+}
+
 /// Refines structured field labels/values using token-local case context.
 void _refineStructuredFieldTokenCase(Textify instance, Band band) {
   final List<Artifact> artifacts = band.artifacts;
@@ -268,6 +755,155 @@ void _refineStructuredFieldTokenCase(Textify instance, Band band) {
 
     index = end;
   }
+}
+
+/// Promotes stronger uppercase candidates inside mixed alphanumeric code tokens.
+void _refineCodeLikeTokenCharacters(Textify instance, Band band) {
+  final List<Artifact> artifacts = band.artifacts;
+  int index = 0;
+  while (index < artifacts.length) {
+    while (index < artifacts.length &&
+        !_isCodeLikeTokenCharacter(artifacts[index].matchingCharacter)) {
+      index++;
+    }
+    if (index >= artifacts.length) {
+      return;
+    }
+
+    int end = index;
+    int letterCount = 0;
+    int digitCount = 0;
+    while (end < artifacts.length &&
+        _isCodeLikeTokenCharacter(artifacts[end].matchingCharacter)) {
+      final String character = artifacts[end].matchingCharacter;
+      if (isLetter(character)) {
+        letterCount++;
+      } else if (isDigit(character)) {
+        digitCount++;
+      }
+      end++;
+    }
+
+    final int tokenLength = end - index;
+    if (tokenLength >= Textify._codeTokenRefinementMinLength &&
+        letterCount >= Textify._codeTokenRefinementMinLetters &&
+        digitCount >= Textify._codeTokenRefinementMinDigits) {
+      _refineCodeLikeToken(instance, artifacts, index, end);
+    }
+
+    index = end;
+  }
+}
+
+bool _isCodeLikeTokenCharacter(String character) {
+  return isLetter(character) || isDigit(character);
+}
+
+/// Refines interior letter runs in a mixed alphanumeric code token.
+///
+/// This only touches letter runs that are bounded by digits on both sides,
+/// which keeps corrections scoped to embedded code suffixes such as `34EF56`
+/// and avoids rewriting leading alpha prefixes like `LSIAK28I5`.
+void _refineCodeLikeToken(
+  Textify instance,
+  List<Artifact> artifacts,
+  int start,
+  int end,
+) {
+  int index = start;
+  while (index < end) {
+    while (index < end && !isLetter(artifacts[index].matchingCharacter)) {
+      index++;
+    }
+    if (index >= end) {
+      return;
+    }
+
+    int runEnd = index;
+    while (runEnd < end && isLetter(artifacts[runEnd].matchingCharacter)) {
+      runEnd++;
+    }
+
+    final bool digitBefore =
+        index > start && isDigit(artifacts[index - 1].matchingCharacter);
+    final bool digitAfter =
+        runEnd < end && isDigit(artifacts[runEnd].matchingCharacter);
+    if (digitBefore && digitAfter) {
+      for (int i = index; i < runEnd; i++) {
+        final Artifact artifact = artifacts[i];
+        final List<ScoreMatch> scores = instance
+            .getMatchingScoresOfNormalizedMatrix(artifact);
+        final ScoreMatch? candidate = _bestCodeLikeUppercaseCandidate(
+          artifact,
+          scores,
+        );
+        if (candidate == null) {
+          continue;
+        }
+
+        artifact.matchingCharacter = candidate.character;
+        artifact.matchingScore = candidate.score;
+      }
+    }
+
+    index = runEnd;
+  }
+}
+
+/// Picks the strongest uppercase code candidate when structure improves.
+///
+/// For already-uppercase glyphs, candidates must strictly reduce structural
+/// mismatch. For lowercase leftovers inside code runs, the same-letter
+/// uppercase form is allowed, or any uppercase candidate with a better
+/// enclosure/stem match.
+ScoreMatch? _bestCodeLikeUppercaseCandidate(
+  Artifact artifact,
+  List<ScoreMatch> scores,
+) {
+  if (scores.isEmpty) {
+    return null;
+  }
+
+  final int currentMismatch = _candidateStructuralMismatch(
+    artifact,
+    artifact.matchingCharacter,
+  );
+  final bool currentUppercase = isUppercaseLetter(artifact.matchingCharacter);
+  final String currentUpper = artifact.matchingCharacter.toUpperCase();
+
+  ScoreMatch? best;
+  int bestMismatch = _structuralMismatchSentinel;
+  for (final ScoreMatch candidate in scores) {
+    if ((artifact.matchingScore - candidate.score) >
+        Textify._codeTokenStructurePromotionDelta) {
+      break;
+    }
+    if (!isUppercaseLetter(candidate.character)) {
+      continue;
+    }
+
+    final int mismatch = _candidateStructuralMismatch(
+      artifact,
+      candidate.character,
+    );
+    final bool sameLetterUppercase = candidate.character == currentUpper;
+    final bool eligible = currentUppercase
+        ? mismatch < currentMismatch
+        : sameLetterUppercase || mismatch < currentMismatch;
+    if (!eligible) {
+      continue;
+    }
+
+    if (best == null ||
+        mismatch < bestMismatch ||
+        (mismatch == bestMismatch &&
+            candidate.score > best.score + Textify._scoreEqualityTolerance)) {
+      best = candidate;
+      bestMismatch = mismatch;
+    }
+  }
+
+  return best;
 }
 
 /// Promotes a likely title-case token using case-compatible candidates.
@@ -377,7 +1013,7 @@ ScoreMatch? _bestCaseCandidate(
   }
 
   ScoreMatch? best;
-  int bestMismatch = 1 << 30;
+  int bestMismatch = _structuralMismatchSentinel;
   for (final ScoreMatch candidate in scores) {
     if ((artifact.matchingScore - candidate.score) > allowedDelta) {
       break;
@@ -411,7 +1047,7 @@ int _candidateStructuralMismatch(Artifact artifact, String candidate) {
   final CharacterDefinition? definition = Textify.characterDefinitions
       .getDefinition(candidate);
   if (definition == null) {
-    return 1 << 30;
+    return _structuralMismatchSentinel;
   }
 
   int mismatch = 0;

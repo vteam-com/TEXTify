@@ -410,6 +410,21 @@ void main() {
       expect(result, 'Alice Johnson');
     });
 
+    test('name-like line repairs mixed-case surname OCR confusion', () {
+      final result = postProcessText('Alice JolmSon', applyDictionary: false);
+      expect(result, 'Alice Johnson');
+    });
+
+    test('name-like line title-cases noisy lowercase surname token', () {
+      final result = postProcessText('Bob williamS', applyDictionary: false);
+      expect(result, 'Bob Williams');
+    });
+
+    test('name-like lowercase connector is title-cased in both modes', () {
+      expect(postProcessText('Alice and', applyDictionary: true), 'Alice And');
+      expect(postProcessText('Alice and', applyDictionary: false), 'Alice And');
+    });
+
     test('structured status value uses shared dictionary words', () {
       final result = postProcessText('Status: pending', applyDictionary: true);
       expect(result, 'Status: PENDING');

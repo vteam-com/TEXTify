@@ -40,8 +40,27 @@ class Textify {
   static const int _digitContextMinDigits = 2;
   static const double _leadingLowercaseUpperTokenDelta = 0.05;
   static const double _lowercaseILPromotionDelta = 0.04;
+  static const double _lowercaseOEPromotionDelta = 0.02;
+  static const double _lowercaseESparseLowerThirdMax = 0.35;
+  static const int _lowercaseTokenMaxUppercase = 1;
+  static const int _lowercaseTokenRefinementMinLength = 3;
   static const double _punctuationToLetterPromotionDelta = 0.10;
+  static const double _punctuationBandPromotionDelta = 0.06;
+  static const double _punctuationBandBlankScoreThreshold = 0.20;
+  static const double _punctuationDominanceRatio = 0.70;
+  static const double _punctuationCompetitiveDelta = 0.08;
+  static const double _punctuationLowOnlyTopRatio = 0.50;
+  static const double _punctuationShortDotHeightRatio = 0.24;
+  static const double _punctuationFlatHeightRatio = 0.15;
+  static const double _punctuationTallMarkHeightRatio = 0.65;
+  static const double _punctuationDescenderBottomRatio = 0.95;
+  static const double _punctuationWideEnclosureWidthRatio = 1.35;
+  static const int _stackedPunctuationMinComponents = 2;
   static const double _structuredTokenCasePromotionDelta = 0.10;
+  static const double _codeTokenStructurePromotionDelta = 0.06;
+  static const int _codeTokenRefinementMinLength = 6;
+  static const int _codeTokenRefinementMinLetters = 2;
+  static const int _codeTokenRefinementMinDigits = 2;
   static const double _structuredSeparatorMaxAspectRatio = 0.30;
   static const int _structuredSeparatorMinimumArtifacts = 3;
   static const int _structuredTitleCaseTokenMinLength = 3;
@@ -61,6 +80,19 @@ class Textify {
   static const double _uppercaseUFromMMaxAspectRatio = 0.68;
   static const int _uppercaseUStemThreshold = 2;
   static const int _uppercaseMStemThreshold = 3;
+  static const double _uppercaseTrailingISplitWidthRatio = 1.35;
+  static const double _uppercaseTrailingISplitMaxOriginalScore = 0.50;
+  static const double _uppercaseTrailingISplitMinGain = 0.12;
+  static const double _uppercaseTrailingISplitMinIScore = 0.70;
+  static const int _uppercaseTrailingISplitMinPartWidth = 4;
+  static const double _uppercaseLASplitMaxOriginalScore = 0.50;
+  static const double _uppercaseLASplitMinCurrentWidthRatio = 1.25;
+  static const double _uppercaseLASplitMaxFragmentWidthRatio = 0.70;
+  static const double _uppercaseLASplitSlashCandidateDelta = 0.18;
+  static const double _uppercaseLASplitMinGain = 0.14;
+  static const double _uppercaseLASplitMinLScore = 0.54;
+  static const double _uppercaseLASplitMinAScore = 0.68;
+  static const int _uppercaseLASplitMinPartWidth = 4;
   static const int _uppercaseProseMinSpaces = 4;
   static const int _uppercaseProseMinLetters = 12;
   static const int _mergeGapWidthDivisor = 2;
@@ -73,6 +105,7 @@ class Textify {
   static const int _weakArtifactMaxWidth = 10;
   static const int _punctuationOnlyBandMinCharacters = 4;
   static const double _structuralTieBreakDelta = 0.02;
+  static const double _runnerUpStructuralTieBreakDelta = 0.05;
   static const double _scoreEqualityTolerance = 1e-9;
   static const int _minimumTieBreakCandidates = 2;
   static const int _characterCategoryLetter = 1;
@@ -509,9 +542,15 @@ class Textify {
       _refinePunctuationInLetterContext(band);
       _reMergeSplitFragments(band);
       _refineUppercaseInUppercaseContext(band);
+      _splitMergedTrailingUppercaseI(this, band);
+      _repairSplitUppercaseLA(this, band);
       _refineLowercaseILInLowercaseContext(band);
+      _refineLowercaseLikeTokens(this, band);
       _refineLeadingLowercaseUpperToken(band);
+      _refineTitleCaseTokensInMixedCaseBand(this, band);
       _refineStructuredFieldTokenCase(this, band);
+      _refineCodeLikeTokenCharacters(this, band);
+      _refinePunctuationDominantBand(band);
       _removeFalseSpacesInPunctuationBand(band);
       for (int i = 0; i < band.artifacts.length; i++) {
         final Artifact artifact = band.artifacts[i];
@@ -1103,6 +1142,244 @@ class Textify {
     band.artifacts.removeWhere((artifact) => artifact.matchingCharacter == ' ');
   }
 
+  /// Reclaims punctuation in bands that are already punctuation-dominant.
+  ///
+  /// Generated symbol rows can still pick up letters like `I`, `l`, or `e`
+  /// because the global letter-over-punctuation tie-break is tuned for prose.
+  /// Once a band is clearly punctuation-heavy, prefer competitive punctuation
+  /// candidates again and allow low-confidence punctuation to replace blanks.
+  void _refinePunctuationDominantBand(Band band) {
+    int punctuationCount = 0;
+    int alphaNumericCount = 0;
+
+    for (final Artifact artifact in band.artifacts) {
+      final String character = artifact.matchingCharacter;
+      if (_isPunctuationLikeCharacter(character)) {
+        punctuationCount++;
+        continue;
+      }
+      if (isLetter(character) || isDigit(character)) {
+        alphaNumericCount++;
+      }
+    }
+
+    final int nonSpaceCount = punctuationCount + alphaNumericCount;
+    if (nonSpaceCount < _punctuationOnlyBandMinCharacters) {
+      return;
+    }
+    if (punctuationCount / nonSpaceCount < _punctuationDominanceRatio) {
+      return;
+    }
+
+    for (final Artifact artifact in band.artifacts) {
+      final List<ScoreMatch> scores = getMatchingScoresOfNormalizedMatrix(
+        artifact,
+      );
+      if (scores.isEmpty) {
+        continue;
+      }
+
+      final ScoreMatch? punctuationCandidate = _bestPunctuationCandidate(
+        scores,
+        artifact,
+        band,
+      );
+      if (punctuationCandidate == null) {
+        continue;
+      }
+
+      final String current = artifact.matchingCharacter;
+      if (current.isEmpty || current == ' ') {
+        if (_shouldForcePunctuationGeometryOverride(artifact) ||
+            punctuationCandidate.score >= _punctuationBandBlankScoreThreshold) {
+          artifact.matchingCharacter = punctuationCandidate.character;
+          artifact.matchingScore = punctuationCandidate.score;
+        }
+        continue;
+      }
+
+      if (_isPunctuationLikeCharacter(current)) {
+        if (punctuationCandidate.character != current &&
+            (_shouldForcePunctuationGeometryOverride(artifact) ||
+                (artifact.matchingScore - punctuationCandidate.score) <=
+                    _punctuationCompetitiveDelta)) {
+          artifact.matchingCharacter = punctuationCandidate.character;
+          artifact.matchingScore = punctuationCandidate.score;
+        }
+        continue;
+      }
+
+      if ((artifact.matchingScore - punctuationCandidate.score) <=
+          _punctuationBandPromotionDelta) {
+        artifact.matchingCharacter = punctuationCandidate.character;
+        artifact.matchingScore = punctuationCandidate.score;
+      }
+    }
+  }
+
+  /// Returns the strongest punctuation candidate for a punctuation-heavy band.
+  ///
+  /// Starts from the punctuation-only subset of [scores], then lets the
+  /// geometry-based classifier override the raw top punctuation match when the
+  /// artifact shape strongly suggests a specific symbol class.
+  static ScoreMatch? _bestPunctuationCandidate(
+    List<ScoreMatch> scores,
+    Artifact artifact,
+    Band band,
+  ) {
+    final List<ScoreMatch> punctuationScores = scores
+        .where((score) => _isPunctuationLikeCharacter(score.character))
+        .toList();
+    if (punctuationScores.isEmpty) {
+      return null;
+    }
+
+    final ScoreMatch best = punctuationScores.first;
+    final IntRect content = artifact.getContentRect();
+    if (content.isEmpty) {
+      return best;
+    }
+
+    final double rows = max(1, artifact.rows).toDouble();
+    final double topRatio = content.top / rows;
+    final double bottomRatio = content.bottom / rows;
+    final double heightRatio = content.height / rows;
+    final double widthRatio = band.averageWidth <= 0
+        ? 1.0
+        : artifact.rectFound.width / band.averageWidth;
+    final int componentCount = artifact.findSubArtifacts().where((part) {
+      return part.isNotEmpty;
+    }).length;
+
+    final ScoreMatch? geometryPick = _pickPunctuationByGeometry(
+      punctuationScores,
+      artifact,
+      topRatio,
+      bottomRatio,
+      heightRatio,
+      widthRatio,
+      componentCount,
+    );
+    return geometryPick ?? best;
+  }
+
+  /// Uses band-relative geometry to separate similar punctuation symbols.
+  ///
+  /// The heuristic distinguishes low marks, flat horizontals, stacked-dot
+  /// marks, and enclosed symbols so punctuation-only rows are not forced to
+  /// rely on prose-oriented score ordering alone.
+  static ScoreMatch? _pickPunctuationByGeometry(
+    List<ScoreMatch> punctuationScores,
+    Artifact artifact,
+    double topRatio,
+    double bottomRatio,
+    double heightRatio,
+    double widthRatio,
+    int componentCount,
+  ) {
+    final ScoreMatch best = punctuationScores.first;
+
+    if (topRatio >= _punctuationLowOnlyTopRatio) {
+      if (heightRatio <= _punctuationShortDotHeightRatio) {
+        return _scoreMatchForCharacter(punctuationScores, '.') ??
+            _scoreMatchForCharacter(punctuationScores, ',') ??
+            best;
+      }
+      return _scoreMatchForCharacter(punctuationScores, ',') ??
+          _scoreMatchForCharacter(punctuationScores, '.') ??
+          best;
+    }
+
+    if (heightRatio <= _punctuationFlatHeightRatio) {
+      return _scoreMatchForCharacter(punctuationScores, '-') ??
+          _scoreMatchForCharacter(punctuationScores, '=') ??
+          best;
+    }
+
+    if (componentCount >= _stackedPunctuationMinComponents) {
+      if (bottomRatio >= _punctuationDescenderBottomRatio) {
+        return _scoreMatchForCharacter(punctuationScores, ';') ??
+            _scoreMatchForCharacter(punctuationScores, '!') ??
+            _scoreMatchForCharacter(punctuationScores, ':') ??
+            best;
+      }
+      if (heightRatio >= _punctuationTallMarkHeightRatio) {
+        return _scoreMatchForCharacter(punctuationScores, '!') ??
+            _scoreMatchForCharacter(punctuationScores, ':') ??
+            best;
+      }
+      return _scoreMatchForCharacter(punctuationScores, ':') ??
+          _scoreMatchForCharacter(punctuationScores, ';') ??
+          best;
+    }
+
+    if (artifact.enclosures > 0) {
+      final ScoreMatch? atCandidate = _scoreMatchForCharacter(
+        punctuationScores,
+        '@',
+      );
+      if (atCandidate != null &&
+          widthRatio >= _punctuationWideEnclosureWidthRatio &&
+          _isCompetitivePunctuationCandidate(best, atCandidate)) {
+        return atCandidate;
+      }
+
+      final ScoreMatch? dollarCandidate = _scoreMatchForCharacter(
+        punctuationScores,
+        r'$',
+      );
+      if (dollarCandidate != null &&
+          _isCompetitivePunctuationCandidate(best, dollarCandidate)) {
+        return dollarCandidate;
+      }
+    }
+
+    return null;
+  }
+
+  static bool _isCompetitivePunctuationCandidate(
+    ScoreMatch best,
+    ScoreMatch candidate,
+  ) {
+    return (best.score - candidate.score) <= _punctuationCompetitiveDelta;
+  }
+
+  /// Returns true when punctuation geometry should override score thresholds.
+  ///
+  /// This is reserved for shapes that are unusually distinctive in
+  /// punctuation-only bands, such as low-only marks and very flat horizontals.
+  static bool _shouldForcePunctuationGeometryOverride(Artifact artifact) {
+    final IntRect content = artifact.getContentRect();
+    if (content.isEmpty) {
+      return false;
+    }
+
+    final double rows = max(1, artifact.rows).toDouble();
+    final double topRatio = content.top / rows;
+    final double heightRatio = content.height / rows;
+    return topRatio >= _punctuationLowOnlyTopRatio ||
+        heightRatio <= _punctuationFlatHeightRatio;
+  }
+
+  static ScoreMatch? _scoreMatchForCharacter(
+    List<ScoreMatch> scores,
+    String character,
+  ) {
+    for (final ScoreMatch score in scores) {
+      if (score.character == character) {
+        return score;
+      }
+    }
+    return null;
+  }
+
+  static bool _isPunctuationLikeCharacter(String character) {
+    return character.isNotEmpty &&
+        character != ' ' &&
+        !isLetter(character) &&
+        !isDigit(character);
+  }
+
   /// Returns true when a wide multi-enclosure artifact deserves split rescue.
   ///
   /// This keeps the late split path focused on glyphs that likely contain
@@ -1185,7 +1462,7 @@ class Textify {
     final int avgKerning = band.averageKerning;
     final int threshold = max(
       1,
-      max((avgWidth * 0.45).round(), avgKerning + 2),
+      max((avgWidth * 0.45).floor(), avgKerning + 2),
     );
     return gap >= threshold;
   }

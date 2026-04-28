@@ -240,17 +240,9 @@ String normalizeNameLikeLineTitleCase(String line) {
     return line;
   }
 
-  // If it's a 2-word line starting with a TitleCase word followed by a common lowercase word,
-  // it's likely a sentence rather than a name.
-  if (tokens.length == _nameLikeLineMinTokens &&
-      isTitleCaseWord(tokens[0]) &&
-      tokens[1] == tokens[1].toLowerCase() &&
-      englishWords.contains(tokens[1])) {
-    return line;
-  }
-
   int titleCaseTokens = 0;
   int lowercaseTokens = 0;
+  int mixedCaseTokens = 0;
   for (final String token in tokens) {
     if (!isAlphaWord(token)) {
       return line;
@@ -266,10 +258,15 @@ String normalizeNameLikeLineTitleCase(String line) {
       continue;
     }
 
+    if (isMixedCase(token)) {
+      mixedCaseTokens++;
+      continue;
+    }
+
     return line;
   }
 
-  if (titleCaseTokens == 0 || lowercaseTokens > 1) {
+  if (titleCaseTokens == 0 || lowercaseTokens > 1 || mixedCaseTokens > 1) {
     return line;
   }
 
@@ -282,10 +279,32 @@ String normalizeNameLikeLineTitleCase(String line) {
       normalized.add(token);
       continue;
     }
-    normalized.add(toTitleCaseWord(_normalizeNameLikeToken(token)));
+
+    if (isMixedCase(token) && _countUppercaseAfterStart(token) > 1) {
+      normalized.add(token);
+      continue;
+    }
+
+    final String repaired = _normalizeNameLikeToken(token);
+    if (isMixedCase(token) && repaired == token) {
+      normalized.add(token);
+      continue;
+    }
+
+    normalized.add(toTitleCaseWord(repaired));
   }
 
   return normalized.join(' ');
+}
+
+int _countUppercaseAfterStart(String token) {
+  int count = 0;
+  for (int i = 1; i < token.length; i++) {
+    if (isUpper(token.codeUnitAt(i))) {
+      count++;
+    }
+  }
+  return count;
 }
 
 /// Lowercases short all-caps dictionary words inside sentence-like lines.

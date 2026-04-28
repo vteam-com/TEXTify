@@ -86,9 +86,7 @@ void main() async {
       await testWidthFont(
         textify: textify,
         text: inputText,
-        result:
-            'Qulp,\n'
-            'Word me',
+        result: inputText,
         fontFamily: 'Roboto',
         imageWidth: 200,
         imageHeight: 60,

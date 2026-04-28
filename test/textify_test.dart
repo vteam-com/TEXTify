@@ -380,6 +380,26 @@ void main() async {
     },
   );
 
+  test('generated punctuation line preserves punctuation glyphs', () async {
+    await loadFontIfAvailable(
+      'Courier',
+      'assets/fonts/CourierPrime-Regular.ttf',
+    );
+
+    final Textify instance = await Textify(
+      config: const TextifyConfig(applyDictionaryCorrection: false),
+    ).init(pathToAssetsDefinition: 'assets/matrices.json');
+
+    const String expected = r'(){}[]<>/\,;:.!@#$&*-+=?';
+    final ui.Image image = await renderTextImage(
+      text: expected,
+      fontFamily: 'Courier',
+      fontSize: 24,
+    );
+
+    expect(await instance.getTextFromImage(image: image), expected);
+  });
+
   test(
     'generated lowercase prose preserves word spacing and i glyphs',
     () async {
@@ -398,6 +418,53 @@ void main() async {
       expect(
         await instance.getTextFromImage(image: image),
         'the quick brown fox jumps over the lazy dog',
+      );
+    },
+  );
+
+  test(
+    'generated uppercase Helvetica preserves LA in LAZY without dictionary help',
+    () async {
+      await loadFontIfAvailable('Helvetica', 'assets/test/helvetica.ttf');
+
+      final Textify instance = await Textify(
+        config: const TextifyConfig(applyDictionaryCorrection: false),
+      ).init(pathToAssetsDefinition: 'assets/matrices.json');
+
+      final ui.Image image = await renderTextImage(
+        text: 'THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG',
+        fontFamily: 'Helvetica',
+        fontSize: 24,
+      );
+
+      expect(
+        await instance.getTextFromImage(image: image),
+        'THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG',
+      );
+    },
+  );
+
+  test(
+    'generated uppercase Times preserves I in QUICK without dictionary help',
+    () async {
+      await loadFontIfAvailable(
+        'Times New Roman',
+        'assets/test/times_new_roman.ttf',
+      );
+
+      final Textify instance = await Textify(
+        config: const TextifyConfig(applyDictionaryCorrection: false),
+      ).init(pathToAssetsDefinition: 'assets/matrices.json');
+
+      final ui.Image image = await renderTextImage(
+        text: 'THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG',
+        fontFamily: 'Times New Roman',
+        fontSize: 24,
+      );
+
+      expect(
+        await instance.getTextFromImage(image: image),
+        'THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG',
       );
     },
   );
@@ -442,6 +509,89 @@ void main() async {
         'Widget B 1 7.50\n'
         'Gadget C 2 24.00\n'
         'TOTAL 57.48',
+      );
+    },
+  );
+
+  test(
+    'asset mixed-case sentence preserves title-case i glyphs without dictionary help',
+    () async {
+      final ui.Image image = await Textify.loadImageFromAssets(
+        'assets/test/mixed-case-sentence.png',
+      );
+
+      final Textify instance = Textify(
+        config: const TextifyConfig(applyDictionaryCorrection: false),
+      );
+      await instance.init(pathToAssetsDefinition: 'assets/matrices.json');
+
+      expect(
+        await instance.getTextFromImage(image: image),
+        'OpenAI Released GPT In 2020.\n'
+        'Version 4 Arrived In March 2023.',
+      );
+    },
+  );
+
+  test(
+    'asset title-case names preserves surnames without dictionary help',
+    () async {
+      final ui.Image image = await Textify.loadImageFromAssets(
+        'assets/test/title-case-names.png',
+      );
+
+      final Textify instance = Textify(
+        config: const TextifyConfig(applyDictionaryCorrection: false),
+      );
+      await instance.init(pathToAssetsDefinition: 'assets/matrices.json');
+
+      expect(
+        await instance.getTextFromImage(image: image),
+        'Alice Johnson\n'
+        'Bob Williams\n'
+        'Charlie Brown',
+      );
+    },
+  );
+
+  test(
+    'asset codes and ids preserves EF in SKU without dictionary help',
+    () async {
+      final ui.Image image = await Textify.loadImageFromAssets(
+        'assets/test/codes-and-ids.png',
+      );
+
+      final Textify instance = Textify(
+        config: const TextifyConfig(applyDictionaryCorrection: false),
+      );
+      await instance.init(pathToAssetsDefinition: 'assets/matrices.json');
+
+      expect(
+        await instance.getTextFromImage(image: image),
+        'ORD-20250615-0042\n'
+        'SKU: AB12CD34EF56\n'
+        'LOT: 2025/Q2/BATCH07',
+      );
+    },
+  );
+
+  test(
+    'asset paragraph helvetica repairs lowercase e/o prose misses without dictionary help',
+    () async {
+      final ui.Image image = await Textify.loadImageFromAssets(
+        'assets/test/paragraph-helvetica.png',
+      );
+
+      final Textify instance = Textify(
+        config: const TextifyConfig(applyDictionaryCorrection: false),
+      );
+      await instance.init(pathToAssetsDefinition: 'assets/matrices.json');
+
+      expect(
+        await instance.getTextFromImage(image: image),
+        'Payment received on 03/15/2025.\n'
+        'Your balance is now 0.00 USD.\n'
+        'Thank you for your purchase.',
       );
     },
   );

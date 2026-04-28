@@ -103,6 +103,15 @@ void main() {
       },
     );
 
+    test(
+      'applyCorrection preserves uppercase merchant row with non-English name',
+      () {
+        const String input = 'FINO GOLF CLUB, MATOSINHOS';
+        final String result = applyCorrection(input, true);
+        expect(result, 'FINO GOLF CLUB, MATOSINHOS');
+      },
+    );
+
     test('findClosestWord finds similar words', () {
       final Set<String> dictionary = {'apple', 'banana', 'orange'};
       expect(findClosestWord(dictionary, 'appie'), 'apple');

@@ -212,3 +212,217 @@ double _lowerThirdDensity(Artifact artifact) {
 
   return artifact.countOnPixels(rect: lowerThird) / totalOn;
 }
+
+/// Refines structured field labels/values using token-local case context.
+void _refineStructuredFieldTokenCase(Textify instance, Band band) {
+  final List<Artifact> artifacts = band.artifacts;
+  final int colonIndex = artifacts.indexWhere(
+    (artifact) => artifact.matchingCharacter == ':',
+  );
+  if (colonIndex <= 0 || colonIndex >= artifacts.length - 1) {
+    return;
+  }
+
+  int labelStart = colonIndex - 1;
+  while (labelStart > 0 &&
+      isLetter(artifacts[labelStart - 1].matchingCharacter)) {
+    labelStart--;
+  }
+  if ((colonIndex - labelStart) >= Textify._structuredTitleCaseTokenMinLength) {
+    _refineStructuredTitleCaseToken(
+      instance,
+      artifacts,
+      labelStart,
+      colonIndex,
+    );
+  }
+
+  int index = colonIndex + 1;
+  while (index < artifacts.length) {
+    while (index < artifacts.length &&
+        !isLetter(artifacts[index].matchingCharacter)) {
+      index++;
+    }
+    if (index >= artifacts.length) {
+      return;
+    }
+
+    int end = index;
+    int upperCount = 0;
+    while (end < artifacts.length &&
+        isLetter(artifacts[end].matchingCharacter)) {
+      if (isUppercaseLetter(artifacts[end].matchingCharacter)) {
+        upperCount++;
+      }
+      end++;
+    }
+
+    final int tokenLength = end - index;
+    if (tokenLength >= Textify._structuredUppercaseTokenMinLength &&
+        upperCount >= Textify._structuredUppercaseTokenMinUppercase) {
+      _refineStructuredUppercaseToken(instance, artifacts, index, end);
+    } else if (tokenLength >= Textify._structuredTitleCaseTokenMinLength &&
+        upperCount <= 1) {
+      _refineStructuredTitleCaseToken(instance, artifacts, index, end);
+    }
+
+    index = end;
+  }
+}
+
+/// Promotes a likely title-case token using case-compatible candidates.
+void _refineStructuredTitleCaseToken(
+  Textify instance,
+  List<Artifact> artifacts,
+  int start,
+  int end,
+) {
+  if ((end - start) < Textify._structuredTitleCaseTokenMinLength) {
+    return;
+  }
+
+  final Artifact first = artifacts[start];
+  if (isLetter(first.matchingCharacter) &&
+      !isUppercaseLetter(first.matchingCharacter)) {
+    final List<ScoreMatch> scores = instance
+        .getMatchingScoresOfNormalizedMatrix(first);
+    final ScoreMatch? uppercaseCandidate = _bestCaseCandidate(
+      first,
+      scores,
+      preferUppercase: true,
+      allowedDelta: Textify._structuredTokenCasePromotionDelta,
+    );
+    if (uppercaseCandidate != null) {
+      first.matchingCharacter = uppercaseCandidate.character;
+      first.matchingScore = uppercaseCandidate.score;
+    }
+  }
+
+  for (int i = start + 1; i < end; i++) {
+    final Artifact artifact = artifacts[i];
+    if (artifact.matchingCharacter != 'l') {
+      continue;
+    }
+
+    final List<ScoreMatch> scores = instance
+        .getMatchingScoresOfNormalizedMatrix(artifact);
+    final double? iScore = _scoreForCharacter(scores, 'i');
+    if (iScore == null ||
+        (artifact.matchingScore - iScore) >
+            Textify._lowercaseILPromotionDelta) {
+      continue;
+    }
+
+    artifact.matchingCharacter = 'i';
+    artifact.matchingScore = iScore;
+  }
+}
+
+/// Promotes a likely all-uppercase structured value token.
+void _refineStructuredUppercaseToken(
+  Textify instance,
+  List<Artifact> artifacts,
+  int start,
+  int end,
+) {
+  for (int i = start; i < end; i++) {
+    final Artifact artifact = artifacts[i];
+    if (!isLetter(artifact.matchingCharacter)) {
+      continue;
+    }
+
+    final List<ScoreMatch> scores = instance
+        .getMatchingScoresOfNormalizedMatrix(artifact);
+
+    if (artifact.matchingCharacter == 'F') {
+      final double? eScore = _scoreForCharacter(scores, 'E');
+      if (eScore != null &&
+          (artifact.matchingScore - eScore) <= Textify._uppercaseEFSwapDelta &&
+          _lowerThirdDensity(artifact) >
+              Textify._uppercaseFSparseLowerThirdMax) {
+        artifact.matchingCharacter = 'E';
+        artifact.matchingScore = eScore;
+        continue;
+      }
+    }
+
+    if (isUppercaseLetter(artifact.matchingCharacter)) {
+      continue;
+    }
+
+    final ScoreMatch? uppercaseCandidate = _bestCaseCandidate(
+      artifact,
+      scores,
+      preferUppercase: true,
+      allowedDelta: Textify._structuredTokenCasePromotionDelta,
+    );
+    if (uppercaseCandidate == null) {
+      continue;
+    }
+
+    artifact.matchingCharacter = uppercaseCandidate.character;
+    artifact.matchingScore = uppercaseCandidate.score;
+  }
+}
+
+/// Returns the best case-compatible candidate within [allowedDelta].
+ScoreMatch? _bestCaseCandidate(
+  Artifact artifact,
+  List<ScoreMatch> scores, {
+  required bool preferUppercase,
+  required double allowedDelta,
+}) {
+  if (scores.isEmpty) {
+    return null;
+  }
+
+  ScoreMatch? best;
+  int bestMismatch = 1 << 30;
+  for (final ScoreMatch candidate in scores) {
+    if ((artifact.matchingScore - candidate.score) > allowedDelta) {
+      break;
+    }
+
+    final bool caseMatches = preferUppercase
+        ? isUppercaseLetter(candidate.character)
+        : isLowercaseLetter(candidate.character);
+    if (!caseMatches) {
+      continue;
+    }
+
+    final int mismatch = _candidateStructuralMismatch(
+      artifact,
+      candidate.character,
+    );
+    if (best == null ||
+        mismatch < bestMismatch ||
+        (mismatch == bestMismatch &&
+            candidate.score > best.score + Textify._scoreEqualityTolerance)) {
+      best = candidate;
+      bestMismatch = mismatch;
+    }
+  }
+
+  return best;
+}
+
+/// Counts enclosure/vertical-line mismatches for [candidate].
+int _candidateStructuralMismatch(Artifact artifact, String candidate) {
+  final CharacterDefinition? definition = Textify.characterDefinitions
+      .getDefinition(candidate);
+  if (definition == null) {
+    return 1 << 30;
+  }
+
+  int mismatch = 0;
+  if (artifact.enclosures != definition.enclosures) {
+    mismatch++;
+  }
+  if (artifact.verticalLineLeft != definition.lineLeft) {
+    mismatch++;
+  }
+  if (artifact.verticalLineRight != definition.lineRight) {
+    mismatch++;
+  }
+  return mismatch;
+}

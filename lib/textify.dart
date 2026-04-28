@@ -41,8 +41,12 @@ class Textify {
   static const double _leadingLowercaseUpperTokenDelta = 0.05;
   static const double _lowercaseILPromotionDelta = 0.04;
   static const double _punctuationToLetterPromotionDelta = 0.10;
+  static const double _structuredTokenCasePromotionDelta = 0.10;
   static const double _structuredSeparatorMaxAspectRatio = 0.30;
   static const int _structuredSeparatorMinimumArtifacts = 3;
+  static const int _structuredTitleCaseTokenMinLength = 3;
+  static const int _structuredUppercaseTokenMinLength = 4;
+  static const int _structuredUppercaseTokenMinUppercase = 2;
   static const int _leadingLowercaseUpperTokenLength = 2;
   static const double _uppercaseDominanceRatio = 0.70;
   static const double _uppercaseEFSwapDelta = 0.02;
@@ -62,6 +66,8 @@ class Textify {
   static const int _mergeGapWidthDivisor = 2;
   static const double _mergeScoreThreshold = 0.6;
   static const double _mergeScoreDelta = 0.05;
+  static const int _suspiciousSplitMinEnclosures = 2;
+  static const double _suspiciousSplitWidthRatio = 1.5;
   static const double _mergeNarrowWidthRatio = 0.6;
   static const double _mergeMaxWidthRatio = 1.3;
   static const int _weakArtifactMaxWidth = 10;
@@ -451,7 +457,15 @@ class Textify {
             break;
           }
 
-          if (scores.first.score < config.matchingThreshold) {
+          final bool shouldAttemptSplit =
+              scores.first.score < config.matchingThreshold ||
+              _shouldInspectArtifactForSplit(
+                band,
+                artifact,
+                scores.first.character,
+              );
+
+          if (shouldAttemptSplit) {
             artifact.needsInspection = true;
             final List<Artifact> artifactsFromColumns = band.splitChunk(
               artifact,
@@ -497,6 +511,7 @@ class Textify {
       _refineUppercaseInUppercaseContext(band);
       _refineLowercaseILInLowercaseContext(band);
       _refineLeadingLowercaseUpperToken(band);
+      _refineStructuredFieldTokenCase(this, band);
       _removeFalseSpacesInPunctuationBand(band);
       for (int i = 0; i < band.artifacts.length; i++) {
         final Artifact artifact = band.artifacts[i];
@@ -1086,6 +1101,38 @@ class Textify {
     }
 
     band.artifacts.removeWhere((artifact) => artifact.matchingCharacter == ' ');
+  }
+
+  /// Returns true when a wide multi-enclosure artifact deserves split rescue.
+  ///
+  /// This keeps the late split path focused on glyphs that likely contain
+  /// multiple joined letters, such as `MB` being matched as a single `E`.
+  bool _shouldInspectArtifactForSplit(
+    Band band,
+    Artifact artifact,
+    String bestCharacter,
+  ) {
+    if (artifact.enclosures < _suspiciousSplitMinEnclosures) {
+      return false;
+    }
+
+    final int avgWidth = band.averageWidth;
+    if (avgWidth <= 0 ||
+        artifact.rectFound.width <
+            max(
+              avgWidth + 1,
+              (avgWidth * _suspiciousSplitWidthRatio).round(),
+            )) {
+      return false;
+    }
+
+    final CharacterDefinition? bestDefinition = characterDefinitions
+        .getDefinition(bestCharacter);
+    if (bestDefinition == null) {
+      return false;
+    }
+
+    return artifact.enclosures > bestDefinition.enclosures;
   }
 
   /// Returns true only if splitting an artifact into [parts] produces a mean

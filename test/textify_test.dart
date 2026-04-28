@@ -445,6 +445,48 @@ void main() async {
       );
     },
   );
+
+  test(
+    'asset small-text dense preserves structured fields without dictionary help',
+    () async {
+      final ui.Image image = await Textify.loadImageFromAssets(
+        'assets/test/small-text-dense.png',
+      );
+
+      final Textify instance = Textify(
+        config: const TextifyConfig(applyDictionaryCorrection: false),
+      );
+      await instance.init(pathToAssetsDefinition: 'assets/matrices.json');
+
+      expect(
+        await instance.getTextFromImage(image: image),
+        'Name: John Smith\n'
+        'Date: 2025-06-15\n'
+        'Reference: TX-98432\n'
+        'Amount: 1,250.75\n'
+        'Status: CONFIRMED',
+      );
+    },
+  );
+
+  test(
+    'asset bank statement preserves LUXEMBOURG without dictionary help',
+    () async {
+      final ui.Image image = await Textify.loadImageFromAssets(
+        'assets/test/bank_statement_test.png',
+      );
+
+      final Textify instance = Textify(
+        config: const TextifyConfig(applyDictionaryCorrection: false),
+      );
+      await instance.init(pathToAssetsDefinition: 'assets/matrices.json');
+
+      expect(
+        await instance.getTextFromImage(image: image),
+        contains('WWW.AMAZON.* LSIAK28I5, LUXEMBOURG'),
+      );
+    },
+  );
 }
 
 Future<void> myExpectWord(final String input, final String expected) async {

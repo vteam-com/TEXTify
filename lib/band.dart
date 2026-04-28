@@ -25,7 +25,7 @@ class Band {
   static const int _minArtifactsForSpaceDetection = 2;
   static const int _pairArtifactsCount = 2;
 
-  static const double _minWideSplitRatio = 2.0;
+  static const double _minWideSplitRatio = 1.5;
   static const double _attachmentMaxAreaRatio = 0.25;
   static const double _attachmentMaxDistanceRatio = 0.25;
   static const double _attachmentMaxLineHeightRatio = 0.6;

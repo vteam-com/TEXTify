@@ -238,7 +238,9 @@
   <title>. ▶ models</title>
 </g>
 <g class="folderLayer">
-<rect x="83.0" y="80.0" width="348.0" height="1248.0" rx="12.0" ry="12.0" class="layerBackground"><title>Folder: .</title></rect>
+<rect x="83.0" y="80.0" width="348.0" height="1248.0" rx="12.0" ry="12.0" class="layerBackground layerBackgroundWarning"><title>Folder: .
+
+2 Magic Numbers warnings</title></rect>
 </g>
 <g class="folderLayer">
 <rect x="147.0" y="132.0" width="260.0" height="930.0" rx="12.0" ry="12.0" class="layerBackgroundVirtualFolder" stroke-dasharray="4 2"><title>Folder: ...</title></rect>
@@ -277,7 +279,9 @@
 <rect x="155.0" y="810.0" width="244.0" height="28.0" rx="5.0" ry="5.0" class="fileNode"><title>File: post_process_text.dart</title></rect>
 <rect x="155.0" y="842.0" width="244.0" height="28.0" rx="5.0" ry="5.0" class="fileNode"><title>File: artifact.dart</title></rect>
 <rect x="155.0" y="874.0" width="244.0" height="28.0" rx="5.0" ry="5.0" class="fileNode"><title>File: image_helpers.dart</title></rect>
-<rect x="155.0" y="906.0" width="244.0" height="28.0" rx="5.0" ry="5.0" class="fileNode"><title>File: textify_refinement_helpers.dart</title></rect>
+<rect x="155.0" y="906.0" width="244.0" height="28.0" rx="5.0" ry="5.0" class="fileNode fileNodeWarning"><title>File: textify_refinement_helpers.dart
+
+2 Magic Numbers warnings</title></rect>
 <rect x="155.0" y="938.0" width="244.0" height="28.0" rx="5.0" ry="5.0" class="fileNode"><title>File: char_utils.dart</title></rect>
 <rect x="155.0" y="970.0" width="244.0" height="28.0" rx="5.0" ry="5.0" class="fileNode"><title>File: constants.dart</title></rect>
 <rect x="155.0" y="1002.0" width="244.0" height="28.0" rx="5.0" ry="5.0" class="fileNode"><title>File: post_process_helpers.dart</title></rect>

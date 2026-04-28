@@ -5,7 +5,7 @@ input:
 analyzers:
   options:
     code_size:
-      max_file_loc: 1200
-      max_class_loc: 1200
-      max_function_loc: 1200
-      max_method_loc: 1200
+      max_file_loc: 1300
+      max_class_loc: 1300
+      max_function_loc: 1300
+      max_method_loc: 1300

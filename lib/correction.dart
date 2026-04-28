@@ -21,6 +21,7 @@ const int _longLowercaseSentenceMinTokens = 6;
 const int _longLowercaseSentenceMinLetters = 24;
 const int _structuredUpperValueMaxWords = 2;
 const int _structuredUpperValueMaxLength = 3;
+const int _uppercaseCommaLineFallbackProtectedMinTokens = 3;
 
 /// Divisor for title-case majority threshold: uppercaseStartCount must exceed
 /// alphaWordCount divided by this value to be considered genuine title case.
@@ -277,6 +278,13 @@ String applyDictionaryCorrectionOnSingleSentence(
         // Try direct dictionary match first
         //
         if (!englishWords.contains(word.toLowerCase())) {
+          if (_shouldProtectUppercaseDictionaryCorrectionInCommaLine(
+            inputSentence,
+            word,
+          )) {
+            continue;
+          }
+
           //
           // Try substituting commonly confused characters.
           // First try single substitution types, then try pairs
@@ -681,6 +689,36 @@ bool _hasStructuredShortUppercaseFieldValue(String sentence) {
         token.length >= _minDictionaryTokenLength &&
         token.length <= _structuredUpperValueMaxLength,
   );
+}
+
+/// Returns true when English dictionary repair should avoid uppercase name rows.
+///
+/// Uppercase merchant or address lines like `FINO GOLF CLUB, MATOSINHOS`
+/// often contain several non-English proper nouns. Their all-caps shape makes
+/// English token repair over-eager, so sentence-level dictionary correction is
+/// skipped and later line-aware passes can decide instead.
+bool _shouldProtectUppercaseDictionaryCorrectionInCommaLine(
+  String sentence,
+  String word,
+) {
+  final String alphaWord = word.replaceAll(RegExp(r'[^A-Za-z]'), '');
+  if (alphaWord.isEmpty || alphaWord != alphaWord.toUpperCase()) {
+    return false;
+  }
+
+  if (!sentence.contains(',')) {
+    return false;
+  }
+
+  final CharacterStats stats = CharacterStats(sentence);
+  if (!stats.mostlyUppercase()) {
+    return false;
+  }
+
+  final List<String> alphaTokens = RegExp(
+    r'[A-Za-z]+',
+  ).allMatches(sentence).map((match) => match.group(0)!).toList();
+  return alphaTokens.length >= _uppercaseCommaLineFallbackProtectedMinTokens;
 }
 
 String _capitalizeVeryShortLowercaseWords(String sentence) {

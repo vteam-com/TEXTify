@@ -3,7 +3,7 @@
 00:00 +0: OCR evaluation (dictionary off)
 --- Generated images (dict:off) ---
 upper-alpha | font:Roboto 24px | expected:43 actual:43 | char-acc:100.0% | exact:yes| 0.2s
-upper-alpha-helvetica | font:Helvetica 24px | expected:43 actual:43 | char-acc:95.3% | exact:no| 0.3s
+upper-alpha-helvetica | font:Helvetica 24px | expected:43 actual:43 | char-acc:95.3% | exact:no| 0.2s
   expected: "THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG"
   actual:   "THE QUICK BROWN FOX JUMPS OVER THE UXZY DOG"
 upper-alpha-arial | font:Arial 24px | expected:43 actual:43 | char-acc:100.0% | exact:yes| 0.1s
@@ -13,17 +13,15 @@ upper-alpha-times | font:Times New Roman 24px | expected:43 actual:42 | char-acc
 lower-alpha | font:Roboto 24px | expected:43 actual:43 | char-acc:100.0% | exact:yes| 0.1s
 digits | font:Courier 24px | expected:10 actual:10 | char-acc:100.0% | exact:yes| 0.0s
 mixed-1 | font:Courier 24px | expected:14 actual:14 | char-acc:100.0% | exact:yes| 0.0s
-punctuation | font:Courier 24px | expected:24 actual:27 | char-acc:58.3% | exact:no| 0.1s
+punctuation | font:Courier 24px | expected:24 actual:27 | char-acc:58.3% | exact:no| 0.0s
   expected: "(){}[]<>/\,;:.!@#$&*-+=?"
   actual:   "( ){}[ ]<>/\'; I. le#*&*+=?"
-multi-line | font:Roboto 22px | expected:36 actual:36 | char-acc:100.0% | exact:yes| 0.2s
+multi-line | font:Roboto 22px | expected:36 actual:36 | char-acc:100.0% | exact:yes| 0.1s
 --- Asset images (dict:off) ---
-input_test_image | asset | expected:39 actual:39 | char-acc:100.0% | exact:yes | 0.2s
+input_test_image | asset | expected:39 actual:39 | char-acc:100.0% | exact:yes | 0.1s
 the-quick-brown-fox | asset | expected:98 actual:98 | char-acc:100.0% | exact:yes | 0.3s
 lines-circles | asset | expected:134 actual:134 | char-acc:100.0% | exact:yes | 0.4s
-bank_statement | asset | expected:314 actual:310 | char-acc:98.1% | exact:no | 1.6s
-  expected: "FINO GOLF CLUB, MATOSINHOS\nCONTINENTE BOM DIA, MATOSINHOS\nWWW.AMAZON.* LSIAK28I5, LUXEMBOURG\nREMARKABLE, OSLO\nPINGO DOCE MATOSINHOS, MATOSINHOS\nCONTINENTE BOM DIA, MATOSINHOS\nPAD PORT MATO, MATOSINHOS\nCASA DAS UTILIDADES, Guimaraes\nEUROLOJA MATOSINHOS, MATOSINHOS\nCORES SABORES BOLHAO, PORTO\nTuca Cha E Cafe, PORTO"
-  actual:   "FINO GOLF CLUB, MATOSINHOS\nCONTINENTE BOM DIA, MATOSINHOS\nWWW.AMAZON.* LSIAK28I5, LUXEEOURG\nREMARELE, OSLO\nPINGO DOCE MATOSINHO, MATOSINHOS\nCONTINENTE BOM DIA, MATOSINHOS\nPAD PORT MATO, MATOSINHOS\nCASA DAS UTILIDADES, Guimaraes\nEUROLOJA MATOSINHOS, MATOSINHOS\nCORES SABORES BOLHAO, PORTO\nTuca Cha E Cafe, PORTO"
+bank_statement | asset | expected:313 actual:313 | char-acc:100.0% | exact:yes | 1.5s
 REMARKABLE | asset | expected:10 actual:10 | char-acc:100.0% | exact:yes | 0.3s
 address-block | asset | expected:53 actual:53 | char-acc:100.0% | exact:yes | 0.1s
 receipt-items | asset | expected:76 actual:76 | char-acc:100.0% | exact:yes | 0.1s
@@ -32,9 +30,7 @@ mixed-case-sentence | asset | expected:61 actual:61 | char-acc:96.7% | exact:no 
   actual:   "OpenAI Released GPT In 2020.\nVerslon 4 Arrlved In March 2023."
 single-line-large | asset | expected:20 actual:20 | char-acc:100.0% | exact:yes | 0.1s
 numbers-grid | asset | expected:44 actual:44 | char-acc:100.0% | exact:yes | 0.2s
-small-text-dense | asset | expected:88 actual:88 | char-acc:90.9% | exact:no | 0.5s
-  expected: "Name: John Smith\nDate: 2025-06-15\nReference: TX-98432\nAmount: 1,250.75\nStatus: CONFIRMED"
-  actual:   "Name: John Smlth\nOate: 2025-06-15\nReference: TX-98432\nAmount: 1,250.75\nStatus: coNrlRMFo"
+small-text-dense | asset | expected:88 actual:88 | char-acc:100.0% | exact:yes | 0.4s
 uppercase-short-words | asset | expected:40 actual:40 | char-acc:100.0% | exact:yes | 0.1s
 title-case-names | asset | expected:40 actual:40 | char-acc:90.0% | exact:no | 0.2s
   expected: "Alice Johnson\nBob Williams\nCharlie Brown"
@@ -47,11 +43,11 @@ paragraph-helvetica | asset | expected:90 actual:90 | char-acc:91.1% | exact:no 
   actual:   "Paymont rocolvod on 03/15/2025.\nYour balanco is now 0.00 USD.\nThank you tor your purchaso."
 --- (dict:off) ---
 Generated: accuracy=95.7%
-Assets:    accuracy=97.4%
-Overall:   accuracy=97.1%
-Total time: 6.5s
-Shell: OCR eval (dict:off): generated= 95.7% assets= 97.4% overall= 97.1% | images= 24 bands=  67 artifacts= 1465 chars= 1462 |   6.5s
-00:06 +1: OCR evaluation (dictionary on)
+Assets:    accuracy=98.6%
+Overall:   accuracy=98.0%
+Total time: 5.9s
+Shell: OCR eval (dict:off): generated= 95.7% assets= 98.6% overall= 98.0% | images= 24 bands=  67 artifacts= 1468 chars= 1461 |   5.9s
+00:05 +1: OCR evaluation (dictionary on)
 --- Generated images (dict:on ) ---
 upper-alpha | font:Roboto 24px | expected:43 actual:43 | char-acc:100.0% | exact:yes| 0.1s
 upper-alpha-helvetica | font:Helvetica 24px | expected:43 actual:43 | char-acc:100.0% | exact:yes| 0.2s
@@ -65,19 +61,17 @@ punctuation | font:Courier 24px | expected:24 actual:27 | char-acc:58.3% | exact
   actual:   "( ){}[ ]<>/\'; I. Le#*&*+=?"
 multi-line | font:Roboto 22px | expected:36 actual:36 | char-acc:100.0% | exact:yes| 0.1s
 --- Asset images (dict:on ) ---
-input_test_image | asset | expected:39 actual:39 | char-acc:100.0% | exact:yes | 0.2s
-the-quick-brown-fox | asset | expected:98 actual:98 | char-acc:100.0% | exact:yes | 0.3s
-lines-circles | asset | expected:134 actual:134 | char-acc:100.0% | exact:yes | 0.4s
-bank_statement | asset | expected:314 actual:310 | char-acc:97.8% | exact:no | 1.9s
-  expected: "FINO GOLF CLUB, MATOSINHOS\nCONTINENTE BOM DIA, MATOSINHOS\nWWW.AMAZON.* LSIAK28I5, LUXEMBOURG\nREMARKABLE, OSLO\nPINGO DOCE MATOSINHOS, MATOSINHOS\nCONTINENTE BOM DIA, MATOSINHOS\nPAD PORT MATO, MATOSINHOS\nCASA DAS UTILIDADES, Guimaraes\nEUROLOJA MATOSINHOS, MATOSINHOS\nCORES SABORES BOLHAO, PORTO\nTuca Cha E Cafe, PORTO"
-  actual:   "FIND GOLF CLUB, MATOSINHOS\nCONTINENTE BOM DIA, MATOSINHOS\nWWW.AMAZON.* LSIAK28I5, LUXEEOURG\nREMARELE, OSLO\nPINGO DOCE MATOSINHO, MATOSINHOS\nCONTINENTE BOM DIA, MATOSINHOS\nPAD PORT MATO, MATOSINHOS\nCASA DAS UTILIDADES, Guimaraes\nEUROLOJA MATOSINHOS, MATOSINHOS\nCORES SABORES BOLHAO, PORTO\nTuca Cha E Cafe, PORTO"
-REMARKABLE | asset | expected:10 actual:10 | char-acc:100.0% | exact:yes | 0.4s
+input_test_image | asset | expected:39 actual:39 | char-acc:100.0% | exact:yes | 0.1s
+the-quick-brown-fox | asset | expected:98 actual:98 | char-acc:100.0% | exact:yes | 0.2s
+lines-circles | asset | expected:134 actual:134 | char-acc:100.0% | exact:yes | 0.3s
+bank_statement | asset | expected:313 actual:313 | char-acc:100.0% | exact:yes | 1.5s
+REMARKABLE | asset | expected:10 actual:10 | char-acc:100.0% | exact:yes | 0.3s
 address-block | asset | expected:53 actual:53 | char-acc:100.0% | exact:yes | 0.1s
-receipt-items | asset | expected:76 actual:76 | char-acc:100.0% | exact:yes | 0.2s
+receipt-items | asset | expected:76 actual:76 | char-acc:100.0% | exact:yes | 0.1s
 mixed-case-sentence | asset | expected:61 actual:61 | char-acc:100.0% | exact:yes | 0.1s
 single-line-large | asset | expected:20 actual:20 | char-acc:100.0% | exact:yes | 0.1s
-numbers-grid | asset | expected:44 actual:44 | char-acc:100.0% | exact:yes | 0.3s
-small-text-dense | asset | expected:88 actual:88 | char-acc:100.0% | exact:yes | 0.5s
+numbers-grid | asset | expected:44 actual:44 | char-acc:100.0% | exact:yes | 0.2s
+small-text-dense | asset | expected:88 actual:88 | char-acc:100.0% | exact:yes | 0.4s
 uppercase-short-words | asset | expected:40 actual:40 | char-acc:100.0% | exact:yes | 0.1s
 title-case-names | asset | expected:40 actual:40 | char-acc:97.5% | exact:no | 0.2s
   expected: "Alice Johnson\nBob Williams\nCharlie Brown"
@@ -88,9 +82,9 @@ codes-and-ids | asset | expected:56 actual:56 | char-acc:96.4% | exact:no | 0.1s
 paragraph-helvetica | asset | expected:90 actual:90 | char-acc:100.0% | exact:yes | 0.3s
 --- (dict:on ) ---
 Generated: accuracy=96.7%
-Assets:    accuracy=99.1%
-Overall:   accuracy=98.6%
-Total time: 6.8s
-Shell: OCR eval (dict:on ): generated= 96.7% assets= 99.1% overall= 98.6% | images= 24 bands=  67 artifacts= 1465 chars= 1462 |   6.8s
-00:13 +2: (tearDownAll)
-00:13 +2: All tests passed!
+Assets:    accuracy=99.7%
+Overall:   accuracy=99.1%
+Total time: 5.6s
+Shell: OCR eval (dict:on ): generated= 96.7% assets= 99.7% overall= 99.1% | images= 24 bands=  67 artifacts= 1468 chars= 1461 |   5.6s
+00:11 +2: (tearDownAll)
+00:11 +2: All tests passed!

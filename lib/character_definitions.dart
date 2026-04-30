@@ -13,6 +13,8 @@ import 'package:textify/character_definition.dart';
 /// Exports
 export 'package:textify/character_definition.dart';
 
+const int _minimumMatricesForDedupe = 2;
+
 /// Manages a collection of character definitions used for text processing.
 ///
 /// This class provides methods to load, manipulate, and retrieve character
@@ -207,9 +209,39 @@ class CharacterDefinitions {
       } else {
         found.matrices[existingMatrixIndex] = matrix;
       }
+      _dedupeMatrices(found.matrices);
       _cachedJsonString = '';
       return false;
     }
+  }
+
+  /// Removes duplicate normalized matrices while preserving first-in order.
+  ///
+  /// Template refresh tools can render different fonts to identical normalized
+  /// glyphs. Keeping only the first copy reduces JSON size and avoids extra
+  /// per-template scoring work without changing the effective template bank.
+  void _dedupeMatrices(List<Artifact> matrices) {
+    if (matrices.length < _minimumMatricesForDedupe) {
+      return;
+    }
+
+    final List<Artifact> unique = <Artifact>[];
+    for (final Artifact candidate in matrices) {
+      final bool alreadyStored = unique.any(
+        (final Artifact existing) => existing.hasSameMatrixData(candidate),
+      );
+      if (!alreadyStored) {
+        unique.add(candidate);
+      }
+    }
+
+    if (unique.length == matrices.length) {
+      return;
+    }
+
+    matrices
+      ..clear()
+      ..addAll(unique);
   }
 }
 

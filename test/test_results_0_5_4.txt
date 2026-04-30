@@ -3,9 +3,9 @@
 00:00 +0: OCR evaluation (dictionary off)
 --- Generated images (dict:off) ---
 upper-alpha | font:Roboto 24px | expected:43 actual:43 | char-acc:100.0% | exact:yes| 0.2s
-upper-alpha-helvetica | font:Helvetica 24px | expected:43 actual:43 | char-acc:100.0% | exact:yes| 0.4s
+upper-alpha-helvetica | font:Helvetica 24px | expected:43 actual:43 | char-acc:100.0% | exact:yes| 0.3s
 upper-alpha-arial | font:Arial 24px | expected:43 actual:43 | char-acc:100.0% | exact:yes| 0.1s
-upper-alpha-times | font:Times New Roman 24px | expected:43 actual:43 | char-acc:100.0% | exact:yes| 0.8s
+upper-alpha-times | font:Times New Roman 24px | expected:43 actual:43 | char-acc:100.0% | exact:yes| 0.7s
 lower-alpha | font:Roboto 24px | expected:43 actual:43 | char-acc:100.0% | exact:yes| 0.1s
 digits | font:Courier 24px | expected:10 actual:10 | char-acc:100.0% | exact:yes| 0.0s
 mixed-1 | font:Courier 24px | expected:14 actual:14 | char-acc:100.0% | exact:yes| 0.0s
@@ -15,7 +15,7 @@ multi-line | font:Roboto 22px | expected:36 actual:36 | char-acc:100.0% | exact:
 input_test_image | asset | expected:39 actual:39 | char-acc:100.0% | exact:yes | 0.2s
 the-quick-brown-fox | asset | expected:98 actual:98 | char-acc:100.0% | exact:yes | 0.4s
 lines-circles | asset | expected:134 actual:134 | char-acc:100.0% | exact:yes | 0.4s
-bank_statement | asset | expected:313 actual:313 | char-acc:100.0% | exact:yes | 1.7s
+bank_statement | asset | expected:313 actual:313 | char-acc:100.0% | exact:yes | 1.6s
 REMARKABLE | asset | expected:10 actual:10 | char-acc:100.0% | exact:yes | 0.3s
 address-block | asset | expected:53 actual:53 | char-acc:100.0% | exact:yes | 0.1s
 receipt-items | asset | expected:76 actual:76 | char-acc:100.0% | exact:yes | 0.2s
@@ -25,20 +25,20 @@ numbers-grid | asset | expected:44 actual:44 | char-acc:100.0% | exact:yes | 0.2
 small-text-dense | asset | expected:88 actual:88 | char-acc:100.0% | exact:yes | 0.6s
 uppercase-short-words | asset | expected:40 actual:40 | char-acc:100.0% | exact:yes | 0.1s
 title-case-names | asset | expected:40 actual:40 | char-acc:100.0% | exact:yes | 0.3s
-codes-and-ids | asset | expected:56 actual:56 | char-acc:100.0% | exact:yes | 0.1s
+codes-and-ids | asset | expected:56 actual:56 | char-acc:100.0% | exact:yes | 0.2s
 paragraph-helvetica | asset | expected:90 actual:90 | char-acc:100.0% | exact:yes | 0.4s
 --- (dict:off) ---
 Generated: accuracy=100.0%
 Assets:    accuracy=100.0%
 Overall:   accuracy=100.0%
-Total time: 7.5s
-Shell: OCR eval (dict:off): generated=100.0% assets=100.0% overall=100.0% | images= 24 bands=  67 artifacts= 1463 chars= 1461 |   7.5s
-00:07 +1: OCR evaluation (dictionary on)
+Total time: 14.5s
+Shell: OCR eval (dict:off): generated=100.0% assets=100.0% overall=100.0% | images= 24 bands=  67 artifacts= 1463 chars= 1461 |  14.5s
+00:15 +1: OCR evaluation (dictionary on)
 --- Generated images (dict:on ) ---
 upper-alpha | font:Roboto 24px | expected:43 actual:43 | char-acc:100.0% | exact:yes| 0.2s
-upper-alpha-helvetica | font:Helvetica 24px | expected:43 actual:43 | char-acc:100.0% | exact:yes| 0.4s
+upper-alpha-helvetica | font:Helvetica 24px | expected:43 actual:43 | char-acc:100.0% | exact:yes| 0.3s
 upper-alpha-arial | font:Arial 24px | expected:43 actual:43 | char-acc:100.0% | exact:yes| 0.1s
-upper-alpha-times | font:Times New Roman 24px | expected:43 actual:43 | char-acc:100.0% | exact:yes| 0.8s
+upper-alpha-times | font:Times New Roman 24px | expected:43 actual:43 | char-acc:100.0% | exact:yes| 0.7s
 lower-alpha | font:Roboto 24px | expected:43 actual:43 | char-acc:100.0% | exact:yes| 0.1s
 digits | font:Courier 24px | expected:10 actual:10 | char-acc:100.0% | exact:yes| 0.0s
 mixed-1 | font:Courier 24px | expected:14 actual:14 | char-acc:100.0% | exact:yes| 0.0s
@@ -48,8 +48,8 @@ multi-line | font:Roboto 22px | expected:36 actual:36 | char-acc:100.0% | exact:
 input_test_image | asset | expected:39 actual:39 | char-acc:100.0% | exact:yes | 0.2s
 the-quick-brown-fox | asset | expected:98 actual:98 | char-acc:100.0% | exact:yes | 0.4s
 lines-circles | asset | expected:134 actual:134 | char-acc:100.0% | exact:yes | 0.4s
-bank_statement | asset | expected:313 actual:313 | char-acc:100.0% | exact:yes | 1.7s
-REMARKABLE | asset | expected:10 actual:10 | char-acc:100.0% | exact:yes | 0.3s
+bank_statement | asset | expected:313 actual:313 | char-acc:100.0% | exact:yes | 1.6s
+REMARKABLE | asset | expected:10 actual:10 | char-acc:100.0% | exact:yes | 0.4s
 address-block | asset | expected:53 actual:53 | char-acc:100.0% | exact:yes | 0.1s
 receipt-items | asset | expected:76 actual:76 | char-acc:100.0% | exact:yes | 0.2s
 mixed-case-sentence | asset | expected:61 actual:61 | char-acc:100.0% | exact:yes | 0.1s
@@ -58,13 +58,13 @@ numbers-grid | asset | expected:44 actual:44 | char-acc:100.0% | exact:yes | 0.2
 small-text-dense | asset | expected:88 actual:88 | char-acc:100.0% | exact:yes | 0.6s
 uppercase-short-words | asset | expected:40 actual:40 | char-acc:100.0% | exact:yes | 0.1s
 title-case-names | asset | expected:40 actual:40 | char-acc:100.0% | exact:yes | 0.3s
-codes-and-ids | asset | expected:56 actual:56 | char-acc:100.0% | exact:yes | 0.1s
+codes-and-ids | asset | expected:56 actual:56 | char-acc:100.0% | exact:yes | 0.2s
 paragraph-helvetica | asset | expected:90 actual:90 | char-acc:100.0% | exact:yes | 0.4s
 --- (dict:on ) ---
 Generated: accuracy=100.0%
 Assets:    accuracy=100.0%
 Overall:   accuracy=100.0%
-Total time: 7.4s
-Shell: OCR eval (dict:on ): generated=100.0% assets=100.0% overall=100.0% | images= 24 bands=  67 artifacts= 1463 chars= 1461 |   7.4s
-00:14 +2: (tearDownAll)
-00:15 +2: All tests passed!
+Total time: 14.5s
+Shell: OCR eval (dict:on ): generated=100.0% assets=100.0% overall=100.0% | images= 24 bands=  67 artifacts= 1463 chars= 1461 |  14.5s
+00:30 +2: (tearDownAll)
+00:30 +2: All tests passed!

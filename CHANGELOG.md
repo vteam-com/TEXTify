@@ -4,6 +4,23 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.5.4 2026-05-01
+
+### Changed
+
+- Improved OCR accuracy for all test images (now 100% on all reference assets and generated images)
+- Major refactor of post-processing pipeline for better modularity and maintainability
+- Updated test suite and evaluation harness for stricter correctness and coverage
+- Improved handling of punctuation, numbers, and mixed-case text
+- Fixed edge cases in band splitting and artifact merging
+- Updated English dictionary and normalization logic
+
+## 0.5.3 (unpublished)
+
+**Note:** Version 0.5.3 was never published to pub.dev.
+
+- Split tests into two runs "No English dictionary" and "with English dictionary"
+
 ## 0.5.2 : 2026-02-06
 
 ### Changed

@@ -79,6 +79,15 @@ void main() async {
       supportedCharacters.join(),
       'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 .,?!:;\'"(){}[]<>-/\\+=#\$&*@',
     );
+
+    final CharacterDefinition? quoteDefinition = Textify.characterDefinitions
+        .getDefinition('"');
+    expect(quoteDefinition, isNotNull);
+    expect(quoteDefinition!.matrices.length, 4);
+    expect(
+      quoteDefinition.matrices.map((matrix) => matrix.font).toSet(),
+      <String>{'Arial', 'Courier', 'Helvetica', 'Times New Roman'},
+    );
   });
 
   test('Character Definitions Enclosures', () async {

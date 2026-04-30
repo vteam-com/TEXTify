@@ -153,6 +153,23 @@ void main() {
       },
     );
 
+    test('upsertTemplate skips identical matrices from different fonts', () {
+      final CharacterDefinitions definitions = CharacterDefinitions();
+      final Artifact arial = Artifact.fromAsciiDefinition(<String>['##', '.#']);
+      final Artifact helvetica = Artifact.fromAsciiDefinition(<String>[
+        '##',
+        '.#',
+      ]);
+
+      definitions.upsertTemplate('Arial', 'A', arial);
+      definitions.upsertTemplate('Helvetica', 'A', helvetica);
+
+      final CharacterDefinition? definition = definitions.getDefinition('A');
+      expect(definition, isNotNull);
+      expect(definition!.matrices.length, 1);
+      expect(definition.matrices.single.font, 'Arial');
+    });
+
     test('getMatrix returns correct matrix at specified index', () {
       final definitions = CharacterDefinitions();
       final artifact1 = Artifact(5, 5);

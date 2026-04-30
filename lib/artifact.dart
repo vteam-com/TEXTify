@@ -251,6 +251,11 @@ class Artifact {
   /// The raw grid buffer.
   Uint8List get matrix => _matrix;
 
+  /// Returns true when another artifact has identical normalized pixel data.
+  bool hasSameMatrixData(Artifact other) {
+    return cols == other.cols && listEquals(_matrix, other._matrix);
+  }
+
   /// The location of this artifact in the source image.
   IntOffset locationFound = const IntOffset();
 
